@@ -1,0 +1,5 @@
+biopython
+feedparser
+requests
+beautifulsoup4
+supabase
