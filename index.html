@@ -142,6 +142,50 @@ kbd{background:var(--bg3);border:1px solid var(--line);border-bottom-width:2px;b
   main{padding:14px 12px 50px}
   .section-title{font-size:17px}
 }
+/* ===== 靶点库 / 岗位 / 背单词 新增样式 ===== */
+.btn{display:inline-block;border-radius:9px;padding:8px 14px;font-size:14px;
+  background:var(--bg3);color:var(--text);border:1px solid transparent;cursor:pointer;}
+.btn.ghost{background:transparent;border-color:var(--line);}
+.btn:hover{filter:brightness(.97);}
+.small{font-size:12.5px;}
+.mts{margin-top:12px;}
+.gap{gap:9px;}
+.wrap{flex-wrap:wrap;}
+.grid2{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;}
+@media(max-width:620px){.grid2{grid-template-columns:1fr;}}
+.empty{background:var(--bg2);border:1px dashed var(--line);border-radius:12px;
+  padding:28px;text-align:center;color:var(--text2);}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+@media(max-width:1000px){.grid3,.grid4{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:620px){.grid3,.grid4{grid-template-columns:1fr;}}
+.tg-card{display:flex;flex-direction:column;gap:8px;}
+.tg-head{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;}
+.tg-name{font-weight:700;font-size:1.05rem;}
+.tg-iso{display:flex;flex-wrap:wrap;gap:4px;}
+.grp-title{margin:18px 0 8px;border-left:4px solid var(--brand);padding-left:8px;}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.form-grid label{display:flex;flex-direction:column;gap:4px;font-size:.9rem;}
+@media(max-width:620px){.form-grid{grid-template-columns:1fr;}}
+/* 背单词卡片 */
+.wcard{background:var(--bg2);border:1px solid var(--line);border-radius:14px;
+  padding:26px;text-align:center;box-shadow:var(--shadow);min-height:180px;
+  display:flex;flex-direction:column;justify-content:center;gap:10px;}
+.wword{font-size:1.7rem;font-weight:800;letter-spacing:.3px;}
+.winput{font-size:1.2rem;padding:10px 12px;border:1.5px solid var(--line);border-radius:10px;
+  background:var(--bg2);color:var(--text);text-align:center;width:100%;}
+.wfront,.wback{display:flex;flex-direction:column;gap:8px;align-items:center;}
+.btn.opt{font-size:1.05rem;padding:12px;}
+.opt-right{border-color:#16a34a!important;background:rgba(22,163,74,.15)!important;color:#16a34a!important;}
+.opt-wrong{border-color:#dc2626!important;background:rgba(220,38,38,.12)!important;color:#dc2626!important;}
+.btn.speaking{background:#dc2626;color:#fff;border-color:#dc2626;}
+.btn.danger{border-color:#dc2626;color:#dc2626;}
+.btn.ok{border-color:#16a34a;color:#16a34a;}
+.center{text-align:center;align-items:center;}
+.row.center{justify-content:center;}
+.wcard .muted{font-size:.95rem;}
+.tablewrap{overflow-x:auto;}
+select[data-act=jbStatus]{padding:4px 6px;}
 </style>
 </head>
 <body>
@@ -153,6 +197,7 @@ kbd{background:var(--bg3);border:1px solid var(--line);border-bottom-width:2px;b
       <button class="sm ghost" id="btnExport">导出 JSON</button>
       <button class="sm ghost" id="btnImport">导入 JSON</button>
       <button class="sm ghost" id="btnReset">重置数据</button>
+      <button class="sm ghost" id="btnRestore" title="只补充缺失的预置项，不清空用户数据">恢复预置</button>
       <button class="sm" id="btnTheme" title="深色模式">🌙</button>
     </div>
   </div>
@@ -160,9 +205,12 @@ kbd{background:var(--bg3);border:1px solid var(--line);border-bottom-width:2px;b
 <div class="navwrap"><nav class="nav" id="nav">
   <button data-view="dashboard" class="active">首页仪表盘</button>
   <button data-view="daily">每日更新中心</button>
-  <button data-view="chunks">词块学习</button>
+  <button data-view="chunks">专业词块练习</button>
+  <button data-view="words">常规背单词</button>
   <button data-view="sentence">造句训练</button>
   <button data-view="projects">项目口述库</button>
+  <button data-view="targets">靶点库</button>
+  <button data-view="jobs">岗位追踪</button>
   <button data-view="myq">我的面试题库</button>
   <button data-view="extq">外企面试题库</button>
   <button data-view="answers">答案库</button>
@@ -175,8 +223,11 @@ kbd{background:var(--bg3);border:1px solid var(--line);border-bottom-width:2px;b
   <section class="view active" id="view-dashboard"></section>
   <section class="view" id="view-daily"></section>
   <section class="view" id="view-chunks"></section>
+  <section class="view" id="view-words"></section>
   <section class="view" id="view-sentence"></section>
   <section class="view" id="view-projects"></section>
+  <section class="view" id="view-targets"></section>
+  <section class="view" id="view-jobs"></section>
   <section class="view" id="view-myq"></section>
   <section class="view" id="view-extq"></section>
   <section class="view" id="view-answers"></section>
@@ -217,12 +268,34 @@ function pickVoice(){
             vs.find(v=>v.lang==="en-GB")||vs.find(v=>v.lang.startsWith("en"))||null;
 }
 if("speechSynthesis" in window){pickVoice();speechSynthesis.onvoiceschanged=pickVoice;}
-function speak(text,rate=1){
-  if(!("speechSynthesis" in window)){toast("当前浏览器不支持朗读");return;}
+const TTS_SUPPORTED=("speechSynthesis" in window);
+let TTS_BTN=null, TTS_BTN_LABEL="";
+/* 停止当前朗读并还原按钮 */
+function stopSpeak(){
+  if(TTS_SUPPORTED)speechSynthesis.cancel();
+  restoreTtsBtn();
+}
+function restoreTtsBtn(){
+  if(TTS_BTN){TTS_BTN.textContent=TTS_BTN_LABEL;TTS_BTN.classList.remove("speaking");TTS_BTN=null;TTS_BTN_LABEL="";}
+}
+/* 基础朗读：先 cancel 再 speak；onEnd 回调 */
+function speak(text,rate=1,onEnd){
+  if(!TTS_SUPPORTED){toast("当前浏览器不支持朗读");if(onEnd)onEnd();return;}
   speechSynthesis.cancel();
+  restoreTtsBtn();
   const u=new SpeechSynthesisUtterance(text);
   if(TTS_VOICE)u.voice=TTS_VOICE; u.lang=TTS_VOICE?TTS_VOICE.lang:"en-US"; u.rate=rate;
+  u.onend=()=>{restoreTtsBtn();if(onEnd)onEnd();};
+  u.onerror=()=>{restoreTtsBtn();if(onEnd)onEnd();};
   speechSynthesis.speak(u);
+}
+/* 按钮式朗读：朗读中按钮变“■ 停止”，再点停止 */
+function toggleSpeak(btn,text,rate=1){
+  if(!TTS_SUPPORTED){toast("当前浏览器不支持朗读");return;}
+  if(TTS_BTN===btn){stopSpeak();return;}
+  TTS_BTN=btn;TTS_BTN_LABEL=btn.textContent;
+  btn.classList.add("speaking");btn.textContent="■ 停止";
+  speak(text,rate);
 }
 
 /* ---------- 录音 MediaRecorder（浏览器不支持时自动隐藏按钮） ---------- */
@@ -701,9 +774,198 @@ function buildTemplate5(p){
 /* =====================================================================
  * 每日更新中心：靶点 15、文献源 10、岗位渠道 15、每日检查清单
  * ===================================================================== */
-const P_TARGETS=["PSMA","CAIX","CD73","Nectin-4","SSTR2","FAP","GRPR","HER2","EGFR","C-MET","CXCR4","CLDN18.2","Integrin αvβ3","MSLN","GD2"];
+/* 15 个完整靶点数据（靶点库模块） */
+const T_TARGETS=[
+{name:"PSMA",fullName:"Prostate-Specific Membrane Antigen",fullNameCN:"前列腺特异性膜抗原",
+ pathway:"细胞膜表面酶 / 谷氨酸羧肽酶 II",
+ functionCN:"在前列腺癌细胞膜上高表达，正常组织表达有限；配体结合后内化，适合显像与靶向治疗。",
+ indications:["前列腺癌（诊断、分期、生化复发）","去势抵抗性前列腺癌治疗"],
+ diagnosticIsotopes:["Ga-68","F-18"],therapeuticIsotopes:["Lu-177","Ac-225"],
+ representativeDrugs:["Ga-68 PSMA-11","Pylarify (F-18 piflufolastat)","Pluvicto (Lu-177 vipivotide tetraxetan)"],
+ trialPhase:"I 期 / II 期 / III 期 / IIT",
+ craMonitoringPoints:["显像窗内完成 PET/CT","剂量校准与给药活度记录","IP accountability（衰变校正）","SUV 与病灶数据 SDV","辐射安全文件"],
+ keyReferences:[{t:"PSMA radioligand therapy review",u:"https://pubmed.ncbi.nlm.nih.gov/?term=PSMA+radioligand"},
+   {t:"Pluvicto approval info",u:"https://www.fda.gov/news-events/press-announcements/fda-approves-pluvicto-advanced-prostate-cancer"}],
+ relatedProjects:["PSMA 靶向核药前列腺癌诊断 II 期","PSMA 靶向核药前列腺癌 I 期"],relatedChunks:["radioligand","dosimetry","IP accountability"]},
+{name:"CAIX",fullName:"Carbonic Anhydrase IX",fullNameCN:"碳酸酐酶 IX",
+ pathway:"缺氧诱导的膜相关碳酸酐酶",
+ functionCN:"由 HIF-1α 调控，在缺氧肿瘤（如肾透明细胞癌）高表达，调节细胞外 pH。",
+ indications:["肾透明细胞癌","其他缺氧实体瘤"],
+ diagnosticIsotopes:["Ga-68","F-18","Zr-89"],therapeuticIsotopes:["Lu-177"],
+ representativeDrugs:["girentuximab-based tracers (TLX124 / 124I-cG250 研究)"],
+ trialPhase:"IIT / I-II 期",
+ craMonitoringPoints:["影像采集时间点","盲法阅片与诊断效能数据","参考标准（病理）一致性","受试者入选标准核对"],
+ keyReferences:[{t:"CAIX PET renal cell carcinoma",u:"https://pubmed.ncbi.nlm.nih.gov/?term=CAIX+PET+renal"}],
+ relatedProjects:["CAIX 靶向核药肾透明细胞癌 PET/CT 诊断效能 IIT"],relatedChunks:["hypoxia","reader study","sensitivity"]},
+{name:"CD73",fullName:"Ecto-5'-nucleotidase",fullNameCN:"胞外-5'-核苷酸酶",
+ pathway:"嘌呤能信号 / 腺苷代谢",
+ functionCN:"催化 AMP 生成腺苷，参与肿瘤免疫抑制微环境，在胰腺癌、胃癌等实体瘤表达。",
+ indications:["胰腺癌","胃癌","其他实体瘤"],
+ diagnosticIsotopes:["Ga-68","F-18","Zr-89"],therapeuticIsotopes:[],
+ representativeDrugs:["CD73 靶向显像剂（临床研究阶段）"],
+ trialPhase:"IIT",
+ craMonitoringPoints:["受试者资格与适应症核对","PET/CT 显像窗","时间-活度数据完整性","质疑及时关闭"],
+ keyReferences:[{t:"CD73 imaging review",u:"https://pubmed.ncbi.nlm.nih.gov/?term=CD73+imaging"}],
+ relatedProjects:["CD73 靶向核药胰腺癌/胃癌 PET/CT 诊断效能 IIT"],relatedChunks:["tumor microenvironment","PET/CT"]},
+{name:"Nectin-4",fullName:"Nectin cell adhesion molecule 4",fullNameCN:"Nectin-4 细胞黏附分子",
+ pathway:"细胞黏附分子 / 免疫球蛋白超家族",
+ functionCN:"在尿路上皮癌、乳腺癌等上皮源性肿瘤高表达，介导细胞黏附与信号。",
+ indications:["尿路上皮癌","乳腺癌"],
+ diagnosticIsotopes:["Ga-68","F-18","Zr-89"],therapeuticIsotopes:["Lu-177"],
+ representativeDrugs:["Padcev (enfortumab vedotin，ADC 参照)","Nectin-4 靶向核药（研究阶段）"],
+ trialPhase:"IIT",
+ craMonitoringPoints:["影像采集规范","诊断效能与盲法阅片","eCRF 与报告一致性","随访完整性"],
+ keyReferences:[{t:"Nectin-4 targeted imaging",u:"https://pubmed.ncbi.nlm.nih.gov/?term=Nectin-4+imaging"}],
+ relatedProjects:["Nectin-4 靶向核药尿路上皮癌/乳腺癌 PET/CT 诊断效能 IIT"],relatedChunks:["imaging window","SDV"]},
+{name:"SSTR2",fullName:"Somatostatin Receptor Type 2",fullNameCN:"生长抑素受体 2 型",
+ pathway:"G 蛋白偶联受体（GPCR）",
+ functionCN:"在分化良好的神经内分泌肿瘤高表达，介导抗增殖信号与受体内化。",
+ indications:["神经内分泌肿瘤（NET/GEP-NET）"],
+ diagnosticIsotopes:["Ga-68","Cu-64"],therapeuticIsotopes:["Lu-177","Y-90"],
+ representativeDrugs:["Netspot (Ga-68 dotatate)","Lutathera (Lu-177 dotatate)"],
+ trialPhase:"II/III 期 / 临床应用",
+ craMonitoringPoints:["显像与治疗排程","给药活度与肾保护（氨基酸输注）","剂量学数据","AE（恶心、骨髓抑制）记录"],
+ keyReferences:[{t:"PRRT neuroendocrine",u:"https://pubmed.ncbi.nlm.nih.gov/?term=PRRT+neuroendocrine"}],
+ relatedProjects:[],relatedChunks:["PRRT","radioligand"]},
+{name:"FAP",fullName:"Fibroblast Activation Protein",fullNameCN:"成纤维细胞活化蛋白",
+ pathway:"肿瘤相关成纤维细胞（CAF）表面丝氨酸蛋白酶",
+ functionCN:"在 90% 上皮性肿瘤的基质成纤维细胞表达，正常组织极少；FAPI 显像背景低。",
+ indications:["胰腺癌","肺癌","消化道肿瘤等广谱实体瘤"],
+ diagnosticIsotopes:["Ga-68","F-18"],therapeuticIsotopes:["Lu-177"],
+ representativeDrugs:["Ga-68 FAPI-04/46","F-18 FAPI","FAP-2286（肽基）"],
+ trialPhase:"I/II 期 / IIT",
+ craMonitoringPoints:["短显像窗（注射后约 10 分钟）","排程与热室协调","病灶摄取数据 SDV","治疗周期剂量学"],
+ keyReferences:[{t:"FAPI clinical imaging",u:"https://pubmed.ncbi.nlm.nih.gov/?term=FAPI+PET"}],
+ relatedProjects:[],relatedChunks:["FAPI","tumor stroma"]},
+{name:"GRPR",fullName:"Gastrin-Releasing Peptide Receptor",fullNameCN:"胃泌素释放肽受体",
+ pathway:"G 蛋白偶联受体（蛙皮素受体家族）",
+ functionCN:"在前列腺癌、乳腺癌等表达，介导增殖信号；可与 PSMA 互补。",
+ indications:["前列腺癌","乳腺癌"],
+ diagnosticIsotopes:["Ga-68","F-18"],therapeuticIsotopes:["Lu-177"],
+ representativeDrugs:["Ga-68 RM2（BBN 拮抗剂）"],
+ trialPhase:"I/II 期",
+ craMonitoringPoints:["受试者选择","显像时间点","安全性与 AE 记录","数据质疑管理"],
+ keyReferences:[{t:"GRPR PET prostate",u:"https://pubmed.ncbi.nlm.nih.gov/?term=GRPR+PET"}],
+ relatedProjects:[],relatedChunks:["bombesin antagonist"]},
+{name:"CXCR4",fullName:"C-X-C Chemokine Receptor 4",fullNameCN:"C-X-C 趋化因子受体 4",
+ pathway:"趋化因子信号 GPCR",
+ functionCN:"在多发性骨髓瘤、淋巴瘤、华氏巨球蛋白血症表达，参与细胞迁移与归巢。",
+ indications:["多发性骨髓瘤","淋巴瘤","华氏巨球蛋白血症"],
+ diagnosticIsotopes:["Ga-68"],therapeuticIsotopes:["Lu-177","Y-90"],
+ representativeDrugs:["Plerixafor (Mozobil，CXCR4 抑制剂参照)","PentixaFor / PentixaTher"],
+ trialPhase:"II/III 期",
+ craMonitoringPoints:["给药前活度核对","显像窗","治疗患者筛选（CXCR4 表达）","安全监测"],
+ keyReferences:[{t:"CXCR4 targeted imaging/therapy",u:"https://pubmed.ncbi.nlm.nih.gov/?term=CXCR4+pentixafor"}],
+ relatedProjects:[],relatedChunks:["chemokine receptor"]},
+{name:"HER2",fullName:"Human Epidermal Growth Factor Receptor 2",fullNameCN:"人表皮生长因子受体 2",
+ pathway:"受体酪氨酸激酶（ERBB 家族）",
+ functionCN:"在乳腺癌、胃癌过表达，驱动增殖；核素标记抗体/纳米抗体可显像与治疗。",
+ indications:["乳腺癌","胃癌"],
+ diagnosticIsotopes:["Zr-89","Ga-68"],therapeuticIsotopes:["Lu-177"],
+ representativeDrugs:["Herceptin (trastuzumab 参照)","Zr-89 trastuzumab","trastuzumab deruxtecan (ADC)"],
+ trialPhase:"I/II 期",
+ craMonitoringPoints:["抗体类显像时间点（注射后数天）","受试者既往治疗核对","肿瘤评估数据","AE（心脏 LVEF）记录"],
+ keyReferences:[{t:"HER2 immunoPET",u:"https://pubmed.ncbi.nlm.nih.gov/?term=HER2+immunoPET"}],
+ relatedProjects:[],relatedChunks:["monoclonal antibody","immunoPET"]},
+{name:"Trop-2",fullName:"Trophoblast Cell Surface Antigen 2",fullNameCN:"滋养层细胞表面抗原 2",
+ pathway:"细胞表面糖蛋白 / 钙信号",
+ functionCN:"在多种上皮肿瘤高表达（三阴性乳腺癌、肺癌、尿路上皮癌），促进增殖与侵袭。",
+ indications:["三阴性乳腺癌","肺癌","尿路上皮癌"],
+ diagnosticIsotopes:["Zr-89","Ga-68"],therapeuticIsotopes:["Lu-177"],
+ representativeDrugs:["Trodelvy (sacituzumab govitecan，ADC 参照)","Trop-2 靶向核药（研究阶段）"],
+ trialPhase:"I/II 期",
+ craMonitoringPoints:["受试者资格","显像时间点","SDV 关键疗效数据","安全报告"],
+ keyReferences:[{t:"Trop-2 targeted imaging",u:"https://pubmed.ncbi.nlm.nih.gov/?term=Trop-2+imaging"}],
+ relatedProjects:[],relatedChunks:["glycoprotein target"]},
+{name:"KLK3",fullName:"Kallikrein-Related Peptidase 3 (PSA)",fullNameCN:"激肽释放酶相关肽酶 3（PSA）",
+ pathway:"分泌型丝氨酸蛋白酶",
+ functionCN:"即 PSA，前列腺上皮分泌，用于筛查与复发监测；可作为靶向或患者分层标志物。",
+ indications:["前列腺癌筛查与分层"],
+ diagnosticIsotopes:["F-18"],therapeuticIsotopes:[],
+ representativeDrugs:["PSA 检测（分层标志物）"],
+ trialPhase:"II 期（伴随/分层）",
+ craMonitoringPoints:["PSA 阈值与入选核对","实验室数据 SDV","分层因素一致性"],
+ keyReferences:[{t:"PSA biomarker trials",u:"https://pubmed.ncbi.nlm.nih.gov/?term=PSA+biomarker"}],
+ relatedProjects:["PSMA 靶向核药前列腺癌诊断 II 期"],relatedChunks:["biomarker","eligibility criteria"]},
+{name:"STEAP1",fullName:"Six Transmembrane Epithelial Antigen of Prostate 1",fullNameCN:"前列腺六跨膜上皮抗原 1",
+ pathway:"跨膜金属还原酶",
+ functionCN:"在前列腺癌高表达，参与细胞铁/铜代谢；适合 T 细胞或核素靶向。",
+ indications:["前列腺癌"],
+ diagnosticIsotopes:["Zr-89","Ga-68"],therapeuticIsotopes:["Lu-177","Ac-225"],
+ representativeDrugs:["STEAP1 CAR-T/核素偶联（研究阶段）"],
+ trialPhase:"I 期",
+ craMonitoringPoints:["受试者安全监测","剂量爬坡与 DLT","入选资格","AE/SAE 报告"],
+ keyReferences:[{t:"STEAP1 prostate target",u:"https://pubmed.ncbi.nlm.nih.gov/?term=STEAP1+prostate"}],
+ relatedProjects:["PSMA 靶向核药前列腺癌 I 期"],relatedChunks:["dose escalation","DLT"]},
+{name:"CLDN18.2",fullName:"Claudin 18.2",fullNameCN:"紧密连接蛋白 18.2",
+ pathway:"细胞间紧密连接蛋白",
+ functionCN:"在胃癌、胰腺癌高表达（胃黏膜特异剪接体），正常组织埋藏于紧密连接中。",
+ indications:["胃癌","胰腺癌"],
+ diagnosticIsotopes:["Zr-89","Ga-68"],therapeuticIsotopes:["Lu-177"],
+ representativeDrugs:["Zolbetuximab（参照）","CLDN18.2 核素标记（研究阶段）"],
+ trialPhase:"I/II 期",
+ craMonitoringPoints:["靶点表达确认","影像/活检时间点","SDV 病理数据","安全监测"],
+ keyReferences:[{t:"CLDN18.2 imaging",u:"https://pubmed.ncbi.nlm.nih.gov/?term=CLDN18.2+imaging"}],
+ relatedProjects:["CD73 靶向核药胰腺癌/胃癌 PET/CT 诊断效能 IIT"],relatedChunks:["claudin","IHC"]},
+{name:"B7H3",fullName:"B7 Homolog 3 (CD276)",fullNameCN:"B7 同源物 3（CD276）",
+ pathway:"免疫检查点 / B7 家族",
+ functionCN:"在多种儿童及成人实体瘤高表达，参与免疫调节，正常组织表达有限。",
+ indications:["儿童肿瘤","前列腺癌","肺癌","脑肿瘤"],
+ diagnosticIsotopes:["Zr-89","Ga-68"],therapeuticIsotopes:["Lu-177","Ac-225"],
+ representativeDrugs:["Omburtamab（参照）","B7-H3 ADC / 核素偶联（研究阶段）"],
+ trialPhase:"I/II 期",
+ craMonitoringPoints:["受试者资格","特殊给药途径核对（如鞘内）","安全与 AE 监测","影像数据 SDV"],
+ keyReferences:[{t:"B7-H3 targeted therapy/imaging",u:"https://pubmed.ncbi.nlm.nih.gov/?term=B7-H3+imaging"}],
+ relatedProjects:[],relatedChunks:["immune checkpoint"]},
+{name:"CCK2R",fullName:"Cholecystokinin 2 Receptor",fullNameCN:"胆囊收缩素 2 受体",
+ pathway:"G 蛋白偶联受体",
+ functionCN:"在甲状腺髓样癌、部分胃肠肿瘤高表达，调控增殖。",
+ indications:["甲状腺髓样癌","胃肠肿瘤"],
+ diagnosticIsotopes:["Ga-68"],therapeuticIsotopes:["Lu-177"],
+ representativeDrugs:["Ga-68 pentagastrin analogs / minigastrin 衍生物"],
+ trialPhase:"I/II 期",
+ craMonitoringPoints:["受试者选择","显像时间点","肾/胃摄取与安全","AE 记录"],
+ keyReferences:[{t:"CCK2R targeted imaging",u:"https://pubmed.ncbi.nlm.nih.gov/?term=CCK2+receptor+imaging"}],
+ relatedProjects:[],relatedChunks:["minigastrin"]}
+];
+/* 简单名称列表，供表单/解析复用 */
+const P_TARGETS=T_TARGETS.map(t=>t.name);
 const LIT_SOURCES=["PubMed","ClinicalTrials.gov","FDA News & Press","EMA Medicines Overview","NMPA 官网","SNMMI 官网","EANM 官网","Journal of Nuclear Medicine","European Journal of Nuclear Medicine","核医学相关公众号"];
-const JOB_CHANNELS=["PharmiWeb","LinkedIn Jobs","Indeed","Glassdoor","Blind","Reddit r/clinicalresearch","craresources.com","PPD Careers","IQVIA Careers","ICON Careers","Parexel Careers","Syneos Careers","Fortrea Careers","Medpace Careers","猎头/内推"];
+/* 28 条岗位渠道（岗位追踪模块） */
+const T_JOBCHANNELS=[
+/* CRO（10） */
+{name:"PPD",type:"CRO",keywordsEN:"CRA radiopharmaceutical oncology",keywordsCN:"CRA 临床监查员 核药 肿瘤",url:"https://www.ppdi.com/careers/",notes:"Thermo Fisher 旗下，核药/肿瘤项目多",updateFrequency:"每周"},
+{name:"IQVIA",type:"CRO",keywordsEN:"Clinical Research Associate nuclear medicine",keywordsCN:"临床监查员 核医学",url:"https://jobs.iqvia.com/",notes:"规模最大，系统与培训成熟",updateFrequency:"每周"},
+{name:"ICON",type:"CRO",keywordsEN:"CRA radiopharmaceutical",keywordsCN:"CRA 核药",url:"https://www.iconplc.com/careers/",notes:"全流程服务，技术导向",updateFrequency:"每周"},
+{name:"Parexel",type:"CRO",keywordsEN:"CRA oncology",keywordsCN:"临床监查员 肿瘤",url:"https://jobs.parexel.com/",notes:"肿瘤强，监查文化好",updateFrequency:"每周"},
+{name:"Syneos Health",type:"CRO",keywordsEN:"CRA radiopharmaceutical",keywordsCN:"CRA 核药",url:"https://www.syneoshealth.com/careers",notes:"咨询+临床双模式",updateFrequency:"每周"},
+{name:"Fortrea",type:"CRO",keywordsEN:"Clinical Research Associate",keywordsCN:"临床监查员",url:"https://www.fortrea.com/careers/",notes:"Labcorp 拆分，项目稳定",updateFrequency:"每周"},
+{name:"Medpace",type:"CRO",keywordsEN:"CRA medical device oncology",keywordsCN:"CRA 器械 肿瘤",url:"https://www.medpace.com/careers/",notes:"总部带教体系强",updateFrequency:"每周"},
+{name:"Worldwide Clinical Trials",type:"CRO",keywordsEN:"CRA oncology",keywordsCN:"临床监查员 肿瘤",url:"https://www.gcp.com/careers/",notes:"中型 CRO，神经/心血管/肿瘤",updateFrequency:"每周"},
+{name:"Novotech",type:"CRO",keywordsEN:"CRA Asia oncology",keywordsCN:"CRA 亚洲 肿瘤",url:"https://novotechhealth.com/careers/",notes:"亚太领先，中国项目多",updateFrequency:"每周"},
+{name:"Premier Research",type:"CRO",keywordsEN:"CRA oncology device",keywordsCN:"临床监查员 肿瘤 器械",url:"https://www.premier-research.com/careers",notes:"专科 CRO",updateFrequency:"每周"},
+/* 药企 / 核药公司（11） */
+{name:"Novartis",type:"核药药企",keywordsEN:"CRA radiopharmaceutical",keywordsCN:"CRA 核药",url:"https://www.novartis.com/careers",notes:"Pluvicto/Lutathera 母公司",updateFrequency:"每周"},
+{name:"Bayer",type:"药企",keywordsEN:"CRA radiology oncology",keywordsCN:"临床监查员 影像 肿瘤",url:"https://career.bayer.com/",notes:"Xofigo（Ra-223）",updateFrequency:"每周"},
+{name:"Telix Pharmaceuticals",type:"核药公司",keywordsEN:"CRA clinical operations",keywordsCN:"临床监查 核药",url:"https://telixpharma.com/careers/",notes:"PSMA/CAIX 管线",updateFrequency:"每周"},
+{name:"Lantheus",type:"核药公司",keywordsEN:"CRA clinical research",keywordsCN:"临床监查 核药",url:"https://www.lantheus.com/careers/",notes:"Pylarify/PNT2002",updateFrequency:"每周"},
+{name:"Curium",type:"核药公司",keywordsEN:"CRA clinical",keywordsCN:"临床监查 核药",url:"https://www.curiumpharma.com/careers/",notes:"核药网络与诊断",updateFrequency:"每周"},
+{name:"RayzeBio",type:"核药公司",keywordsEN:"clinical operations CRA",keywordsCN:"临床运营 监查",url:"https://rayzebio.com/careers/",notes:"Ac-225 偶联药物（BMS 收购）",updateFrequency:"每两周"},
+{name:"Fusion Pharmaceuticals",type:"核药公司",keywordsEN:"CRA clinical",keywordsCN:"临床监查 核药",url:"https://www.fusionpharma.com/careers/",notes:"Ac-225（AstraZeneca 收购）",updateFrequency:"每两周"},
+{name:"Point Biopharma",type:"核药公司",keywordsEN:"clinical CRA",keywordsCN:"临床监查 核药",url:"https://pointbiopharma.com/careers/",notes:"FAP/PSMA（Eli Lilly 收购）",updateFrequency:"每两周"},
+{name:"ITM Radiopharma",type:"核药公司",keywordsEN:"clinical operations",keywordsCN:"临床运营",url:"https://www.itm-radiopharma.com/career/",notes:"Lu-177/no-carrier-added",updateFrequency:"每两周"},
+{name:"Nuclidium",type:"核药公司",keywordsEN:"clinical research",keywordsCN:"临床研究",url:"https://nuclidium.com/careers/",notes:"F-18 显像管线",updateFrequency:"每两周"},
+{name:"Blue Earth Diagnostics",type:"核药公司",keywordsEN:"clinical operations CRA",keywordsCN:"临床运营 监查",url:"https://www.blueearthdx.com/careers/",notes:"F-18 fluciclovine",updateFrequency:"每两周"},
+/* 招聘平台（7） */
+{name:"LinkedIn Jobs",type:"平台",keywordsEN:"radiopharmaceutical CRA",keywordsCN:"核药 CRA",url:"https://www.linkedin.com/jobs/search/?keywords=radiopharmaceutical%20CRA",notes:"设置职位提醒",updateFrequency:"每天"},
+{name:"PharmiWeb.jobs",type:"平台",keywordsEN:"radiopharmaceutical CRA",keywordsCN:"核药 CRA",url:"https://www.pharmiweb.jobs/searchjobs/?keywords=radiopharmaceutical+CRA",notes:"欧洲医药岗位多",updateFrequency:"每天"},
+{name:"BioSpace",type:"平台",keywordsEN:"CRA nuclear medicine",keywordsCN:"核医学 CRA",url:"https://www.biospace.com/jobs/results?Keywords=CRA",notes:"北美生物制药岗位",updateFrequency:"每天"},
+{name:"MedJobs",type:"平台",keywordsEN:"clinical research associate",keywordsCN:"临床监查员",url:"https://www.medjobs.com/",notes:"医疗岗位聚合",updateFrequency:"每周"},
+{name:"猎聘",type:"平台",keywordsEN:"CRA",keywordsCN:"核药 CRA 临床监查员",url:"https://liepin.com/zhaopin/?key=核药+CRA",notes:"国内核药/外企岗位",updateFrequency:"每天"},
+{name:"智联招聘",type:"平台",keywordsEN:"CRA",keywordsCN:"核药 临床监查员",url:"https://sou.zhaopin.com/?kw=核药%20CRA",notes:"国内岗位",updateFrequency:"每天"},
+{name:"Boss直聘",type:"平台",keywordsEN:"CRA",keywordsCN:"核药 CRA",url:"https://www.zhipin.com/web/geek/job?query=核药CRA",notes:"可直接与 HR 沟通",updateFrequency:"每天"}
+];
+const JOB_CHANNELS=T_JOBCHANNELS.map(c=>c.name);
 const CHECKLIST=[
  ["法规","查看 FDA / EMA / NMPA 当日更新",LIT_SOURCES[2],LIT_SOURCES[3],LIT_SOURCES[4]],
  ["靶点/文献","PubMed 检索 7 个靶点新文献",LIT_SOURCES[0]],
@@ -783,7 +1045,7 @@ const P_LISTENING=[
  * 周计划 Q1-Q4（每季度 10 项，共 40 项），勾选自动保存
  * ===================================================================== */
 const P_PLAN={
-Q1:{name:"Q1 基础期",tasks:["完成英文简历（CV）初稿","建立个人术语库（每日积累）","写熟 1 分钟英文自我介绍","重学 ICH GCP 并整理英文要点","梳理全部项目经历（中文先写全）","每日 15 分钟词块学习","完成 5 道基础面试题答案","熟悉英语发音与朗读节奏","确定目标公司清单","养成打卡习惯"]},
+Q1:{name:"Q1 基础期",tasks:["完成英文简历（CV）初稿","建立个人术语库（每日积累）","写熟 1 分钟英文自我介绍","重学 ICH GCP 并整理英文要点","梳理全部项目经历（中文先写全）","每日 15 分钟专业词块练习","完成 5 道基础面试题答案","熟悉英语发音与朗读节奏","确定目标公司清单","养成打卡习惯"]},
 Q2:{name:"Q2 专业期",tasks:["核药专业英语集中突破","练习英文监查访视报告写作","模拟 SIV/IMV 英文流程","熟练掌握 EDC/eTMF 相关表达","整理核药项目英文口述（2分钟）","掌握 PET/CT 与剂量学表达","练习 SDV/query 英文讲解","完成核药专项面试题","每周一次全英文自我录像","复盘并修正发音问题"]},
 Q3:{name:"Q3 面试期",tasks:["行为面试 STAR 答案全覆盖","安排全英文模拟面试","投递简历试水市场","LinkedIn Networking 与内推","研究各 CRO 公司背景","准备反问环节问题","练习薪资期望表达","复盘每次真实/模拟面试","扩充外企面试题库","稳定每日学习节奏"]},
 Q4:{name:"Q4 冲刺期",tasks:["目标公司正式面试","准备 Panel interview","谈薪与 offer 比较","面试后系统复盘","弱项题目二次加固","模拟压力面试场景","整理入职材料清单","保持术语与口述熟练度","制定入职后 90 天计划","年度总结与下阶段规划"]}
@@ -1572,8 +1834,484 @@ const ANSWER_TEMPLATES=[
 ];
 
 /* =====================================================================
- * 核心：状态、预置合并、存取、导航、主题、快捷键、导入导出、Supabase
+ * 常规背单词：医学英语 / 雅思 种子词库（本批各约 100 词，可继续扩充）
+ * 紧凑字段：[word, phonetic, pos, meaning, example, exampleCN, level]
  * ===================================================================== */
+const MED_WORDS=[
+["diagnosis","/ˌdaɪəɡˈnoʊsɪs/","n.","诊断","The diagnosis was confirmed by a biopsy.","活检证实了这一诊断。",1],
+["prognosis","/prɑːɡˈnoʊsɪs/","n.","预后","The patient has a good prognosis after surgery.","患者术后预后良好。",2],
+["symptom","/ˈsɪmptəm/","n.","症状","Fever is a common symptom of infection.","发烧是感染的常见症状。",1],
+["syndrome","/ˈsɪndroʊm/","n.","综合征","The doctor diagnosed a rare metabolic syndrome.","医生诊断出一种罕见的代谢综合征。",2],
+["chronic","/ˈkrɑːnɪk/","adj.","慢性的","He suffers from chronic back pain.","他患有慢性背痛。",1],
+["acute","/əˈkjuːt/","adj.","急性的；剧烈的","She was admitted with acute abdominal pain.","她因急性腹痛入院。",1],
+["benign","/bɪˈnaɪn/","adj.","良性的","The tumor turned out to be benign.","肿瘤结果是良性的。",2],
+["malignant","/məˈlɪɡnənt/","adj.","恶性的","The biopsy showed malignant cells.","活检发现恶性细胞。",2],
+["lesion","/ˈliːʒn/","n.","病变；损伤","A small lesion was found on the scan.","扫描发现一个小病变。",2],
+["inflammation","/ˌɪnfləˈmeɪʃn/","n.","炎症","The wound showed signs of inflammation.","伤口有炎症迹象。",2],
+["infection","/ɪnˈfekʃn/","n.","感染","Hand washing helps prevent infection.","洗手有助于预防感染。",1],
+["therapy","/ˈθerəpi/","n.","治疗；疗法","She completed six months of therapy.","她完成了六个月的治疗。",1],
+["surgery","/ˈsɜːrdʒəri/","n.","外科手术","He will undergo heart surgery next week.","他下周将接受心脏手术。",1],
+["prescription","/prɪˈskrɪpʃn/","n.","处方；药方","Take this medicine according to the prescription.","请按处方服用此药。",1],
+["dosage","/ˈdoʊsɪdʒ/","n.","剂量","Do not exceed the recommended dosage.","不要超过推荐剂量。",2],
+["allergy","/ˈælərdʒi/","n.","过敏","She has a severe peanut allergy.","她对花生严重过敏。",1],
+["vaccine","/vækˈsiːn/","n.","疫苗","The vaccine protects against influenza.","该疫苗可预防流感。",1],
+["bacteria","/bækˈtɪriə/","n.","细菌","Some bacteria are resistant to antibiotics.","一些细菌对抗生素有耐药性。",2],
+["virus","/ˈvaɪrəs/","n.","病毒","The virus spreads through droplets.","该病毒通过飞沫传播。",1],
+["immune","/ɪˈmjuːn/","adj.","免疫的","A balanced diet supports the immune system.","均衡饮食支持免疫系统。",2],
+["metabolism","/məˈtæbəlɪzəm/","n.","新陈代谢","Exercise can speed up metabolism.","运动可以加快新陈代谢。",2],
+["hormone","/ˈhɔːrmoʊn/","n.","激素","Hormone levels change during pregnancy.","孕期激素水平会变化。",2],
+["tissue","/ˈtɪʃuː/","n.","组织","The surgeon removed damaged tissue.","外科医生切除了受损组织。",1],
+["organ","/ˈɔːrɡən/","n.","器官","The liver is a vital organ.","肝脏是重要器官。",1],
+["artery","/ˈɑːrtəri/","n.","动脉","A blocked artery can cause a heart attack.","动脉堵塞可导致心脏病发作。",2],
+["vein","/veɪn/","n.","静脉","Blood was drawn from a vein in the arm.","从手臂静脉采血。",1],
+["nerve","/nɜːrv/","n.","神经","The nerve controls movement of the hand.","这根神经控制手部运动。",2],
+["muscle","/ˈmʌsl/","n.","肌肉","Stretching helps relax tight muscles.","拉伸有助于放松紧绷的肌肉。",1],
+["skeleton","/ˈskelɪtn/","n.","骨骼","The skeleton supports the body.","骨骼支撑身体。",2],
+["kidney","/ˈkɪdni/","n.","肾脏","The kidneys filter waste from the blood.","肾脏过滤血液中的废物。",1],
+["liver","/ˈlɪvər/","n.","肝脏","Alcohol can damage the liver.","酒精会损伤肝脏。",1],
+["lung","/lʌŋ/","n.","肺","Smoking damages the lungs.","吸烟损害肺。",1],
+["cardiac","/ˈkɑːrdiæk/","adj.","心脏的","He was transferred to the cardiac unit.","他被转到心脏科。",2],
+["gastric","/ˈɡæstrɪk/","adj.","胃的","Gastric ulcers can cause pain after meals.","胃溃疡可引起餐后疼痛。",2],
+["cerebral","/səˈriːbrəl/","adj.","脑的；大脑的","A cerebral hemorrhage is a medical emergency.","脑出血属于急症。",3],
+["fetal","/ˈfiːtl/","adj.","胎儿的","Fetal heart rate is monitored during labor.","分娩期间监测胎心率。",2],
+["genetic","/dʒəˈnetɪk/","adj.","遗传的；基因的","The disease is caused by a genetic mutation.","该病由基因突变引起。",2],
+["mutation","/mjuːˈteɪʃn/","n.","突变","The mutation increases cancer risk.","该突变增加患癌风险。",2],
+["biopsy","/ˈbaɪɑːpsi/","n.","活检","A biopsy was taken from the lump.","对肿块进行了活检。",2],
+["catheter","/ˈkæθətər/","n.","导管","A urinary catheter was inserted.","插入了一根导尿管。",2],
+["anesthesia","/ˌænəsˈθiːʒə/","n.","麻醉","The patient was put under general anesthesia.","患者接受了全身麻醉。",2],
+["suture","/ˈsuːtʃər/","n./v.","缝合；缝线","The doctor removed the sutures after a week.","一周后医生拆线。",3],
+["edema","/ɪˈdiːmə/","n.","水肿","Swollen ankles may be a sign of edema.","脚踝肿胀可能是水肿的迹象。",3],
+["fracture","/ˈfræktʃər/","n.","骨折","The X-ray showed a small fracture.","X光显示轻微骨折。",1],
+["hemorrhage","/ˈhemərɪdʒ/","n./v.","出血","The injury caused internal hemorrhage.","该损伤导致内出血。",3],
+["hypertension","/ˌhaɪpərˈtenʃn/","n.","高血压","Hypertension often has no symptoms.","高血压通常没有症状。",2],
+["diabetes","/ˌdaɪəˈbiːtiːz/","n.","糖尿病","Type 2 diabetes is linked to obesity.","2 型糖尿病与肥胖有关。",1],
+["obesity","/oʊˈbiːsəti/","n.","肥胖","Obesity raises the risk of heart disease.","肥胖增加心脏病风险。",2],
+["asthma","/ˈæzmə/","n.","哮喘","An asthma attack can be triggered by dust.","灰尘可诱发哮喘发作。",1],
+["epilepsy","/ˈepɪlepsi/","n.","癫痫","Epilepsy can cause repeated seizures.","癫痫可导致反复发作。",2],
+["stroke","/stroʊk/","n.","中风","A stroke requires immediate treatment.","中风需要立即治疗。",1],
+["seizure","/ˈsiːʒər/","n.","癫痫发作","He had a seizure during the night.","他夜间发作了一次。",2],
+["nausea","/ˈnɔːziə/","n.","恶心","The medicine may cause nausea.","这种药可能引起恶心。",1],
+["fatigue","/fəˈtiːɡ/","n.","疲劳","Cancer treatment often causes fatigue.","癌症治疗常引起疲劳。",2],
+["fever","/ˈfiːvər/","n.","发烧","The child has a high fever.","孩子发高烧。",1],
+["cough","/kɔːf/","n./v.","咳嗽","A persistent cough should be checked.","持续咳嗽应就医检查。",1],
+["dizziness","/ˈdɪzinəs/","n.","头晕","Dizziness can be a side effect.","头晕可能是副作用。",1],
+["rash","/ræʃ/","n.","皮疹","A red rash appeared on her arm.","她手臂上出现红疹。",1],
+["tumor","/ˈtuːmər/","n.","肿瘤","The tumor shrank after treatment.","治疗后肿瘤缩小。",1],
+["clinical","/ˈklɪnɪkl/","adj.","临床的","The drug is now in clinical trials.","该药正处于临床试验阶段。",1],
+["patient","/ˈpeɪʃnt/","n.","患者","The patient recovered quickly.","患者恢复很快。",1],
+["physician","/fɪˈzɪʃn/","n.","内科医生","Consult your physician before exercise.","运动前请咨询医生。",2],
+["surgeon","/ˈsɜːrdʒən/","n.","外科医生","The surgeon performed the operation.","外科医生做了这台手术。",2],
+["ward","/wɔːrd/","n.","病房","She works in the children's ward.","她在儿科病房工作。",1],
+["emergency","/ɪˈmɜːrdʒənsi/","n.","急诊；紧急情况","Call the emergency number at once.","立即拨打急救电话。",1],
+["pharmacy","/ˈfɑːrməsi/","n.","药房","The medicine is available at the pharmacy.","这种药在药房可以买到。",1],
+["laboratory","/ˈlæbrətɔːri/","n.","实验室","Samples were sent to the laboratory.","样本被送到实验室。",1],
+["specimen","/ˈspesɪmən/","n.","标本；样本","Label each specimen clearly.","给每个样本清楚贴标签。",2],
+["ultrasound","/ˈʌltrəsaʊnd/","n.","超声","An ultrasound showed no abnormalities.","超声未见异常。",2],
+["radiology","/ˌreɪdiˈɑːlədʒi/","n.","放射科","Radiology reviewed the CT images.","放射科审阅了 CT 图像。",2],
+["oncology","/ɑːŋˈkɑːlədʒi/","n.","肿瘤科","She specializes in pediatric oncology.","她专攻儿童肿瘤。",2],
+["pediatric","/ˌpiːdiˈætrɪk/","adj.","儿科的","The vaccine is safe for pediatric use.","该疫苗用于儿童是安全的。",2],
+["geriatric","/ˌdʒeriˈætrɪk/","adj.","老年的","Geriatric patients may need lower doses.","老年患者可能需要较低剂量。",3],
+["psychiatric","/ˌsaɪkiˈætrɪk/","adj.","精神科的","He received psychiatric treatment.","他接受了精神科治疗。",3],
+["rehabilitation","/ˌriːhəˌbɪlɪˈteɪʃn/","n.","康复","Rehabilitation after surgery takes months.","术后康复需要数月。",3],
+["antibiotic","/ˌæntibaɪˈɑːtɪk/","n.","抗生素","Antibiotics do not treat viruses.","抗生素不能治疗病毒。",1],
+["analgesic","/ˌænəlˈdʒiːzɪk/","n.","镇痛药","An analgesic was given for pain.","给了镇痛药缓解疼痛。",3],
+["sedative","/ˈsedətɪv/","n.","镇静剂","The sedative helped the patient relax.","镇静剂帮助患者放松。",3],
+["anticoagulant","/ˌæntikoʊˈæɡjələnt/","n.","抗凝药","She takes an anticoagulant daily.","她每天服用抗凝药。",3],
+["insulin","/ˈɪnsəlɪn/","n.","胰岛素","Insulin regulates blood sugar.","胰岛素调节血糖。",2],
+["chemotherapy","/ˌkiːmoʊˈθerəpi/","n.","化疗","Chemotherapy may cause hair loss.","化疗可能导致脱发。",2],
+["referral","/rɪˈfɜːrəl/","n.","转诊","The doctor made a referral to a specialist.","医生把患者转诊给专科医生。",2],
+["admission","/ədˈmɪʃn/","n.","入院","Her admission was delayed by one day.","她的入院推迟了一天。",2],
+["discharge","/dɪsˈtʃɑːrdʒ/","n./v.","出院","He was discharged after three days.","他三天后出院。",2],
+["confidentiality","/ˌkɑːnfɪˌdenʃiˈæləti/","n.","保密性","Patient confidentiality must be protected.","必须保护患者隐私。",2],
+["hygiene","/ˈhaɪdʒiːn/","n.","卫生","Good hygiene prevents disease.","良好卫生可预防疾病。",1],
+["nutrition","/nuˈtrɪʃn/","n.","营养","Good nutrition aids recovery.","良好营养有助于康复。",1],
+["dehydration","/ˌdiːhaɪˈdreɪʃn/","n.","脱水","Diarrhea can lead to dehydration.","腹泻可导致脱水。",2],
+["screening","/ˈskriːnɪŋ/","n.","筛查","Early screening can save lives.","早期筛查可以挽救生命。",1],
+["epidemic","/ˌepɪˈdemɪk/","n.","流行病；疫情","The flu epidemic spread quickly.","流感疫情迅速蔓延。",2],
+["pandemic","/pænˈdemɪk/","n.","大流行","The pandemic changed daily life.","这场大流行改变了日常生活。",2],
+["mortality","/mɔːrˈtæləti/","n.","死亡率","Mortality has fallen over decades.","几十年来死亡率下降。",2],
+["morbidity","/mɔːrˈbɪdəti/","n.","发病率","The study measured morbidity rates.","该研究统计发病率。",3],
+["prevalence","/ˈprevələns/","n.","患病率","The prevalence of diabetes is rising.","糖尿病患病率正在上升。",2],
+["incidence","/ˈɪnsɪdəns/","n.","发生率","Sun exposure affects cancer incidence.","日晒影响癌症发生率。",2],
+["relapse","/rɪˈlæps/","n./v.","复发","The patient relapsed after remission.","患者缓解后复发。",3],
+["remission","/rɪˈmɪʃn/","n.","缓解","Her cancer is in remission.","她的癌症处于缓解期。",3],
+["intubation","/ˌɪntuˈbeɪʃn/","n.","插管","Intubation helps the patient breathe.","插管帮助患者呼吸。",3],
+["defibrillator","/diːˈfɪbrɪleɪtər/","n.","除颤仪","A defibrillator can restart the heart.","除颤仪可使心脏复跳。",3],
+["stethoscope","/ˈsteθəskoʊp/","n.","听诊器","The doctor listened with a stethoscope.","医生用听诊器听诊。",2]
+];
+const IELTS_WORDS=[
+["abundant","/əˈbʌndənt/","adj.","丰富的","The region has abundant natural resources.","该地区自然资源丰富。",1],
+["accommodate","/əˈkɑːmədeɪt/","v.","容纳；提供住宿","The hotel can accommodate 300 guests.","这家酒店可容纳 300 位客人。",2],
+["acquire","/əˈkwaɪər/","v.","获得；习得","She acquired new skills at work.","她在工作中获得了新技能。",2],
+["adequate","/ˈædɪkwət/","adj.","足够的；适当的","Make sure you get adequate sleep.","确保你有充足睡眠。",2],
+["adjust","/əˈdʒʌst/","v.","调整；适应","It takes time to adjust to a new city.","适应新城市需要时间。",1],
+["advocate","/ˈædvəkeɪt/","v./n.","提倡；拥护者","He advocates a healthier lifestyle.","他提倡更健康的生活方式。",2],
+["allocate","/ˈæləkeɪt/","v.","分配","Funds were allocated to education.","资金被分配给教育。",2],
+["alter","/ˈɔːltər/","v.","改变","We had to alter our plans.","我们不得不改变计划。",2],
+["ambiguous","/æmˈbɪɡjuəs/","adj.","模糊的；歧义的","His answer was deliberately ambiguous.","他的回答故意含糊。",3],
+["analyze","/ˈænəlaɪz/","v.","分析","Scientists analyzed the data carefully.","科学家仔细分析了数据。",1],
+["annual","/ˈænjuəl/","adj.","年度的","The company holds an annual meeting.","公司召开年度会议。",1],
+["apparent","/əˈpærənt/","adj.","明显的","It became apparent that he was tired.","显然他累了。",2],
+["appreciate","/əˈpriːʃieɪt/","v.","感激；欣赏","I appreciate your help.","我很感激你的帮助。",1],
+["assess","/əˈses/","v.","评估","Teachers assess student progress.","老师评估学生的进步。",2],
+["assume","/əˈsuːm/","v.","假定；承担","Do not assume the answer is correct.","不要假定答案正确。",2],
+["attain","/əˈteɪn/","v.","达到","She attained her goal of studying abroad.","她实现了出国留学的目标。",3],
+["attribute","/əˈtrɪbjuːt/","v./n.","归因于；属性","He attributes success to hard work.","他把成功归因于努力。",2],
+["beneficial","/ˌbenɪˈfɪʃl/","adj.","有益的","Exercise is beneficial to health.","运动有益健康。",2],
+["boost","/buːst/","v.","促进；提升","The news boosted confidence.","这一消息提振了信心。",2],
+["capacity","/kəˈpæsəti/","n.","容量；能力","The stadium has a large capacity.","这座体育场容量很大。",2],
+["category","/ˈkætəɡɔːri/","n.","类别","Books are sorted by category.","书籍按类别整理。",2],
+["cease","/siːs/","v.","停止","The rain ceased by noon.","中午前雨停了。",3],
+["circumstance","/ˈsɜːrkəmstæns/","n.","情况；环境","Under no circumstances give up.","任何情况下都不要放弃。",2],
+["clarify","/ˈklærəfaɪ/","v.","澄清","Could you clarify your point?","你能澄清你的观点吗？",2],
+["collaborate","/kəˈlæbəreɪt/","v.","合作","The teams collaborated on the project.","各团队在该项目上合作。",2],
+["commence","/kəˈmens/","v.","开始","The ceremony will commence at nine.","仪式九点开始。",3],
+["compensate","/ˈkɑːmpenseɪt/","v.","补偿","The company compensated customers.","公司对顾客进行了补偿。",3],
+["compile","/kəmˈpaɪl/","v.","编纂；汇编","She compiled a list of contacts.","她汇编了一份联系人名单。",3],
+["complex","/kəmˈpleks/","adj.","复杂的","It is a complex problem.","这是一个复杂的问题。",1],
+["component","/kəmˈpoʊnənt/","n.","组成部分","Trust is a key component of teamwork.","信任是团队合作的关键要素。",2],
+["comprise","/kəmˈpraɪz/","v.","包含；组成","The course comprises ten modules.","该课程包含十个模块。",3],
+["concentrate","/ˈkɑːnsntreɪt/","v.","集中；专注","Concentrate on one task at a time.","一次专注于一项任务。",1],
+["conclude","/kənˈkluːd/","v.","得出结论；结束","The report concludes with advice.","报告以建议结尾。",2],
+["conduct","/kənˈdʌkt/","v.","进行；实施","They conducted a survey.","他们进行了一项调查。",2],
+["consequence","/ˈkɑːnsɪkwens/","n.","后果","Every action has consequences.","每个行为都有后果。",2],
+["considerable","/kənˈsɪdərəbl/","adj.","相当大的","The project cost considerable money.","该项目花费巨大。",2],
+["consistent","/kənˈsɪstənt/","adj.","一致的","Her work is consistently good.","她的工作始终很好。",2],
+["constitute","/ˈkɑːnstətuːt/","v.","构成","Twelve months constitute a year.","十二个月构成一年。",3],
+["construct","/kənˈstrʌkt/","v.","建造","They constructed a new bridge.","他们建造了一座新桥。",2],
+["consume","/kənˈsuːm/","v.","消耗；消费","Cars consume fuel.","汽车消耗燃料。",2],
+["contemporary","/kənˈtempəreri/","adj.","当代的","She studies contemporary art.","她研究当代艺术。",2],
+["contrast","/kənˈtræst/","n./v.","对比","The contrast is striking.","对比十分鲜明。",2],
+["contribute","/kənˈtrɪbjuːt/","v.","贡献；促成","Everyone contributed ideas.","每个人都贡献了想法。",1],
+["controversy","/ˈkɑːntrəvɜːrsi/","n.","争议","The decision caused controversy.","该决定引发争议。",3],
+["convert","/kənˈvɜːrt/","v.","转换","They converted the room into an office.","他们把房间改成办公室。",2],
+["convince","/kənˈvɪns/","v.","说服","She convinced me to try again.","她说服我再试一次。",2],
+["coordinate","/koʊˈɔːrdɪneɪt/","v.","协调","He coordinated the event.","他协调了这次活动。",2],
+["crucial","/ˈkruːʃl/","adj.","关键的","Sleep is crucial to health.","睡眠对健康至关重要。",1],
+["debate","/dɪˈbeɪt/","n./v.","辩论","They debated the issue for hours.","他们就这个问题辩论了数小时。",2],
+["decade","/ˈdekeɪd/","n.","十年","Prices rose over the decade.","十年间物价上涨。",1],
+["decline","/dɪˈklaɪn/","v./n.","下降；婉拒","Sales declined last year.","去年销售额下降。",2],
+["demonstrate","/ˈdemənstreɪt/","v.","证明；演示","The results demonstrate improvement.","结果证明有所改善。",2],
+["derive","/dɪˈraɪv/","v.","获得；源于","Many words derive from Latin.","许多单词源于拉丁语。",3],
+["despite","/dɪˈspaɪt/","prep.","尽管","He smiled despite the pain.","尽管疼痛他仍微笑。",1],
+["determine","/dɪˈtɜːrmɪn/","v.","决定；确定","Tests determine the cause.","检查确定病因。",2],
+["diminish","/dɪˈmɪnɪʃ/","v.","减少","Pain diminished after treatment.","治疗后疼痛减轻。",3],
+["discipline","/ˈdɪsəplɪn/","n.","纪律；学科","Self-discipline leads to success.","自律带来成功。",2],
+["distinct","/dɪˈstɪŋkt/","adj.","明显的；不同的","There are two distinct groups.","有两个截然不同的群体。",2],
+["diverse","/daɪˈvɜːrs/","adj.","多样的","The city has a diverse population.","这座城市人口多样。",2],
+["dominate","/ˈdɑːmɪneɪt/","v.","主导","One company dominates the market.","一家公司主导市场。",3],
+["element","/ˈelɪmənt/","n.","要素；元素","Water is a key element of life.","水是生命的关键要素。",1],
+["emerge","/ɪˈmɜːrdʒ/","v.","出现","New evidence emerged.","出现了新证据。",2],
+["emphasis","/ˈemfəsɪs/","n.","强调","The course puts emphasis on speaking.","该课程强调口语。",2],
+["enable","/ɪˈneɪbl/","v.","使能够","Technology enables faster work.","技术使工作更快。",2],
+["encounter","/ɪnˈkaʊntər/","v./n.","遇到","We encountered a problem.","我们遇到了一个问题。",2],
+["encourage","/ɪnˈkɜːrɪdʒ/","v.","鼓励","Teachers encourage questions.","老师鼓励提问。",1],
+["enforce","/ɪnˈfɔːrs/","v.","实施；强制","Rules must be enforced fairly.","规则必须公平执行。",3],
+["enhance","/ɪnˈhæns/","v.","提高；增强","Reading enhances vocabulary.","阅读增加词汇量。",2],
+["enormous","/ɪˈnɔːrməs/","adj.","巨大的","The building is enormous.","这座建筑巨大。",1],
+["ensure","/ɪnˈʃʊr/","v.","确保","Please ensure the door is locked.","请确保门已锁。",2],
+["establish","/ɪˈstæblɪʃ/","v.","建立","The school was established in 1990.","该校建于 1990 年。",2],
+["estimate","/ˈestɪmeɪt/","v./n.","估计","They estimated the cost.","他们估算了成本。",2],
+["evaluate","/ɪˈvæljueɪt/","v.","评价","We evaluate performance yearly.","我们每年评估绩效。",2],
+["evident","/ˈevɪdənt/","adj.","明显的","His talent was evident early.","他的天赋很早就显现。",2],
+["evolve","/ɪˈvɑːlv/","v.","进化；发展","Languages evolve over time.","语言随时间演变。",2],
+["exceed","/ɪkˈsiːd/","v.","超过","Do not exceed the speed limit.","不要超速。",2],
+["expand","/ɪkˈspænd/","v.","扩大","The business expanded rapidly.","业务迅速扩大。",2],
+["explicit","/ɪkˈsplɪsɪt/","adj.","明确的","She gave explicit instructions.","她给出明确指示。",3],
+["exploit","/ɪkˈsplɔɪt/","v.","开发；利用","They exploit new technology.","他们利用新技术。",3],
+["extract","/ɪkˈstrækt/","v.","提取；摘录","Extract the key information.","提取关键信息。",2],
+["extreme","/ɪkˈstriːm/","adj.","极端的","Extreme weather is becoming common.","极端天气正变得常见。",2],
+["familiar","/fəˈmɪliər/","adj.","熟悉的","Your face looks familiar.","你看起来很眼熟。",1],
+["feature","/ˈfiːtʃər/","n.","特征；特色","The phone has new features.","这部手机有新功能。",1],
+["flexible","/ˈfleksəbl/","adj.","灵活的","Working hours are flexible.","工作时间灵活。",2],
+["fluctuate","/ˈflʌktʃueɪt/","v.","波动","Prices fluctuate daily.","价格每天波动。",3],
+["focus","/ˈfoʊkəs/","v./n.","集中；焦点","Focus on the main idea.","聚焦主旨。",1],
+["forecast","/ˈfɔːrkæst/","v./n.","预测","Experts forecast economic growth.","专家预测经济增长。",2],
+["foundation","/faʊnˈdeɪʃn/","n.","基础","Practice builds a strong foundation.","练习打下坚实基础。",2],
+["frequent","/ˈfriːkwənt/","adj.","频繁的","He is a frequent traveler.","他经常出差。",2],
+["function","/ˈfʌŋkʃn/","n.","功能；作用","Each organ has a function.","每个器官都有功能。",1],
+["fundamental","/ˌfʌndəˈmentl/","adj.","基本的","Honesty is fundamental to trust.","诚实是信任的基础。",2],
+["generate","/ˈdʒenəreɪt/","v.","产生","Solar panels generate electricity.","太阳能板发电。",2],
+["guarantee","/ˌɡærənˈtiː/","v./n.","保证","Hard work does not guarantee success.","努力不一定保证成功。",2],
+["genuine","/ˈdʒenjuɪn/","adj.","真正的；真诚的","She showed genuine interest.","她表现出真正的兴趣。",2],
+["highlight","/ˈhaɪlaɪt/","v./n.","强调；亮点","The report highlights key risks.","报告强调关键风险。",2],
+["hypothesis","/haɪˈpɑːθəsɪs/","n.","假设","The experiment tested the hypothesis.","实验检验了这一假设。",3],
+["identify","/aɪˈdentɪfaɪ/","v.","识别","Can you identify the problem?","你能识别问题吗？",2],
+["illustrate","/ˈɪləstreɪt/","v.","说明；举例","Examples illustrate the point.","例子说明这一观点。",2],
+["immense","/ɪˈmens/","adj.","巨大的","The ocean is immense.","海洋浩瀚。",2],
+["impact","/ˈɪmpækt/","n.","影响","Sleep has a big impact on health.","睡眠对健康影响很大。",1],
+["implement","/ˈɪmplɪment/","v.","实施","The plan was implemented quickly.","计划很快实施。",2],
+["imply","/ɪmˈplaɪ/","v.","暗示","His words imply disagreement.","他的话暗示不同意。",3],
+["impose","/ɪmˈpoʊz/","v.","强加；征收","Do not impose your views on others.","不要把观点强加于人。",3],
+["incentive","/ɪnˈsentɪv/","n.","激励","Bonuses are an incentive to work.","奖金是工作的激励。",3],
+["indicate","/ˈɪndɪkeɪt/","v.","表明","The data indicate a clear trend.","数据表明明显趋势。",2],
+["inevitable","/ɪnˈevɪtəbl/","adj.","不可避免的","Change is inevitable.","变化不可避免。",3],
+["infrastructure","/ˈɪnfrəstrʌktʃər/","n.","基础设施","The city needs better infrastructure.","城市需要更好的基础设施。",3],
+["inherent","/ɪnˈhɪrənt/","adj.","固有的","Risk is inherent in investment.","风险是投资固有的。",3],
+["initial","/ɪˈnɪʃl/","adj.","最初的","My initial reaction was surprise.","我最初的反应是惊讶。",2],
+["initiate","/ɪˈnɪʃieɪt/","v.","发起","They initiated a new program.","他们发起一个新项目。",3],
+["insight","/ˈɪnsaɪt/","n.","洞察力","The book offers new insights.","这本书提供新见解。",3],
+["interpret","/ɪnˈtɜːrprət/","v.","解释；口译","How do you interpret the data?","你如何解释这些数据？",2],
+["intervene","/ˌɪntərˈviːn/","v.","干预","The manager intervened to solve it.","经理出面干预解决。",3],
+["investigate","/ɪnˈvestɪɡeɪt/","v.","调查","Police investigated the accident.","警方调查了事故。",2],
+["involve","/ɪnˈvɑːlv/","v.","涉及；包含","The job involves travel.","这份工作需要出差。",1],
+["justify","/ˈdʒʌstɪfaɪ/","v.","证明…正当","Results justify the effort.","结果证明努力值得。",3],
+["legislation","/ˌledʒɪsˈleɪʃn/","n.","立法；法规","New legislation protects workers.","新法规保护劳动者。",3],
+["leisure","/ˈliːʒər/","n.","闲暇","How do you spend leisure time?","你如何度过闲暇？",1],
+["likewise","/ˈlaɪkwaɪz/","adv.","同样地","I will do likewise.","我会照做。",2],
+["maintain","/meɪnˈteɪn/","v.","维持","Maintain a positive attitude.","保持积极态度。",2],
+["manipulate","/məˈnɪpjuleɪt/","v.","操纵；操作","Do not manipulate the figures.","不要篡改数字。",3],
+["mature","/məˈtʃʊr/","adj.","成熟的","She is mature for her age.","她比实际年龄成熟。",2],
+["mechanism","/ˈmekənɪzəm/","n.","机制","Explain the mechanism of action.","解释作用机制。",3],
+["mediate","/ˈmiːdieɪt/","v.","调解","He mediated the dispute.","他调解了纠纷。",3],
+["migrate","/ˈmaɪɡreɪt/","v.","迁移","Birds migrate in winter.","鸟类冬季迁徙。",3],
+["minimal","/ˈmɪnɪml/","adj.","最小的","The damage was minimal.","损失极小。",2],
+["minor","/ˈmaɪnər/","adj.","较小的","It was a minor error.","这是个小错误。",1],
+["moderate","/ˈmɑːdərət/","adj.","适度的","Drink moderate amounts of water.","适量饮水。",2],
+["modify","/ˈmɑːdɪfaɪ/","v.","修改","Modify the plan as needed.","根据需要修改计划。",2],
+["monitor","/ˈmɑːnɪtər/","v./n.","监控；监视器","We monitor progress weekly.","我们每周监控进度。",1],
+["motivate","/ˈmoʊtɪveɪt/","v.","激励","Good leaders motivate teams.","好领导激励团队。",2],
+["multiple","/ˈmʌltɪpl/","adj.","多个的","She has multiple tasks today.","她今天有多项任务。",1],
+["mutual","/ˈmjuːtʃuəl/","adj.","相互的","Friendship is mutual.","友谊是相互的。",2],
+["negative","/ˈneɡətɪv/","adj.","消极的；阴性的","Avoid negative thinking.","避免消极想法。",1],
+["neglect","/nɪˈɡlekt/","v.","忽视","Do not neglect your health.","不要忽视健康。",2],
+["negotiate","/nɪˈɡoʊʃieɪt/","v.","谈判；协商","They negotiated a deal.","他们谈成了协议。",2],
+["neutral","/ˈnuːtrəl/","adj.","中立的","Stay neutral in arguments.","争论中保持中立。",2],
+["notion","/ˈnoʊʃn/","n.","概念；看法","I have no notion of the plan.","我对计划毫无概念。",3],
+["numerous","/ˈnuːmərəs/","adj.","许多的","There are numerous options.","有许多选择。",2],
+["obstacle","/ˈɑːbstəkl/","n.","障碍","Fear is the main obstacle.","恐惧是主要障碍。",2],
+["obtain","/əbˈteɪn/","v.","获得","She obtained permission.","她获得许可。",2],
+["obvious","/ˈɑːbviəs/","adj.","明显的","The answer is obvious.","答案显而易见。",1],
+["occur","/əˈkɜːr/","v.","发生","Errors occur when tired.","疲劳时会出错。",2],
+["operate","/ˈɑːpəreɪt/","v.","操作；运转","Learn to operate the machine.","学习操作机器。",2],
+["opportunity","/ˌɑːpərˈtuːnəti/","n.","机会","This is a great opportunity.","这是个好机会。",1],
+["option","/ˈɑːpʃn/","n.","选择","We have several options.","我们有几个选择。",1],
+["original","/əˈrɪdʒənl/","adj.","最初的；原创的","Keep the original document.","保留原始文件。",2],
+["outcome","/ˈaʊtkʌm/","n.","结果","What was the final outcome?","最终结果如何？",2],
+["overall","/ˌoʊvərˈɔːl/","adj.","总体的","The overall result is positive.","总体结果积极。",2],
+["overcome","/ˌoʊvərˈkʌm/","v.","克服","She overcame many difficulties.","她克服了许多困难。",2],
+["participate","/pɑːrˈtɪsɪpeɪt/","v.","参与","Students participate in discussions.","学生参与讨论。",2],
+["particular","/pərˈtɪkjələr/","adj.","特定的；挑剔的","Is there a particular reason?","有什么特别原因吗？",2],
+["perceive","/pərˈsiːv/","v.","察觉","How do others perceive you?","别人如何看待你？",3],
+["perform","/pərˈfɔːrm/","v.","执行；表现","She performed well under pressure.","她在压力下表现良好。",1],
+["permanent","/ˈpɜːrmənənt/","adj.","永久的","He found a permanent job.","他找到一份长期工作。",2],
+["persist","/pərˈsɪst/","v.","坚持；持续","If symptoms persist, see a doctor.","症状持续请就医。",3],
+["perspective","/pərˈspektɪv/","n.","观点；视角","Try a different perspective.","尝试不同视角。",2],
+["phenomenon","/fɪˈnɑːmɪnən/","n.","现象","It is a common social phenomenon.","这是常见社会现象。",3],
+["potential","/pəˈtenʃl/","adj./n.","潜在的；潜力","She has great potential.","她潜力巨大。",1],
+["practical","/ˈpræktɪkl/","adj.","实际的；实用的","Give a practical example.","举个实际例子。",2],
+["precise","/prɪˈsaɪs/","adj.","精确的","Measure the precise amount.","测量精确数量。",2],
+["predict","/prɪˈdɪkt/","v.","预测","It is hard to predict the future.","未来难以预测。",2],
+["preserve","/prɪˈzɜːrv/","v.","保护；保存","We should preserve nature.","我们应保护自然。",3],
+["primary","/ˈpraɪmeri/","adj.","主要的；初级的","Safety is our primary concern.","安全是我们首要关注。",1],
+["principal","/ˈprɪnsəpl/","adj.","主要的","The principal reason is cost.","主要原因是成本。",3],
+["principle","/ˈprɪnsəpl/","n.","原则","Stick to your principles.","坚持你的原则。",2],
+["prior","/ˈpraɪər/","adj.","先前的","No prior experience is needed.","无需先前经验。",2],
+["priority","/praɪˈɔːrəti/","n.","优先事项","Set clear priorities.","设定明确优先事项。",2],
+["proceed","/proʊˈsiːd/","v.","继续进行","Please proceed with the plan.","请继续执行计划。",2],
+["process","/ˈprɑːses/","n.","过程","Learning is a slow process.","学习是缓慢过程。",1],
+["prominent","/ˈprɑːmɪnənt/","adj.","突出的；著名的","He is a prominent scientist.","他是著名科学家。",3],
+["promote","/prəˈmoʊt/","v.","促进；晋升","Exercise promotes health.","运动促进健康。",2],
+["proper","/ˈprɑːpər/","adj.","适当的","Use the proper tool.","使用适当工具。",1],
+["property","/ˈprɑːpərti/","n.","财产；特性","Water has unique properties.","水有独特性质。",2],
+["proportion","/prəˈpɔːrʃn/","n.","比例","A large proportion agreed.","很大比例的人同意。",3],
+["prospect","/ˈprɑːspekt/","n.","前景","Job prospects are improving.","就业前景正在改善。",2],
+["publish","/ˈpʌblɪʃ/","v.","出版；发表","She published a paper.","她发表了一篇论文。",2],
+["purchase","/ˈpɜːrtʃəs/","v./n.","购买","They purchased new equipment.","他们购买了新设备。",2],
+["pursue","/pərˈsuː/","v.","追求；从事","He pursued a career in medicine.","他从事医学事业。",2],
+["radical","/ˈrædɪkl/","adj.","根本的；激进的","They proposed radical changes.","他们提出彻底变革。",3],
+["random","/ˈrændəm/","adj.","随机的","Subjects were randomly selected.","受试者是随机选择的。",2],
+["range","/reɪndʒ/","n.","范围","Prices vary within a wide range.","价格范围很广。",1],
+["rapid","/ˈræpɪd/","adj.","迅速的","There has been rapid growth.","增长迅速。",1],
+["ratio","/ˈreɪʃioʊ/","n.","比率","The ratio is two to one.","比率是二比一。",3],
+["readily","/ˈredɪli/","adv.","容易地；乐意地","Information is readily available.","信息容易获得。",3],
+["recession","/rɪˈseʃn/","n.","衰退","The economy entered a recession.","经济进入衰退。",3],
+["recognize","/ˈrekəɡnaɪz/","v.","认出；承认","I recognized her voice.","我认出她的声音。",1],
+["recommend","/ˌrekəˈmend/","v.","推荐","Doctors recommend exercise.","医生推荐运动。",1],
+["recover","/rɪˈkʌvər/","v.","恢复","He recovered from surgery.","他术后康复。",2],
+["recruit","/rɪˈkruːt/","v.","招募","The company recruits graduates.","公司招募毕业生。",2],
+["reduce","/rɪˈduːs/","v.","减少","Reduce sugar in your diet.","减少饮食中的糖。",1],
+["refer","/rɪˈfɜːr/","v.","参考；提及","Refer to the manual.","请参考手册。",2],
+["reflect","/rɪˈflekt/","v.","反映；反思","Mirrors reflect light.","镜子反射光线。",2],
+["reform","/rɪˈfɔːrm/","n./v.","改革","Education reform is needed.","需要教育改革。",3],
+["regard","/rɪˈɡɑːrd/","v.","认为；看待","She is regarded as an expert.","她被视为专家。",2],
+["region","/ˈriːdʒən/","n.","地区","The region is mountainous.","该地区多山。",1],
+["register","/ˈredʒɪstər/","v.","登记","Register before the deadline.","截止前登记。",1],
+["regulate","/ˈreɡjuleɪt/","v.","调节；管理","Laws regulate the industry.","法律监管该行业。",2],
+["reinforce","/ˌriːɪnˈfɔːrs/","v.","加强","Training reinforces safety.","培训加强安全。",3],
+["reject","/rɪˈdʒekt/","v.","拒绝","They rejected the proposal.","他们拒绝该提议。",2],
+["relate","/rɪˈleɪt/","v.","联系；相关","The two issues are related.","这两个问题相关。",2],
+["release","/rɪˈliːs/","v./n.","释放；发布","The drug was released last year.","该药去年获批上市。",2],
+["relevant","/ˈreləvənt/","adj.","相关的","Keep answers relevant.","回答要切题。",2],
+["relieve","/rɪˈliːv/","v.","缓解","The drug relieves pain.","该药缓解疼痛。",2],
+["rely","/rɪˈlaɪ/","v.","依靠","You can rely on me.","你可以依靠我。",2],
+["remarkable","/rɪˈmɑːrkəbl/","adj.","非凡的","She made remarkable progress.","她取得显著进步。",2],
+["remote","/rɪˈmoʊt/","adj.","遥远的；远程的","He works in a remote area.","他在偏远地区工作。",2],
+["remove","/rɪˈmuːv/","v.","移除","Remove the old files.","移除旧文件。",1],
+["renew","/rɪˈnuː/","v.","更新；续期","Renew your passport early.","提前续护照。",2],
+["replace","/rɪˈpleɪs/","v.","取代；更换","Replace the battery.","更换电池。",2],
+["represent","/ˌreprɪˈzent/","v.","代表","Each color represents a group.","每种颜色代表一组。",2],
+["request","/rɪˈkwest/","n./v.","请求","Submit a written request.","提交书面请求。",2],
+["require","/rɪˈkwaɪər/","v.","需要","The job requires patience.","这份工作需要耐心。",1],
+["reserve","/rɪˈzɜːrv/","v./n.","保留；预订","Reserve a room in advance.","提前预订房间。",2],
+["resign","/rɪˈzaɪn/","v.","辞职","He resigned for growth.","他为成长而辞职。",2],
+["resolve","/rɪˈzɑːlv/","v.","解决；决心","We resolved the issue.","我们解决了问题。",2],
+["resource","/ˈriːsɔːrs/","n.","资源","Save energy and resources.","节约能源和资源。",1],
+["respond","/rɪˈspɑːnd/","v.","回应","Respond to emails promptly.","及时回复邮件。",2],
+["restrict","/rɪˈstrɪkt/","v.","限制","Speed is restricted here.","此处限速。",3],
+["retain","/rɪˈteɪn/","v.","保留","Retain a copy of records.","保留一份记录。",3],
+["reveal","/rɪˈviːl/","v.","揭示","The study reveals new facts.","研究揭示新事实。",2],
+["revenue","/ˈrevənuː/","n.","收入；税收","Revenue rose this year.","今年收入增长。",3],
+["reverse","/rɪˈvɜːrs/","v./adj.","逆转；相反的","Reverse the decision if wrong.","错误就推翻决定。",3],
+["revise","/rɪˈvaɪz/","v.","修改；复习","Revise your essay carefully.","仔细修改文章。",2],
+["reward","/rɪˈwɔːrd/","n.","奖励","Hard work brings rewards.","努力带来回报。",2],
+["rigid","/ˈrɪdʒɪd/","adj.","僵硬的；严格的","The rules are too rigid.","规则过于死板。",3],
+["routine","/ruːˈtiːn/","n.","常规","Exercise is part of my routine.","锻炼是我的日常。",1],
+["rural","/ˈrʊrəl/","adj.","农村的","Rural areas need doctors.","农村地区需要医生。",2],
+["scale","/skeɪl/","n.","规模；刻度","They work on a large scale.","他们大规模运作。",2],
+["scarce","/skers/","adj.","稀缺的","Water is scarce in deserts.","沙漠缺水。",2],
+["schedule","/ˈskedʒuːl/","n.","时间表","Stick to the schedule.","遵守时间表。",1],
+["scheme","/skiːm/","n.","计划；方案","The government launched a scheme.","政府推出一项计划。",3],
+["scope","/skoʊp/","n.","范围","The scope of work is clear.","工作范围清楚。",2],
+["secure","/sɪˈkjʊr/","adj.","安全的；稳固的","Keep data secure.","保证数据安全。",2],
+["seek","/siːk/","v.","寻找","Seek advice early.","及早寻求建议。",2],
+["select","/sɪˈlekt/","v.","选择","Select the best answer.","选择最佳答案。",1],
+["senior","/ˈsiːniər/","adj.","资深的","He is senior to me.","他比我资深。",1],
+["sensible","/ˈsensəbl/","adj.","明智的","That is a sensible choice.","那是明智选择。",2],
+["sensitive","/ˈsensətɪv/","adj.","敏感的","This is sensitive information.","这是敏感信息。",2],
+["sequence","/ˈsiːkwəns/","n.","顺序","Describe the sequence of events.","描述事件顺序。",3],
+["series","/ˈsɪriːz/","n.","系列","A series of tests was done.","做了一系列检查。",2],
+["settle","/ˈsetl/","v.","解决；安顿","They settled the dispute.","他们解决了纠纷。",2],
+["severe","/sɪˈvɪr/","adj.","严重的","She had severe pain.","她疼痛严重。",1],
+["shelter","/ˈʃeltər/","n.","庇护；避难所","They found shelter from rain.","他们找到避雨处。",2],
+["shift","/ʃɪft/","n./v.","转变；轮班","Work shifts change weekly.","每周换班。",2],
+["shortage","/ˈʃɔːrtɪdʒ/","n.","短缺","There is a staff shortage.","人手短缺。",2],
+["significant","/sɪɡˈnɪfɪkənt/","adj.","重要的；显著的","There is a significant difference.","存在显著差异。",2],
+["similar","/ˈsɪmələr/","adj.","相似的","The two cases are similar.","两个病例相似。",1],
+["simulate","/ˈsɪmjuleɪt/","v.","模拟","The test simulates real conditions.","测试模拟真实条件。",3],
+["simultaneous","/ˌsaɪmlˈteɪniəs/","adj.","同时的","Simultaneous translation is hard.","同声传译很难。",3],
+["sketch","/sketʃ/","n./v.","草图；概述","Sketch out your plan.","概述你的计划。",3],
+["slight","/slaɪt/","adj.","轻微的","There is a slight improvement.","略有改善。",2],
+["solar","/ˈsoʊlər/","adj.","太阳的","Solar power is clean.","太阳能是清洁能源。",2],
+["sole","/soʊl/","adj.","唯一的","That was the sole reason.","那是唯一原因。",3],
+["solid","/ˈsɑːlɪd/","adj.","固体的；坚实的","The plan has a solid basis.","计划有坚实基础。",1],
+["solution","/səˈluːʃn/","n.","解决方案；溶液","We need a practical solution.","我们需要实际方案。",1],
+["solve","/sɑːlv/","v.","解决","Solve one problem at a time.","一次解决一个问题。",1],
+["sophisticated","/səˈfɪstɪkeɪtɪd/","adj.","复杂的；精密的","It is sophisticated equipment.","这是精密设备。",3],
+["source","/sɔːrs/","n.","来源","Check the source of news.","核查消息来源。",1],
+["span","/spæn/","v./n.","跨越；跨度","His career spans ten years.","他的职业生涯长达十年。",3],
+["species","/ˈspiːʃiːz/","n.","物种","Many species are at risk.","许多物种面临危险。",2],
+["specific","/spəˈsɪfɪk/","adj.","具体的；特定的","Give specific examples.","给出具体例子。",1],
+["sphere","/sfɪr/","n.","球体；领域","It belongs to a different sphere.","它属于不同领域。",3],
+["stable","/ˈsteɪbl/","adj.","稳定的","The patient's condition is stable.","患者情况稳定。",1],
+["staff","/stæf/","n.","员工","Hospital staff work long hours.","医院员工工作时间长。",1],
+["standard","/ˈstændərd/","n.","标准","Raise the quality standard.","提高质量标准。",1],
+["status","/ˈsteɪtəs/","n.","状态；地位","What is your visa status?","你的签证状态如何？",2],
+["steady","/ˈstedi/","adj.","稳定的；稳步的","Progress has been steady.","进展稳定。",2],
+["stimulus","/ˈstɪmjələs/","n.","刺激","The policy is an economic stimulus.","该政策是经济刺激。",3],
+["strain","/streɪn/","n.","压力；菌株","Back strain causes pain.","背部劳损引起疼痛。",2],
+["strategy","/ˈstrætədʒi/","n.","策略","Develop a clear strategy.","制定清晰策略。",2],
+["strength","/streŋθ/","n.","力量；优势","What are your strengths?","你的优势是什么？",1],
+["stress","/stres/","n.","压力；强调","Yoga reduces stress.","瑜伽减轻压力。",1],
+["stretch","/stretʃ/","v.","伸展","Stretch before exercise.","运动前拉伸。",1],
+["strike","/straɪk/","v./n.","罢工；打击","The strike lasted two days.","罢工持续两天。",3],
+["strive","/straɪv/","v.","努力；奋斗","We strive for excellence.","我们追求卓越。",3],
+["submit","/səbˈmɪt/","v.","提交","Submit the form online.","在线提交表格。",2],
+["subsequent","/ˈsʌbsɪkwənt/","adj.","随后的","Subsequent tests were normal.","随后检查正常。",3],
+["substance","/ˈsʌbstəns/","n.","物质","The substance is harmless.","该物质无害。",2],
+["substantial","/səbˈstænʃl/","adj.","大量的；实质的","There is substantial evidence.","有大量证据。",2],
+["substitute","/ˈsʌbstɪtuːt/","n./v.","替代品；替代","Honey can substitute for sugar.","蜂蜜可替代糖。",3],
+["subtle","/ˈsʌtl/","adj.","微妙的","There is a subtle difference.","有微妙差别。",3],
+["succeed","/səkˈsiːd/","v.","成功；继任","Hard work helps you succeed.","努力助人成功。",1],
+["sufficient","/səˈfɪʃnt/","adj.","足够的","We have sufficient time.","我们有足够时间。",2],
+["summit","/ˈsʌmɪt/","n.","峰会；顶点","Leaders met at the summit.","领导人在峰会会面。",3],
+["superior","/suːˈpɪriər/","adj.","优越的；上级的","This method is superior.","这个方法更优。",3],
+["supplement","/ˈsʌplɪmənt/","n./v.","补充","Vitamins supplement the diet.","维生素补充饮食。",3],
+["suppose","/səˈpoʊz/","v.","假定；认为","I suppose you are right.","我想你是对的。",1],
+["supreme","/suːˈpriːm/","adj.","最高的","The supreme goal is safety.","最高目标是安全。",3],
+["surface","/ˈsɜːrfɪs/","n.","表面","The surface is smooth.","表面光滑。",1],
+["surplus","/ˈsɜːrpləs/","n.","过剩","There is a trade surplus.","存在贸易顺差。",3],
+["survey","/ˈsɜːrveɪ/","n./v.","调查；纵览","We surveyed 500 customers.","我们调查了 500 名顾客。",2],
+["survive","/sərˈvaɪv/","v.","幸存；生存","Only a few survived.","只有少数幸存。",2],
+["suspect","/səˈspekt/","v.","怀疑","Doctors suspect infection.","医生怀疑感染。",2],
+["suspend","/səˈspend/","v.","暂停；悬挂","Flights were suspended.","航班暂停。",3],
+["sustain","/səˈsteɪn/","v.","维持；承受","Growth cannot be sustained forever.","增长不可能永远持续。",3],
+["symbol","/ˈsɪmbl/","n.","象征；符号","The dove is a symbol of peace.","鸽子是和平象征。",2],
+["sympathy","/ˈsɪmpəθi/","n.","同情","She offered her sympathy.","她表示同情。",2],
+["systematic","/ˌsɪstəˈmætɪk/","adj.","系统的","We need a systematic approach.","我们需要系统方法。",3],
+["talent","/ˈtælənt/","n.","天赋；人才","She has a talent for languages.","她有语言天赋。",1],
+["target","/ˈtɑːrɡɪt/","n./v.","目标；以…为目标","Set a realistic target.","设定现实目标。",1],
+["technical","/ˈteknɪkl/","adj.","技术的","It needs technical skills.","这需要技术能力。",2],
+["technique","/tekˈniːk/","n.","技术；技巧","Learn the basic techniques.","学习基本技巧。",2],
+["technology","/tekˈnɑːlədʒi/","n.","技术","Technology changes fast.","技术变化很快。",1],
+["temporary","/ˈtempəreri/","adj.","暂时的","It is a temporary solution.","这是暂时方案。",2],
+["tend","/tend/","v.","倾向于；照料","Prices tend to rise.","价格往往上涨。",2],
+["tension","/ˈtenʃn/","n.","紧张；张力","The news eased tension.","消息缓解紧张。",2],
+["terminal","/ˈtɜːrmɪnl/","adj.","末端的；晚期的","He works at the airport terminal.","他在航站楼工作。",3],
+["territory","/ˈterətɔːri/","n.","领土；领域","They explored new territory.","他们探索新领域。",3],
+["thereby","/ˌðerˈbaɪ/","adv.","从而","He worked hard, thereby succeeding.","他努力从而成功。",3],
+["thorough","/ˈθɜːroʊ/","adj.","彻底的","Do a thorough review.","做彻底审查。",2],
+["threaten","/ˈθretn/","v.","威胁","Pollution threatens wildlife.","污染威胁野生动物。",3],
+["threshold","/ˈθreʃhoʊld/","n.","门槛；阈值","Pain crossed the threshold.","疼痛超过阈值。",3],
+["throughout","/θruːˈaʊt/","prep.","贯穿","It rained throughout the day.","整天下雨。",2],
+["tolerate","/ˈtɑːləreɪt/","v.","容忍；耐受","The drug is well tolerated.","该药耐受性良好。",3],
+["topic","/ˈtɑːpɪk/","n.","话题","Choose a familiar topic.","选熟悉话题。",1],
+["total","/ˈtoʊtl/","adj.","总的","What is the total cost?","总成本是多少？",1],
+["tough","/tʌf/","adj.","艰难的；坚韧的","It was a tough decision.","这是艰难决定。",1],
+["trace","/treɪs/","v./n.","追溯；痕迹","Trace the source of error.","追溯错误来源。",2],
+["tradition","/trəˈdɪʃn/","n.","传统","It is a long tradition.","这是悠久传统。",2],
+["transfer","/trænsˈfɜːr/","v.","转移；调动","Transfer data securely.","安全传输数据。",2],
+["transform","/trænsˈfɔːrm/","v.","转变；改造","Education transforms lives.","教育改变人生。",2],
+["transit","/ˈtrænzɪt/","n.","运输；中转","Goods were damaged in transit.","货物运输中受损。",3],
+["translate","/trænzˈleɪt/","v.","翻译","Can you translate this sentence?","你能翻译这句话吗？",1],
+["transmit","/trænzˈmɪt/","v.","传输；传播","Mosquitoes transmit disease.","蚊子传播疾病。",2],
+["transport","/trænˈspɔːrt/","v./n.","运输","Trucks transport goods.","卡车运货。",1],
+["treat","/triːt/","v.","对待；治疗","Treat patients with respect.","尊重对待患者。",1],
+["trigger","/ˈtrɪɡər/","v.","引发；触发","Stress can trigger illness.","压力可引发疾病。",2],
+["trust","/trʌst/","n./v.","信任","Trust takes time to build.","信任需要时间建立。",1],
+["typical","/ˈtɪpɪkl/","adj.","典型的","It is a typical example.","这是典型例子。",1],
+["ultimate","/ˈʌltɪmət/","adj.","最终的","Our ultimate goal is success.","我们的最终目标是成功。",2],
+["undergo","/ˌʌndərˈɡoʊ/","v.","经历；接受","She will undergo training.","她将接受培训。",2],
+["underline","/ˌʌndərˈlaɪn/","v.","强调；在…下划线","Underline key words.","给关键词划线。",2],
+["undertake","/ˌʌndərˈteɪk/","v.","承担","They undertook the task.","他们承担任务。",3],
+["uniform","/ˈjuːnɪfɔːrm/","adj./n.","统一的；制服","Wear a school uniform.","穿校服。",2],
+["unique","/juˈniːk/","adj.","独特的","Everyone is unique.","每个人都独特。",1],
+["universal","/ˌjuːnɪˈvɜːrsl/","adj.","普遍的；通用的","Music is a universal language.","音乐是通用语言。",2],
+["urban","/ˈɜːrbən/","adj.","城市的","Urban life is fast.","城市生活节奏快。",2],
+["urge","/ɜːrdʒ/","v./n.","敦促；冲动","He urged us to act.","他敦促我们行动。",3],
+["utility","/juːˈtɪləti/","n.","效用；公用事业","The tool has practical utility.","这工具有实用价值。",3],
+["vague","/veɪɡ/","adj.","模糊的","His answer was vague.","他回答含糊。",2],
+["valid","/ˈvælɪd/","adj.","有效的；合理的","The ticket is valid for a week.","票一周内有效。",2],
+["vanish","/ˈvænɪʃ/","v.","消失","The pain vanished quickly.","疼痛很快消失。",3],
+["variable","/ˈveriəbl/","n./adj.","变量；可变的","Weather is a key variable.","天气是关键变量。",3],
+["variation","/ˌveriˈeɪʃn/","n.","变化；变体","There is seasonal variation.","存在季节变化。",3],
+["vehicle","/ˈviːəkl/","n.","车辆；载体","The vehicle carries the drug.","该载体携带药物。",3],
+["venture","/ˈventʃər/","n./v.","冒险；企业","They started a joint venture.","他们创办合资企业。",3],
+["verify","/ˈverɪfaɪ/","v.","核实","Verify the data twice.","两次核实数据。",2],
+["version","/ˈvɜːrʒn/","n.","版本","Use the latest version.","使用最新版本。",1],
+["vertical","/ˈvɜːrtɪkl/","adj.","垂直的","Draw a vertical line.","画一条垂直线。",3],
+["victim","/ˈvɪktɪm/","n.","受害者","Help the accident victims.","帮助事故受害者。",2],
+["violate","/ˈvaɪəleɪt/","v.","违反","Do not violate the rules.","不要违反规则。",2],
+["virtual","/ˈvɜːrtʃuəl/","adj.","虚拟的；实际上的","We held a virtual meeting.","我们开了线上会议。",2],
+["virtue","/ˈvɜːrtʃuː/","n.","美德；优点","Patience is a virtue.","耐心是美德。",3],
+["visible","/ˈvɪzəbl/","adj.","可见的","The stars are visible tonight.","今晚能看到星星。",2],
+["vision","/ˈvɪʒn/","n.","视力；愿景","She has a clear vision.","她有清晰愿景。",2],
+["visual","/ˈvɪʒuəl/","adj.","视觉的","Use visual aids in talks.","演讲使用视觉辅助。",2],
+["vital","/ˈvaɪtl/","adj.","至关重要的","Sleep is vital to health.","睡眠对健康至关重要。",2],
+["vivid","/ˈvɪvɪd/","adj.","生动的；鲜明的","She gave a vivid description.","她做出生动描述。",3],
+["volume","/ˈvɑːljuːm/","n.","体积；音量；卷","Turn down the volume.","把音量调小。",2],
+["voluntary","/ˈvɑːlənteri/","adj.","自愿的","Participation is voluntary.","参与是自愿的。",3],
+["wander","/ˈwɑːndər/","v.","漫步；走神","My mind wandered in class.","我上课走神了。",2],
+["welfare","/ˈwelfer/","n.","福利；幸福","Child welfare matters most.","儿童福利最重要。",3],
+["widespread","/ˈwaɪdspred/","adj.","广泛的","The disease became widespread.","疾病广泛传播。",2],
+["wisdom","/ˈwɪzdəm/","n.","智慧","Wisdom comes with age.","智慧随年龄增长。",2],
+["withdraw","/wɪðˈdrɔː/","v.","撤回；退出","He withdrew from the course.","他退出课程。",3],
+["witness","/ˈwɪtnəs/","n./v.","目击者；目睹","She witnessed the event.","她目睹此事。",2],
+["worthy","/ˈwɜːrði/","adj.","值得的","The plan is worthy of support.","计划值得支持。",3],
+["yield","/jiːld/","v./n.","产生；屈服；产量","Fields yield good crops.","田地产出好庄稼。",3],
+["zone","/zoʊn/","n.","地区；区域","Park in the correct zone.","在正确区域停车。",2]
+];
+
 
 /* 分类与难度元数据 */
 const CHUNK_CATS={gcp:"GCP与法规",mon:"监查流程",nuc:"核药专业",img:"影像与剂量学",saf:"安全与PD/AE",dat:"数据管理与SDV",sys:"系统与工具",com:"沟通与软技能",beh:"行为面试",car:"简历与职业"};
@@ -1618,6 +2356,9 @@ function defaultState(){
     dailyManual:[],            // 每日更新中心手动条目 {date,col,text,url}
     checklist:{},              // 每日检查清单勾选
     cloud:{fetchedAt:"",regulations:[],literature:[],jobs:[],trials:[],questions:[]},
+    jobApps:[],                // 岗位投递追踪
+    targetFav:{},              // 靶点收藏 {name:true}
+    wordStudy:{bank:"med",dailyGoal:30,progress:{},learnedDates:{},extraLoaded:0},
     sentenceCount:0
   };
 }
@@ -1663,6 +2404,12 @@ function loadState(){
   state.dailyManual=raw.dailyManual||[];
   state.checklist=raw.checklist||{};
   state.sentenceCount=raw.sentenceCount||0;
+  // 新增模块字段（旧数据缺失时使用默认值）
+  state.jobApps=Array.isArray(raw.jobApps)?raw.jobApps:[];
+  state.targetFav=raw.targetFav||{};
+  state.wordStudy=Object.assign(d.wordStudy,raw.wordStudy||{});
+  state.wordStudy.progress=(raw.wordStudy&&raw.wordStudy.progress)||{};
+  state.wordStudy.learnedDates=(raw.wordStudy&&raw.wordStudy.learnedDates)||{};
   // 跨天重置每日任务
   if(state.daily.date!==todayStr())state.daily={date:todayStr(),tasks:{word:false,project:false,interview:false,review:false}};
   saveState();
@@ -1843,7 +2590,7 @@ function renderDashboard(){
   const doneN=Object.values(tasks).filter(Boolean).length;
   const pct=Math.round(doneN/4*100);
   const tlist=[
-    ["word","15 分钟词块学习","15 min"],
+    ["word","15 分钟专业词块练习","15 min"],
     ["project","20 分钟项目口述","20 min"],
     ["interview","10 分钟面试题","10 min"],
     ["review","5 分钟复盘","5 min"]
@@ -1937,7 +2684,7 @@ function renderChunks(){
   const list=state.chunks.filter(chunkMatch);
   const mastered=state.chunks.filter(c=>c.status==="已掌握").length;
   $("#view-chunks").innerHTML=`
-  <h2 class="page">词块学习 <span class="muted">（${state.chunks.length} 个，已掌握 ${mastered}）</span></h2>
+  <h2 class="page">专业词块练习 <span class="muted">（${state.chunks.length} 个，已掌握 ${mastered}）</span></h2>
   <div class="filterbar">
     <select id="fCat"><option value="">全部分类</option>${Object.entries(CHUNK_CATS).map(([k,v])=>`<option value="${k}" ${chunkUI.cat===k?"selected":""}>${v}</option>`).join("")}</select>
     <select id="fLv"><option value="">全部难度</option>${Object.entries(LEVELS).map(([k,v])=>`<option value="${k}" ${chunkUI.lv===k?"selected":""}>${v}</option>`).join("")}</select>
@@ -2115,38 +2862,44 @@ function makeProject(f){
 }
 
 /* --- 文件上传解析 --- */
+/* 文件上传：document 级事件委托，renderProjects 重渲染后依然有效 */
 function bindProjectFile(){
-  const inp=$("#projFile");if(!inp||inp._bound)return;inp._bound=true;
-  inp.addEventListener("change",async e=>{
-    const file=e.target.files[0];if(!file)return;e.target.value="";
-    const lower=file.name.toLowerCase();
-    if(lower.endsWith(".txt")||lower.endsWith(".md")){
-      const txt=await file.text();openParsedForm(parseStudyText(txt));
-    }else if(lower.endsWith(".pdf")){
-      toast("正在尝试解析 PDF…");
-      try{
-        const lib=await ensurePdfJs();
-        const buf=await file.arrayBuffer();
-        const doc=await lib.getDocument({data:buf}).promise;
-        let txt="";
-        for(let i=1;i<=Math.min(doc.numPages,30);i++){const pg=await doc.getPage(i);const c=await pg.getTextContent();txt+=c.items.map(it=>it.str).join(" ")+"\n";}
-        openParsedForm(parseStudyText(txt));
-      }catch(err){openPasteModal("PDF 解析器未能加载或解析失败（"+err.message+"），请粘贴文件文本：");}
-    }else if(lower.endsWith(".docx")){
-      openPasteModal("DOCX 暂不支持直接解析，请在 Word 中另存为 TXT，或直接粘贴文件文本：");
-    }else openPasteModal("请粘贴文件文本：");
-  });
-  const jf=$("#projJsonFile");jf._bound=true;
-  jf.addEventListener("change",e=>{
-    const file=e.target.files[0];if(!file)return;e.target.value="";
-    const r=new FileReader();
-    r.onload=()=>{try{
-      const data=JSON.parse(r.result);
-      const arr=Array.isArray(data)?data:(data.projects||[]);
-      arr.forEach(x=>{if(x&&x.name)state.projects.push(Object.assign(makeProject(x),x,{id:uid("p")}));});
-      saveState();renderProjects();toast("已导入 "+arr.length+" 个项目");
-    }catch(err){toast("JSON 导入失败");}};
-    r.readAsText(file);
+  if(bindProjectFile._bound)return;bindProjectFile._bound=true;
+  document.addEventListener("change",async e=>{
+    const inp=e.target;
+    if(!inp)return;
+    /* 方案文件（PDF/DOCX/TXT/MD） */
+    if(inp.id==="projFile"){
+      const file=inp.files[0];if(!file)return;inp.value="";
+      const lower=file.name.toLowerCase();
+      if(lower.endsWith(".txt")||lower.endsWith(".md")){
+        const txt=await file.text();openParsedForm(parseStudyText(txt));
+      }else if(lower.endsWith(".pdf")){
+        toast("正在尝试解析 PDF…");
+        try{
+          const lib=await ensurePdfJs();
+          const buf=await file.arrayBuffer();
+          const doc=await lib.getDocument({data:buf}).promise;
+          let txt="";
+          for(let i=1;i<=Math.min(doc.numPages,30);i++){const pg=await doc.getPage(i);const c=await pg.getTextContent();txt+=c.items.map(it=>it.str).join(" ")+"\n";}
+          openParsedForm(parseStudyText(txt));
+        }catch(err){openPasteModal("PDF 解析器未能加载或解析失败（"+err.message+"），请复制方案文本到下方文本框：");}
+      }else if(lower.endsWith(".docx")){
+        openPasteModal("DOCX 暂不支持直接解析，请在 Word 中另存为 TXT，或复制方案文本到下方文本框：");
+      }else openPasteModal("请复制方案文本到下方文本框：");
+    }
+    /* JSON 导入项目 */
+    else if(inp.id==="projJsonFile"){
+      const file=inp.files[0];if(!file)return;inp.value="";
+      const r=new FileReader();
+      r.onload=()=>{try{
+        const data=JSON.parse(r.result);
+        const arr=Array.isArray(data)?data:(data.projects||[]);
+        arr.forEach(x=>{if(x&&x.name)state.projects.push(Object.assign(makeProject(x),x,{id:uid("p")}));});
+        saveState();renderProjects();toast("已导入 "+arr.length+" 个项目");
+      }catch(err){toast("JSON 导入失败");}};
+      r.readAsText(file);
+    }
   });
 }
 /* 动态加载 pdf.js CDN，失败则抛错走粘贴 fallback */
@@ -2606,9 +3359,9 @@ document.addEventListener("click",async e=>{
       break;
     case "dailyAdd":openDailyAdd();break;
     case "checklist":state.checklist[d.key]=!state.checklist[d.key];saveState();renderDaily();break;
-    /* 朗读 */
-    case "speak":speak(d.text);break;
-    case "speakSlow":speak(d.text,0.7);break;
+    /* 朗读（统一走 toggleSpeak，朗读中可停止） */
+    case "speak":toggleSpeak(b,d.text);break;
+    case "speakSlow":toggleSpeak(b,d.text,0.7);break;
     /* 词块 */
     case "chunkRandom":randomReview();break;
     case "chunkDetail":{const box=$("#cd-"+id);
@@ -2675,7 +3428,7 @@ document.addEventListener("click",async e=>{
       saveState();renderExtQ();break;}
     case "extToggle":if(extShown.has(id))extShown.delete(id);else extShown.add(id);renderExtQ();break;
     case "copyAnswer":copyText(state.extQuestions.find(x=>x.id===id).answer);break;
-    case "speakAnswer":speak(state.extQuestions.find(x=>x.id===id).answer);break;
+    case "speakAnswer":toggleSpeak(b,state.extQuestions.find(x=>x.id===id).answer);break;
     case "extSave":{const q=state.extQuestions.find(x=>x.id===id);
       const ta=document.querySelector(`[data-act="extArea"][data-id="${id}"]`);
       q.myAnswer=ta?ta.value:q.myAnswer;if(!q.status||q.status==="未准备")q.status="已写答案";
@@ -2701,6 +3454,33 @@ document.addEventListener("click",async e=>{
     case "goExt":switchView("extq");break;
     case "goMy":switchView("myq");break;
     case "goProject":switchView("projects");setTimeout(()=>projectOpen(id),100);break;
+    /* 靶点库 */
+    case "tgFav":if(state.targetFav[id])delete state.targetFav[id];else state.targetFav[id]=true;
+      saveState();renderTargets();break;
+    case "tgDetail":openTargetDetail(id);break;
+    case "tgProject":closeModal();switchView("projects");setTimeout(()=>projectOpen(id),120);break;
+    /* 岗位追踪 */
+    case "jbCopyKw":{const c=T_JOBCHANNELS.find(x=>x.name===id);copyText(c.keywordsEN+" / "+c.keywordsCN);break;}
+    case "jbAdd":openModal(jobFormHtml(null));break;
+    case "jbEdit":openModal(jobFormHtml(Number(id)));break;
+    case "jbDel":state.jobApps.splice(Number(id),1);saveState();renderJobs();break;
+    case "jbSave":{const data=readJobForm();if(!data.company){toast("请填写公司名称");break;}
+      const i=Number(d.id);if(i>=0)state.jobApps[i]=data;else state.jobApps.push(data);
+      saveState();closeModal();renderJobs();toast("投递记录已保存");break;}
+    /* 常规背单词 */
+    case "wStart":state.wordStudy.lastMode=id;startWordSession(id);break;
+    case "wImport":$("#wordFile").click();break;
+    case "wExport":exportWordRecord();break;
+    case "wSpeak":{const w=curWord();if(w)toggleSpeak(b,w.word);break;}
+    case "wFlip":{const card=$("#wCard");
+      card.querySelector(".wfront").classList.toggle("hide");
+      card.querySelector(".wback").classList.toggle("hide");break;}
+    case "wGrade":gradeCard(Number(id));break;
+    case "wChoice":answerChoice(b,id);break;
+    case "wSpellCheck":spellCheck();break;
+    case "wHint":{const w=curWord();toast("首字母 "+w.word[0].toUpperCase()+"，共 "+w.word.length+" 个字母");break;}
+    case "wAgain":startWordSession(state.wordStudy.lastMode||"card");break;
+    case "wBackStats":wSession=null;renderWords();break;
     /* 弹窗 */
     case "modalClose":closeModal();break;
   }
@@ -2761,6 +3541,429 @@ document.addEventListener("click",e=>{
 /* N / R 的实现已在核心段定义（randomReview 已支持优先到期词） */
 
 /* =====================================================================
+ * 模块：靶点库
+ * ===================================================================== */
+function renderTargets(){
+  const el=$("#view-targets");
+  const cards=T_TARGETS.map(t=>{
+    const fav=state.targetFav[t.name];
+    return `<div class="card tg-card">
+      <div class="tg-head">
+        <div><div class="tg-name">${t.name}</div><div class="muted small">${t.fullNameCN}</div></div>
+        <button class="sm ${fav?"":"ghost"}" data-act="tgFav" data-id="${t.name}">${fav?"★":"☆"}</button>
+      </div>
+      <div class="small muted">${t.pathway}</div>
+      <div class="tg-iso">${t.diagnosticIsotopes.slice(0,3).map(i=>`<span class="chip">${i}</span>`).join("")}</div>
+      <button class="sm" data-act="tgDetail" data-id="${t.name}">查看详情</button>
+    </div>`;
+  }).join("");
+  el.innerHTML=`<h2>靶点库 （${T_TARGETS.length} 个核药相关靶点）</h2>
+  <p class="muted small">点击卡片查看完整生物学信息、核素、代表药物与 CRA 监查要点；☆ 可收藏靶点。</p>
+  <div class="grid grid3">${cards}</div>`;
+}
+/* 靶点详情弹窗 */
+function openTargetDetail(name){
+  const t=T_TARGETS.find(x=>x.name===name);if(!t)return;
+  const li=arr=>arr&&arr.length?arr.map(x=>`<li>${x}</li>`).join(""):"<li class='muted'>暂无</li>";
+  const relP=t.relatedProjects&&t.relatedProjects.length?t.relatedProjects.map(n=>{
+      const p=state.projects.find(x=>x.name===n);
+      return p?`<li><a href="#" data-act="tgProject" data-id="${p.id}">${n}</a></li>`:`<li>${n}</li>`;}).join(""):"<li class='muted'>暂无关联项目</li>";
+  const relC=t.relatedChunks&&t.relatedChunks.length?t.relatedChunks.map(c=>`<span class="chip">${c}</span>`).join(""):"<span class='muted'>暂无</span>";
+  openModal(`<div class="modal-head"><h3>${t.name} · ${t.fullNameCN}</h3><button data-act="closeModal">✕</button></div>
+  <div class="muted small">${t.fullName}</div>
+  <h4>生物学功能 / 通路</h4><p><b>${t.pathway}</b></p><p>${t.functionCN}</p>
+  <h4>适应症</h4><ul>${li(t.indications)}</ul>
+  <div class="grid grid2">
+    <div><h4>诊断核素</h4><ul>${li(t.diagnosticIsotopes)}</ul></div>
+    <div><h4>治疗核素</h4><ul>${li(t.therapeuticIsotopes)}</ul></div>
+  </div>
+  <h4>代表药物 / 显像剂</h4><ul>${li(t.representativeDrugs)}</ul>
+  <h4>试验阶段</h4><p>${t.trialPhase}</p>
+  <h4>CRA 监查要点</h4><ul>${li(t.craMonitoringPoints)}</ul>
+  <h4>关键文献</h4><ul>${t.keyReferences.map(r=>`<li><a href="${r.u}" target="_blank" rel="noopener">${r.t}</a></li>`).join("")}</ul>
+  <h4>关联项目</h4><ul>${relP}</ul>
+  <h4>关联词块</h4><p>${relC}</p>`);
+}
+
+/* =====================================================================
+ * 模块：岗位追踪（渠道 + 投递表）
+ * ===================================================================== */
+const JOB_STATUS=["未投","已投递","HR沟通中","面试中","Offer","拒信","暂缓"];
+function renderJobs(){
+  const el=$("#view-jobs");
+  const groups={};
+  T_JOBCHANNELS.forEach(c=>{(groups[c.type]=groups[c.type]||[]).push(c);});
+  const channels=Object.entries(groups).map(([type,arr])=>`
+    <h3 class="grp-title">${type}</h3>
+    <div class="grid grid3">${arr.map(c=>`
+      <div class="card">
+        <div class="tg-name">${c.name}</div>
+        <div class="small muted">${c.notes||""}</div>
+        <div class="small">EN：<span class="chip">${c.keywordsEN}</span></div>
+        <div class="small">中文：<span class="chip">${c.keywordsCN}</span></div>
+        <div class="row gap">
+          <a class="btn sm" href="${c.url}" target="_blank" rel="noopener">打开渠道</a>
+          <button class="sm ghost" data-act="jbCopyKw" data-id="${c.name}">复制关键词</button>
+        </div>
+        <div class="small muted">建议刷新：${c.updateFrequency}</div>
+      </div>`).join("")}</div>`).join("");
+  /* 投递追踪表 */
+  const rows=state.jobApps.map((a,i)=>`
+    <tr>
+      <td>${a.company||""}<div class="small muted">${a.position||""}</div></td>
+      <td class="small">${a.location||""}</td>
+      <td class="small">${a.salary||""}</td>
+      <td class="small">${a.appliedDate||""}</td>
+      <td><select data-act="jbStatus" data-id="${i}">${JOB_STATUS.map(s=>`<option ${s===a.status?"selected":""}>${s}</option>`).join("")}</select></td>
+      <td class="small">${a.notes||""}</td>
+      <td class="row">
+        ${a.url?`<a class="btn sm ghost" href="${a.url}" target="_blank" rel="noopener">链接</a>`:""}
+        <button class="sm ghost" data-act="jbEdit" data-id="${i}">编辑</button>
+        <button class="sm ghost danger" data-act="jbDel" data-id="${i}">删</button>
+      </td>
+    </tr>`).join("");
+  el.innerHTML=`<h2>岗位追踪 （${T_JOBCHANNELS.length} 个渠道 · ${state.jobApps.length} 条投递记录）</h2>
+    <div class="row gap"><button class="btn" data-act="jbAdd">+ 添加岗位/投递记录</button></div>
+    ${channels}
+    <h3>我的投递追踪表</h3>
+    ${state.jobApps.length?`<div class="tablewrap"><table class="table">
+      <thead><tr><th>公司/职位</th><th>地点</th><th>薪资</th><th>投递日期</th><th>状态</th><th>备注</th><th>操作</th></tr></thead>
+      <tbody>${rows}</tbody></table></div>`
+      :`<div class="empty">暂无投递记录，点击“添加岗位/投递记录”开始追踪。</div>`}`;
+}
+/* 岗位表单（新增/编辑） */
+function jobFormHtml(i){
+  const a=(i!=null&&state.jobApps[i])?state.jobApps[i]:{company:"",position:"",location:"",salary:"",source:"",url:"",appliedDate:todayStr(),status:"未投",notes:""};
+  return `<div class="modal-head"><h3>${i!=null?"编辑投递记录":"添加岗位/投递记录"}</h3><button data-act="closeModal">✕</button></div>
+  <div class="form-grid">
+    <label>公司 *<input id="jfCompany" placeholder="如 PPD / Novartis" value="${a.company||""}"></label>
+    <label>职位<input id="jfPosition" placeholder="如 CRA / Clinical Research Associate" value="${a.position||""}"></label>
+    <label>地点<input id="jfLocation" placeholder="如 Beijing / Remote" value="${a.location||""}"></label>
+    <label>薪资<input id="jfSalary" placeholder="如 25-30k / 面议" value="${a.salary||""}"></label>
+    <label>来源渠道<input id="jfSource" placeholder="如 LinkedIn / 官网" value="${a.source||""}"></label>
+    <label>岗位链接<input id="jfUrl" placeholder="https://…" value="${a.url||""}"></label>
+    <label>投递日期<input id="jfDate" type="date" value="${a.appliedDate||todayStr()}"></label>
+    <label>状态<select id="jfStatus">${JOB_STATUS.map(s=>`<option ${s===a.status?"selected":""}>${s}</option>`).join("")}</select></label>
+  </div>
+  <label>备注<textarea id="jfNotes" placeholder="联系人、面试反馈、下一步…">${a.notes||""}</textarea></label>
+  <div class="row gap"><button class="btn" data-act="jbSave" data-id="${i==null?-1:i}">保存</button><button class="btn ghost" data-act="closeModal">取消</button></div>`;
+}
+function readJobForm(){
+  const g=id=>($("#"+id)||{}).value||"";
+  return {company:g("jfCompany").trim(),position:g("jfPosition").trim(),location:g("jfLocation").trim(),
+    salary:g("jfSalary").trim(),source:g("jfSource").trim(),url:g("jfUrl").trim(),
+    appliedDate:g("jfDate"),status:g("jfStatus"),notes:g("jfNotes").trim()};
+}
+
+/* =====================================================================
+ * 模块：常规背单词（医学 / 雅思；卡片、选择、拼写、听音选词、SRS）
+ * ===================================================================== */
+const WORD_BANKS=[
+  {id:"med",name:"医学英语词库",data:MED_WORDS},
+  {id:"ielts",name:"雅思英语词库",data:IELTS_WORDS}
+];
+const WORD_MODES=[{id:"card",name:"翻转卡片"},{id:"choice",name:"选择题"},{id:"spell",name:"拼写测试"},{id:"listen",name:"听音选词"},{id:"review",name:"艾宾浩斯复习"}];
+const WORD_INTERVALS=[0,1,3,7,14,30]; // stage 0..5 对应间隔天数
+let wSession=null; // 当前学习会话
+/* 元组转对象 */
+function tuplesToWords(bank){
+  return bank.data.map(t=>({word:t[0],phonetic:t[1],pos:t[2],meaning:t[3],example:t[4],exampleCN:t[5],level:t[6]||1}));
+}
+function wKey(bankId,w){return bankId+":"+w.word;}
+function getWProg(bankId,w){return state.wordStudy.progress[wKey(bankId,w)];}
+function ensureWProg(bankId,w){
+  const k=wKey(bankId,w);
+  return state.wordStudy.progress[k]||(state.wordStudy.progress[k]={stage:0,seen:0,correct:0,wrong:0,next:"",last:""});
+}
+function addDaysStr(days){const d=new Date();d.setDate(d.getDate()+days);return d.toISOString().slice(0,10);}
+/* 构建词池（按筛选） */
+function wordPool(){
+  const ws=state.wordStudy;
+  const bank=WORD_BANKS.find(b=>b.id===ws.bank)||WORD_BANKS[0];
+  let words=tuplesToWords(bank);
+  const letter=($("#wLetter")||{}).value, lv=($("#wLevel")||{}).value;
+  if(letter)words=words.filter(w=>w.word[0].toLowerCase()===letter);
+  if(lv)words=words.filter(w=>String(w.level)===lv);
+  return {bank,words};
+}
+/* 统计 */
+function wordStats(){
+  const ws=state.wordStudy, bank=WORD_BANKS.find(b=>b.id===ws.bank)||WORD_BANKS[0];
+  let learned=0,mastered=0,due=0,correct=0,wrong=0;
+  tuplesToWords(bank).forEach(w=>{
+    const p=getWProg(bank.id,w);
+    if(p){
+      if(p.seen>0)learned++;
+      if(p.stage>=5)mastered++;
+      if(p.next&&p.next<=todayStr())due++;
+      correct+=p.correct;wrong+=p.wrong;
+    }
+  });
+  const acc=(correct+wrong)?Math.round(correct/(correct+wrong)*100):0;
+  return {total:bank.data.length,learned,mastered,due,acc,today:ws.learnedDates[todayStr()]||0};
+}
+function renderWords(){
+  const el=$("#view-words");
+  const ws=state.wordStudy;
+  const letters="abcdefghijklmnopqrstuvwxyz".split("");
+  const s=wordStats();
+  const bar=(label,val,total)=>`<div class="small">${label} <b>${val}/${total}</b>
+    <div class="bar"><div class="fill" style="width:${total?Math.round(val/total*100):0}%"></div></div></div>`;
+  el.innerHTML=`<h2>常规背单词</h2>
+  <div class="card">
+    <div class="row gap wrap">
+      <label>词库
+        <select id="wBank">${WORD_BANKS.map(b=>`<option value="${b.id}" ${b.id===ws.bank?"selected":""}>${b.name}（${b.data.length} 词）</option>`).join("")}</select>
+      </label>
+      <label>首字母 <select id="wLetter"><option value="">全部</option>${letters.map(l=>`<option>${l}</option>`).join("")}</select></label>
+      <label>难度 <select id="wLevel"><option value="">全部</option><option value="1">初级</option><option value="2">中级</option><option value="3">高级</option></select></label>
+      <label>每日目标 <input id="wGoal" type="number" min="5" max="200" value="${ws.dailyGoal}" style="width:80px"></label>
+    </div>
+    <div class="grid grid4 mts">
+      ${bar("已学",s.learned,s.total)}${bar("已掌握",s.mastered,s.total)}
+      ${bar("今日",s.today,ws.dailyGoal)}<div class="small">待复习 <b>${s.due}</b> · 正确率 <b>${s.acc}%</b></div>
+    </div>
+  </div>
+  <div class="row gap wrap mts">
+    ${WORD_MODES.map(m=>`<button class="btn ${wSession&&wSession.mode===m.id?"":"ghost"}" data-act="wStart" data-id="${m.id}">${m.name}</button>`).join("")}
+    <button class="sm ghost" data-act="wImport">导入词库(CSV/JSON)</button>
+    <button class="sm ghost" data-act="wExport">导出学习记录</button>
+    <input type="file" id="wordFile" accept=".csv,.json,.txt" class="hide">
+  </div>
+  <div id="wArea" class="mts"><div class="empty">选择学习模式开始；建议每天完成 ${ws.dailyGoal} 词。</div></div>`;
+}
+/* 开始一个会话：构造队列（到期优先，然后未学，补足每日目标） */
+function startWordSession(mode){
+  const ws=state.wordStudy;
+  const {bank,words}=wordPool();
+  const due=[],unseen=[],learning=[];
+  words.forEach(w=>{
+    const p=getWProg(bank.id,w);
+    if(!p)unseen.push(w);
+    else if(p.next&&p.next<=todayStr())due.push(w);
+    else if(p.stage<5)learning.push(w);
+  });
+  let queue;
+  if(mode==="review")queue=due;
+  else queue=due.concat(unseen,learning);
+  const remain=Math.max(0,ws.dailyGoal-(ws.learnedDates[todayStr()]||0));
+  if(mode!=="review")queue=queue.slice(0,Math.max(ws.dailyGoal,remain,20));
+  if(!queue.length){wSession=null;$("#wArea").innerHTML=`<div class="empty">🎉 当前筛选条件下没有待学/待复习单词。</div>`;renderWords();return;}
+  wSession={mode,bank,queue,idx:0,correct:0,wrong:0,flipped:false,opts:null,answered:false};
+  renderWordItem();
+}
+function curWord(){return wSession.queue[wSession.idx];}
+function markSeen(w){
+  const ws=state.wordStudy;
+  ws.learnedDates[todayStr()]=(ws.learnedDates[todayStr()]||0)+(wSession._seen&&wSession._seen[w.word]?0:1);
+  wSession._seen=wSession._seen||{};wSession._seen[w.word]=true;
+}
+/* 评分：good 升阶，again 降阶/重置 */
+function gradeWord(w,good){
+  const p=ensureWProg(wSession.bank.id,w);
+  p.seen++;markSeen(w);
+  if(good){p.correct++;p.stage=Math.min(5,p.stage+1);wSession.correct++;}
+  else{p.wrong++;p.stage=(p.stage>=2?p.stage-1:0);wSession.wrong++;}
+  p.last=todayStr();p.next=addDaysStr(WORD_INTERVALS[p.stage]);
+}
+/* 渲染当前题目 */
+function renderWordItem(){
+  const w=curWord();if(!w)return finishSession();
+  const area=$("#wArea");wSession.answered=false;wSession.flipped=false;
+  const prog=`${wSession.idx+1}/${wSession.queue.length} · ✓${wSession.correct} ✗${wSession.wrong}`;
+  let body="";
+  if(wSession.mode==="card"){
+    body=`<div class="wcard" id="wCard">
+      <div class="wfront"><div class="wword">${w.word}</div><div class="muted">${w.phonetic} · ${w.pos}</div>
+        <button class="sm" data-act="wSpeak">🔊 朗读</button></div>
+      <div class="wback hide"><div class="wword">${w.meaning}</div>
+        <div class="small">${w.example}</div><div class="small muted">${w.exampleCN}</div></div>
+    </div>
+    <div class="row gap center mts">
+      <button class="btn ghost" data-act="wFlip">翻转看释义</button>
+    </div>
+    <div class="row gap center mts">
+      <button class="btn danger" data-act="wGrade" data-id="0">不认识</button>
+      <button class="btn" data-act="wGrade" data-id="1">模糊</button>
+      <button class="btn ok" data-act="wGrade" data-id="2">认识</button>
+    </div>`;
+  }else if(wSession.mode==="choice"){
+    body=choiceHtml(w,"meaning");
+  }else if(wSession.mode==="listen"){
+    body=choiceHtml(w,"audio");
+  }else if(wSession.mode==="spell"){
+    body=`<div class="wcard"><div class="muted">听发音，拼写单词（${w.pos}）</div>
+      <button class="btn mts" data-act="wSpeak">🔊 播放</button>
+      <input id="wSpellInput" class="winput mts" placeholder="输入英文单词" autocomplete="off">
+      <div class="mts"><button class="btn" data-act="wSpellCheck">提交</button>
+      <button class="sm ghost" data-act="wHint">提示首字母</button></div>
+      <div id="wResult" class="mts"></div></div>`;
+    setTimeout(()=>speak(w.word),300);
+  }
+  area.innerHTML=`<div class="small muted">${prog}</div>${body}`;
+  if(wSession.mode==="listen")setTimeout(()=>speak(w.word),350);
+}
+/* 选择题 / 听音选词 */
+function choiceHtml(w,kind){
+  const pool=wSession.queue;
+  const others=[];
+  const all=tuplesToWords(wSession.bank);
+  while(others.length<3){
+    const c=all[Math.floor(Math.random()*all.length)];
+    if(c.word!==w.word&&!others.find(o=>o.word===c.word))others.push(c);
+  }
+  const opts=others.concat(w).sort(()=>Math.random()-0.5);
+  wSession.opts=opts;
+  const prompt=kind==="audio"
+    ?`<div class="muted">听发音，选择正确单词</div><button class="btn mts" data-act="wSpeak">🔊 播放</button>`
+    :`<div class="wword">${w.meaning}</div><div class="small muted">${w.pos} · 选择对应英文</div>`;
+  return `<div class="wcard">${prompt}
+    <div class="grid grid2 mts">${opts.map(o=>`<button class="btn opt ghost" data-act="wChoice" data-id="${o.word}">${kind==="audio"?o.word:o.word}<div class="small muted">${kind==="audio"?"":o.phonetic}</div></button>`).join("")}</div>
+    <div id="wResult" class="mts"></div></div>`;
+}
+function finishSession(){
+  const total=wSession.correct+wSession.wrong;
+  const acc=total?Math.round(wSession.correct/total*100):0;
+  const result=`<div class="card center">
+    <h3>本轮完成 🎉</h3>
+    <p>共 ${wSession.queue.length} 词 · 正确 <b>${wSession.correct}</b> · 错误 <b>${wSession.wrong}</b> · 正确率 <b>${acc}%</b></p>
+    <div class="row gap center"><button class="btn" data-act="wAgain">再来一轮</button>
+    <button class="btn ghost" data-act="wBackStats">返回统计</button></div></div>`;
+  wSession=null;saveState();renderWords();
+  $("#wArea").innerHTML=result;
+}
+/* 处理选择题作答 */
+function answerChoice(btn,chosenWord){
+  if(wSession.answered)return;wSession.answered=true;
+  const w=curWord(),ok=chosenWord===w.word;
+  gradeWord(w,ok);
+  document.querySelectorAll("#wArea .opt").forEach(o=>{
+    o.disabled=true;
+    if(o.dataset.id===w.word)o.classList.add("opt-right");
+    else if(o.dataset.id===chosenWord)o.classList.add("opt-wrong");
+  });
+  $("#wResult").innerHTML=ok?`<span class="ok">✓ 正确：${w.word} ${w.phonetic} — ${w.meaning}</span>`
+    :`<span class="danger">✗ 正确答案：${w.word} — ${w.meaning}</span>`;
+  saveState();setTimeout(nextWord,1100);
+}
+function nextWord(){wSession.idx++;if(wSession&&wSession.idx<wSession.queue.length)renderWordItem();else finishSession();}
+/* 卡片自评：0 不认识 / 1 模糊 / 2 认识 */
+function gradeCard(r){
+  const w=curWord();
+  if(r===2)gradeWord(w,true);
+  else if(r===0)gradeWord(w,false);
+  else{
+    const p=ensureWProg(wSession.bank.id,w);
+    p.seen++;markSeen(w);p.stage=Math.max(1,p.stage);
+    p.last=todayStr();p.next=addDaysStr(1);wSession.correct++;
+  }
+  saveState();setTimeout(nextWord,350);
+}
+/* 导出背单词学习记录 */
+function exportWordRecord(){
+  const blob=new Blob([JSON.stringify({wordStudy:state.wordStudy},null,2)],{type:"application/json"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);a.download="nuclear-cra-word-progress.json";
+  document.body.appendChild(a);a.click();a.remove();
+}
+/* 拼写检查 */
+function spellCheck(){
+  const w=curWord(),inp=$("#wSpellInput");
+  const val=(inp.value||"").trim().toLowerCase();
+  if(!val){toast("请先输入单词");return;}
+  const ok=val===w.word.toLowerCase();
+  gradeWord(w,ok);
+  $("#wResult").innerHTML=ok?`<span class="ok">✓ 拼写正确：${w.word} — ${w.meaning}</span>`
+    :`<span class="danger">✗ 正确拼写：${w.word} — ${w.meaning}</span>`;
+  saveState();setTimeout(nextWord,1200);
+}
+/* 词库导入：CSV 或 JSON */
+function parseCsvLine(line){
+  const out=[];let cur="",q=false;
+  for(let i=0;i<line.length;i++){
+    const c=line[i];
+    if(c=='"'){if(q&&line[i+1]=='"'){cur+='"';i++;}else q=!q;}
+    else if(c===','&&!q){out.push(cur);cur="";}
+    else cur+=c;
+  }
+  out.push(cur);return out.map(s=>s.trim());
+}
+function importWords(file){
+  const r=new FileReader();
+  r.onload=()=>{
+    try{
+      const text=r.result;let items=[];
+      if(file.name.toLowerCase().endsWith(".json")){
+        const data=JSON.parse(text);
+        items=Array.isArray(data)?data:(data.words||[]);
+      }else{
+        const lines=text.split(/\r?\n/).filter(l=>l.trim());
+        const start=lines[0].toLowerCase().includes("word")?1:0;
+        items=lines.slice(start).map(l=>{const c=parseCsvLine(l);
+          return {word:c[0],phonetic:c[1],pos:c[2],meaning:c[3],example:c[4],exampleCN:c[5],level:c[6]||1};});
+      }
+      const valid=items.filter(x=>x&&x.word&&x.meaning);
+      // 追加到当前词库（去重）
+      const bank=WORD_BANKS.find(b=>b.id===state.wordStudy.bank);
+      const exist=new Set(bank.data.map(t=>t[0].toLowerCase()));
+      let n=0;
+      valid.forEach(x=>{if(!exist.has(String(x.word).toLowerCase())){
+        bank.data.push([x.word,x.phonetic||"",x.pos||"",x.meaning,x.example||"",x.exampleCN||"",Number(x.level)||1]);n++;}});
+      state.wordStudy.extraLoaded=(state.wordStudy.extraLoaded||0)+n;
+      saveState();renderWords();toast(`已导入 ${n} 个新词（当前词库共 ${bank.data.length} 词）`);
+    }catch(err){toast("导入失败："+err.message);}
+  };
+  r.readAsText(file);
+}
+
+/* =====================================================================
+ * 恢复预置数据（只补缺，不清用户数据）
+ * ===================================================================== */
+function restorePreset(){
+  const d=defaultState();
+  // 词块补缺
+  const haveC={};state.chunks.forEach(c=>haveC[c.id]=true);
+  d.chunks.forEach(c=>{if(!haveC[c.id])state.chunks.push(c);});
+  // 外企题补缺
+  const haveQ={};state.extQuestions.forEach(q=>haveQ[q.id]=true);
+  d.extQuestions.forEach(q=>{if(!haveQ[q.id])state.extQuestions.push(q);});
+  // 项目补缺（按名称）
+  const haveP={};state.projects.forEach(p=>haveP[p.name]=true);
+  d.projects.forEach(p=>{if(!haveP[p.name])state.projects.push(p);});
+  // 法规补缺
+  const haveR={};state.regsLocal.forEach(r=>haveR[r.title]=true);
+  d.regsLocal.forEach(r=>{if(!haveR[r.title])state.regsLocal.push(r);});
+  saveState();toast("已补齐缺失的预置内容，你的数据未被清除");
+  location.reload();
+}
+
+/* 新模块的事件绑定（控件 change、文件导入、恢复预置） */
+function bindExtra(){
+  if(bindExtra._bound)return;bindExtra._bound=true;
+  /* 恢复预置数据 */
+  const br=$("#btnRestore");if(br)br.addEventListener("click",()=>{
+    if(confirm("将补齐缺失的预置词块/题目/项目/法规，不会清除你的任何数据。继续？"))restorePreset();
+  });
+  /* 背单词控件（事件委托，重渲染后仍有效） */
+  document.addEventListener("change",e=>{
+    const t=e.target;
+    if(t.id==="wBank"){state.wordStudy.bank=t.value;wSession=null;saveState();renderWords();}
+    else if(t.id==="wGoal"){state.wordStudy.dailyGoal=Math.max(5,Number(t.value)||30);saveState();}
+    else if(t.id==="wLetter"||t.id==="wLevel"){if(wSession)renderWordItem();}
+    else if(t.id==="wordFile"){if(t.files[0])importWords(t.files[0]);t.value="";}
+    /* 岗位状态下拉 */
+    else if(t.dataset&&t.dataset.act==="jbStatus"){
+      const i=Number(t.dataset.id);
+      if(state.jobApps[i]){state.jobApps[i].status=t.value;saveState();toast("状态已更新");}
+    }
+  });
+  /* 拼写框回车提交 */
+  document.addEventListener("keydown",e=>{
+    if(e.target.id==="wSpellInput"&&e.key==="Enter"){e.preventDefault();spellCheck();}
+  });
+}
+
+/* =====================================================================
  * 初始化
  * ===================================================================== */
 function init(){
@@ -2768,7 +3971,8 @@ function init(){
   /* 注册视图渲染器（导航与预渲染共用） */
   Object.assign(RENDERERS,{
     dashboard:renderDashboard, daily:renderDaily, chunks:renderChunks,
-    sentence:renderSentence, projects:renderProjects, myq:renderMyQ,
+    words:renderWords, sentence:renderSentence, projects:renderProjects,
+    targets:renderTargets, jobs:renderJobs, myq:renderMyQ,
     extq:renderExtQ, answers:renderAnswers, listening:renderListening,
     plan:renderPlan, stats:renderStats, search:renderSearch
   });
@@ -2776,6 +3980,7 @@ function init(){
   /* 预渲染全部视图（保证项目文件输入等元素就位），默认显示仪表盘 */
   Object.entries(RENDERERS).forEach(([k,fn])=>{try{fn();}catch(err){console.warn(k,err);}});
   bindProjectFile();
+  bindExtra();
   switchView("dashboard");
   /* 已配置 Supabase 则后台静默拉取 */
   if(state.settings.supabaseUrl)refreshAll().then(()=>{if($("#view-daily").classList.contains("active"))renderDaily();});
