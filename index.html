@@ -188,16 +188,30 @@ kbd{background:var(--bg3);border:1px solid var(--line);border-bottom-width:2px;b
 select[data-act=jbStatus]{padding:4px 6px;}
 /* 导航排序工具 */
 .nav-tools{display:flex;gap:6px;padding:6px 10px;background:var(--bg);}
-.nav.nav-editing{border:1.5px dashed var(--brand);border-radius:10px;padding:4px;}
-.nav.nav-editing button{cursor:grab;user-select:none;}
-.nav.nav-editing button:active{cursor:grabbing;}
-.nav.nav-editing button.drag-over{outline:2px dashed var(--brand);outline-offset:1px;}
-.nav.nav-editing button.dragging{opacity:.45;}
-.mv{display:inline-flex;align-items:center;justify-content:center;
-  width:20px;height:20px;margin-left:3px;border-radius:5px;
-  background:var(--brand-soft);color:var(--brand);font-size:9px;cursor:pointer;}
-.mv:active{background:var(--brand);color:#fff;}
-.nav.nav-editing button{padding-right:6px;}
+/* 一级分组（固定，不可拖拽） */
+.nav-group{margin-bottom:2px;}
+.nav-group-head{display:flex;justify-content:space-between;align-items:center;
+  width:100%;background:var(--bg2);font-weight:700;font-size:13px;
+  border:1px solid var(--line);border-radius:10px;padding:9px 12px;cursor:pointer;}
+.nav-group-head .arrow{transition:transform .2s;font-size:10px;color:var(--text2);}
+.nav-group.collapsed .arrow{transform:rotate(-90deg);}
+.nav-items{display:flex;flex-direction:column;gap:3px;padding:5px 4px;}
+.nav-group.collapsed .nav-items{display:none;}
+.nav-items button{position:relative;text-align:left;width:100%;}
+.nav-items button.active{background:var(--brand);color:#fff;border-color:var(--brand);}
+/* 排序编辑态：仅二级模块可拖，一级固定 */
+.nav.nav-editing .nav-group-head{cursor:default;opacity:.7;}
+.nav.nav-editing .nav-items{outline:1.5px dashed var(--brand);border-radius:8px;}
+.nav-items button.drag-over{outline:2px dashed var(--brand2);outline-offset:1px;}
+.nav-items button.dragging{opacity:.45;}
+.nav-items .mv{display:inline-flex;align-items:center;justify-content:center;
+  position:absolute;top:50%;transform:translateY(-50%);
+  width:18px;height:16px;border-radius:4px;
+  background:var(--brand-soft);color:var(--brand);font-size:8px;cursor:pointer;}
+.nav-items .mv.up{right:24px;}
+.nav-items .mv.dn{right:4px;}
+.nav.nav-editing .nav-items button{padding-right:46px;cursor:grab;}
+.nav.nav-editing .nav-items button:active{cursor:grabbing;}
 /* 红色安全警告 */
 .security-warn{background:var(--red-soft);border:1.5px solid var(--red);color:var(--red);
   border-radius:10px;padding:10px 12px;font-weight:600;margin:8px 0;}
@@ -225,6 +239,7 @@ select[data-act=jbStatus]{padding:4px 6px;}
     <div class="logo">核药CRA英文训练舱<small>Nuclear CRA English Training Cabin</small></div>
     <div class="spacer"></div>
     <div class="top-actions">
+      <button class="sm ghost" id="btnSearch" title="全局搜索">🔍 全局搜索</button>
       <button class="sm ghost" id="btnExport">导出 JSON</button>
       <button class="sm ghost" id="btnImport">导入 JSON</button>
       <button class="sm ghost" id="btnReset">重置数据</button>
@@ -235,29 +250,12 @@ select[data-act=jbStatus]{padding:4px 6px;}
 </header>
 <div class="navwrap">
   <div class="nav-tools">
-    <button class="sm ghost" id="btnNavEdit" title="拖拽调整模块顺序">编辑排序</button>
+    <button class="sm ghost" id="btnNavEdit" title="调整二级模块顺序">编辑排序</button>
     <button class="sm ghost hide" id="btnNavReset">恢复默认排序</button>
     <button class="sm hide" id="btnNavDone">完成</button>
   </div>
-  <nav class="nav" id="nav">
-  <button data-view="dashboard" class="active" draggable="false">首页仪表盘</button>
-  <button data-view="daily" draggable="false">每日更新中心</button>
-  <button data-view="chunks" draggable="false">专业词块练习</button>
-  <button data-view="words" draggable="false">常规背单词</button>
-  <button data-view="sentence" draggable="false">造句训练</button>
-  <button data-view="projects" draggable="false">项目口述库</button>
-  <button data-view="targets" draggable="false">靶点库</button>
-  <button data-view="jobs" draggable="false">岗位追踪</button>
-  <button data-view="myq" draggable="false">我的面试题库</button>
-  <button data-view="extq" draggable="false">外企面试题库</button>
-  <button data-view="reglib" draggable="false">法规库</button>
-  <button data-view="trans" draggable="false">法规翻译练习</button>
-  <button data-view="answers" draggable="false">答案库</button>
-  <button data-view="listening" draggable="false">听力跟读</button>
-  <button data-view="plan" draggable="false">周计划</button>
-  <button data-view="stats" draggable="false">进度统计</button>
-  <button data-view="search" draggable="false">搜索</button>
-</nav></div>
+  <nav class="nav" id="nav"><!-- 分组菜单由 JS 渲染 --></nav>
+</div>
 <main>
   <section class="view active" id="view-dashboard"></section>
   <section class="view" id="view-daily"></section>
@@ -2395,7 +2393,8 @@ function buildExtQuestions(){
 function defaultState(){
   return {
     v:2,
-    settings:{theme:"light",supabaseUrl:"",supabaseAnonKey:""},
+    settings:{theme:"light",supabaseUrl:"",supabaseAnonKey:"",
+      menuExpanded:{},navOrderV2:{}},
     checkins:[], lastCheck:"", streak:0,
     daily:{date:todayStr(),tasks:{word:false,project:false,interview:false,review:false}},
     chunks:buildChunks(),
@@ -2430,7 +2429,10 @@ function loadState(){
   const presetChunks=d.chunks, presetQ=d.extQuestions;
   // 顶层字段合并
   state=Object.assign(d,raw);
-  state.settings=Object.assign({theme:"light",supabaseUrl:"",supabaseAnonKey:""},raw.settings||{});
+  state.settings=Object.assign({theme:"light",supabaseUrl:"",supabaseAnonKey:"",
+    menuExpanded:{},navOrderV2:{}},raw.settings||{});
+  state.settings.menuExpanded=Object.assign({},(raw.settings&&raw.settings.menuExpanded)||{});
+  state.settings.navOrderV2=Object.assign({},(raw.settings&&raw.settings.navOrderV2)||{});
   state.daily=Object.assign({date:todayStr(),tasks:{}},raw.daily||{});
   state.daily.tasks=Object.assign({word:false,project:false,interview:false,review:false},(raw.daily&&raw.daily.tasks)||{});
   state.cloud=Object.assign(d.cloud,raw.cloud||{});
@@ -2512,18 +2514,110 @@ $("#btnTheme").addEventListener("click",()=>{
   saveState();applyTheme();
 });
 
-/* ---------- 导航 ---------- */
+/* ---------- 分组导航 ---------- */
 const RENDERERS={};
+/* 一级菜单固定；二级模块可在组内排序 */
+const DEFAULT_GROUPS=[
+ {id:"study",name:"学习中心",items:[["dashboard","首页仪表盘"],["daily","每日更新中心"],["plan","周计划"],["stats","进度统计"]]},
+ {id:"vocab",name:"词汇训练",items:[["chunks","专业词块练习"],["words","常规背单词"],["sentence","造句练习"]]},
+ {id:"proj",name:"项目与资料",items:[["projects","项目口述库"],["targets","靶点库"],["reglib","法规库"]]},
+ {id:"interview",name:"面试与求职",items:[["myq","我的面试题库"],["extq","外企面试题库"],["answers","答案库"],["jobs","岗位追踪"]]},
+ {id:"lt",name:"听力与翻译",items:[["listening","听力跟读"],["trans","法规翻译练习"]]}
+];
+/* 旧路由 → 新结构映射（兼容旧 #/listening、#/translation） */
+const ROUTE_ALIAS={listening:"listening",translation:"trans",translate:"trans"};
+/* 视图 → 所属一级分组 / 名称 */
+function viewMeta(v){
+  for(const g of DEFAULT_GROUPS){const f=g.items.find(i=>i[0]===v);
+    if(f)return {group:g.id,label:f[1]};}
+  return {group:"",label:v};
+}
+/* 读取某组二级模块顺序（用户自定义优先） */
+function groupOrder(g){
+  const custom=state.settings.navOrderV2[g.id];
+  const def=g.items.map(i=>i[0]);
+  if(!custom||!custom.length)return def;
+  // 以自定义为基础，补齐新增模块，剔除已不存在的 id
+  const merged=custom.filter(id=>def.includes(id));
+  def.forEach(id=>{if(!merged.includes(id))merged.push(id);});
+  return merged;
+}
+/* 渲染整个分组侧边栏 */
+function renderNavGroups(){
+  const nav=$("#nav");
+  const editing=nav.classList.contains("nav-editing");
+  nav.innerHTML=DEFAULT_GROUPS.map(g=>{
+    const collapsed=state.settings.menuExpanded[g.id]===false;
+    const order=groupOrder(g);
+    return `<div class="nav-group ${collapsed?"collapsed":""}" data-group="${g.id}">
+      <button class="nav-group-head" data-group-head="${g.id}">
+        <span>${g.name}</span><span class="arrow">▾</span></button>
+      <div class="nav-items">
+        ${order.map(id=>{const f=g.items.find(i=>i[0]===id);if(!f)return"";
+          return `<button data-view="${id}" draggable="${editing}">${f[1]}
+            ${editing?'<span class="mv up" data-mv="up" title="上移">▲</span><span class="mv dn" data-mv="down" title="下移">▼</span>':""}</button>`;
+        }).join("")}
+      </div>
+    </div>`;
+  }).join("");
+  markActiveNav(currentViewId());
+}
+/* 当前激活视图 id */
+function currentViewId(){
+  const b=document.querySelector(".nav-items button.active");
+  return b?b.dataset.view:"dashboard";
+}
+/* 高亮当前二级模块并展开其一级分组 */
+function markActiveNav(v){
+  document.querySelectorAll(".nav-items button").forEach(b=>
+    b.classList.toggle("active",b.dataset.view===v));
+  const m=viewMeta(v);
+  if(m.group){
+    const g=document.querySelector('.nav-group[data-group="'+m.group+'"]');
+    if(g)g.classList.remove("collapsed");
+  }
+}
 function switchView(v){
-  $$(".nav button").forEach(b=>b.classList.toggle("active",b.dataset.view===v));
   $$(".view").forEach(s=>s.classList.toggle("active",s.id==="view-"+v));
+  markActiveNav(v);
   if(RENDERERS[v])RENDERERS[v]();
   window.scrollTo(0,0);
+  updateHash(v);
 }
+/* hash 路由：#/viewId */
+function updateHash(v){
+  const h="#/"+v;
+  if(location.hash!==h)history.replaceState(null,"",h);
+}
+function viewFromHash(){
+  const raw=(location.hash||"").replace(/^#\/?/,"").trim();
+  if(!raw)return "";
+  return ROUTE_ALIAS[raw]||raw;
+}
+/* 导航点击：一级分组折叠 / 二级模块切换（编辑模式下只处理 ▲▼） */
 $("#nav").addEventListener("click",e=>{
-  /* 排序编辑模式下不切换视图（拖动、▲▼ 操作时） */
+  const head=e.target.closest("[data-group-head]");
+  if(head){
+    if($("#nav").classList.contains("nav-editing"))return;
+    const gid=head.dataset.groupHead;
+    const g=document.querySelector('.nav-group[data-group="'+gid+'"]');
+    const collapsed=!g.classList.contains("collapsed");
+    g.classList.toggle("collapsed",collapsed);
+    state.settings.menuExpanded[gid]=!collapsed;saveState();
+    return;
+  }
   if($("#nav").classList.contains("nav-editing"))return;
-  const b=e.target.closest("button[data-view]");if(b)switchView(b.dataset.view);
+  const b=e.target.closest("button[data-view]");
+  if(b)switchView(b.dataset.view);
+});
+/* 浏览器前进/后退 */
+window.addEventListener("hashchange",()=>{
+  const v=viewFromHash();
+  if(v&&v!==currentViewId())switchView(v);
+});
+/* 顶部全局搜索按钮 */
+document.addEventListener("click",e=>{
+  if(e.target.closest("#btnSearch"))switchView("search");
 });
 
 /* ---------- 键盘快捷键：空格打卡 / N 下一题 / R 随机复习 ---------- */
@@ -4726,115 +4820,95 @@ function restorePreset(){
   location.reload();
 }
 
-/* ===== 侧边栏模块拖拽排序（HTML5 Drag and Drop） ===== */
-const DEFAULT_NAV=["dashboard","daily","chunks","words","sentence","projects","targets","jobs",
-  "myq","extq","reglib","trans","answers","listening","plan","stats","search"];
-function navOrder(){return state.settings.navOrder&&state.settings.navOrder.length
-  ?state.settings.navOrder:DEFAULT_NAV;}
-/* 按保存顺序重排导航按钮（新增模块自动补到默认位置） */
-function applyNavOrder(){
-  const nav=$("#nav");const order=navOrder();
-  order.forEach(id=>{
-    const b=nav.querySelector('button[data-view="'+id+'"]');
-    if(b)nav.appendChild(b); // 按顺序移动
-  });
-  // 兜底：保存顺序里没有的新按钮，按默认顺序追加
-  DEFAULT_NAV.forEach(id=>{
-    const b=nav.querySelector('button[data-view="'+id+'"]');
-    if(b&&!order.includes(id))nav.appendChild(b);
-  });
-}
-let dragSrc=null;
+/* ===== 二级模块排序（一级菜单固定；HTML5 DnD + ▲▼ 备选） ===== */
+let dragSrc=null, dragContainer=null;
 function bindNavSort(){
   if(bindNavSort._bound)return;bindNavSort._bound=true;
   const nav=$("#nav");
-  /* 读取/保存顺序 */
-  const readOrder=()=>[...nav.querySelectorAll("button")].map(b=>b.dataset.view);
-  const saveOrder=()=>{state.settings.navOrder=readOrder();saveState();};
-  /* 为每个按钮添加 ▲▼ 移动按钮（触屏/鼠标通用的备选方案） */
-  const addMoveBtns=()=>nav.querySelectorAll("button").forEach(b=>{
-    if(b.querySelector(".mv"))return;
-    b.insertAdjacentHTML("beforeend",
-      '<span class="mv" data-mv="up" title="上移">▲</span><span class="mv" data-mv="down" title="下移">▼</span>');
-  });
-  const rmMoveBtns=()=>nav.querySelectorAll(".mv").forEach(x=>x.remove());
+  /* 保存某一组（.nav-items）内的二级顺序 */
+  const saveGroup=container=>{
+    const groupEl=container.closest(".nav-group");
+    const gid=groupEl.dataset.group;
+    state.settings.navOrderV2[gid]=[...container.querySelectorAll("button[data-view]")]
+      .map(b=>b.dataset.view);
+    saveState();
+  };
   const setEdit=on=>{
     nav.classList.toggle("nav-editing",on);
-    nav.querySelectorAll("button").forEach(b=>b.draggable=on);
-    if(on)addMoveBtns();else rmMoveBtns();
+    renderNavGroups();   // 重绘：编辑态按钮可拖并带 ▲▼
     $("#btnNavEdit").classList.toggle("hide",on);
     $("#btnNavDone").classList.toggle("hide",!on);
     $("#btnNavReset").classList.toggle("hide",!on);
   };
-  /* ▲▼ 移动：在 DOM 中交换相邻位置并立即保存 */
+  /* ▲▼ 在同一组内移动 */
   const move=(b,dir)=>{
-    const btns=[...nav.querySelectorAll("button")];
+    const container=b.closest(".nav-items");
+    const btns=[...container.querySelectorAll("button[data-view]")];
     const i=btns.indexOf(b);
     const j=dir==="up"?i-1:i+1;
-    if(j<0||j>=btns.length){toast(dir==="up"?"已在最顶部":"已在最底部");return;}
-    if(dir==="up")nav.insertBefore(b,btns[j]);
-    else nav.insertBefore(b,btns[j].nextSibling);
-    saveOrder();toast("顺序已调整并保存");
+    if(j<0||j>=btns.length){toast(dir==="up"?"已在本组最顶部":"已在本组最底部");return;}
+    if(dir==="up")container.insertBefore(b,btns[j]);
+    else container.insertBefore(b,btns[j].nextSibling);
+    saveGroup(container);
+    markActiveNav(currentViewId());
+    toast("顺序已调整并保存");
   };
   $("#btnNavEdit").addEventListener("click",()=>{
     setEdit(true);
-    // 触屏设备提示可用 ▲▼ 按钮
     if(("ontouchstart" in window)||navigator.maxTouchPoints>0)
-      toast("触屏设备可直接点击模块上的 ▲ ▼ 按钮调整顺序");
+      toast("触屏可直接点 ▲ ▼ 调整二级模块；一级菜单固定");
   });
-  $("#btnNavDone").addEventListener("click",()=>{
-    saveOrder();setEdit(false);toast("模块顺序已保存");
-  });
+  $("#btnNavDone").addEventListener("click",()=>{setEdit(false);toast("模块顺序已保存");});
   $("#btnNavReset").addEventListener("click",()=>{
-    state.settings.navOrder=null;saveState();applyNavOrder();setEdit(false);toast("已恢复默认排序");
+    state.settings.navOrderV2={};saveState();
+    setEdit(false);renderNavGroups();toast("已恢复各组默认排序");
   });
-  /* ---------- 原生 HTML5 拖拽 ---------- */
+  /* ---------- 原生拖拽（仅限同组 .nav-items 内部） ---------- */
   nav.addEventListener("dragstart",e=>{
-    const b=e.target.closest("button");if(!b)return;
-    dragSrc=b;b.classList.add("dragging");
+    const b=e.target.closest("button[data-view]");if(!b)return;
+    dragSrc=b;dragContainer=b.closest(".nav-items");
+    b.classList.add("dragging");
     e.dataTransfer.effectAllowed="move";
     try{e.dataTransfer.setData("text/plain",b.dataset.view);}catch(_){}
   });
   nav.addEventListener("dragend",()=>{
     if(dragSrc)dragSrc.classList.remove("dragging");
-    dragSrc=null;
-    nav.querySelectorAll("button").forEach(x=>x.classList.remove("drag-over"));
+    dragSrc=null;dragContainer=null;
+    nav.querySelectorAll(".drag-over").forEach(x=>x.classList.remove("drag-over"));
   });
-  /* dragenter / dragover 必须 preventDefault 才允许放置 */
+  /* dragover：仅当悬停在源所在的同一组内才允许放置 */
   const over=e=>{
+    const b=e.target.closest("button[data-view]");
+    const container=e.target.closest(".nav-items");
+    nav.querySelectorAll(".drag-over").forEach(x=>x.classList.remove("drag-over"));
+    if(!b||!dragSrc||container!==dragContainer)return; // 跨组/一级菜单：不允许
     e.preventDefault();
-    if(e.dataTransfer)e.dataTransfer.dropEffect="move";
-    const b=e.target.closest("button");
-    nav.querySelectorAll("button").forEach(x=>x.classList.remove("drag-over"));
-    if(b)b.classList.add("drag-over");
+    e.dataTransfer.dropEffect="move";
+    b.classList.add("drag-over");
   };
   nav.addEventListener("dragenter",over);
   nav.addEventListener("dragover",over);
-  /* drop：按鼠标在目标按钮上的位置决定插到前面还是后面，随即保存 */
   nav.addEventListener("drop",e=>{
-    e.preventDefault();
-    e.stopPropagation();
-    const target=e.target.closest("button");
-    if(!target||!dragSrc||target===dragSrc)return;
+    const target=e.target.closest("button[data-view]");
+    const container=e.target.closest(".nav-items");
+    if(!target||!dragSrc||container!==dragContainer||target===dragSrc)return;
+    e.preventDefault();e.stopPropagation();
+    /* 二级条目垂直排列：按鼠标 Y 的前后半决定插入位置 */
     const r=target.getBoundingClientRect();
-    const horizontal=r.width>=r.height;
-    /* 水平导航按 X，垂直（手机）按 Y，判断鼠标落在目标的前半还是后半 */
-    const after=horizontal
-      ?(e.clientX-r.left)>r.width/2
-      :(e.clientY-r.top)>r.height/2;
+    const after=(e.clientY-r.top)>r.height/2;
     if(after)target.after(dragSrc);else target.before(dragSrc);
     target.classList.remove("drag-over");
-    saveOrder();                       // 放置成功立即持久化
+    saveGroup(container);
+    markActiveNav(currentViewId());
     toast("已放置，顺序已保存");
   });
-  /* ▲▼ 按钮点击（事件委托；阻止冒泡触发视图切换） */
+  /* ▲▼ 点击（捕获阶段，先于其他点击处理） */
   nav.addEventListener("click",e=>{
     const mv=e.target.closest(".mv");
     if(mv){e.preventDefault();e.stopPropagation();
-      move(mv.closest("button"),mv.dataset.mv);}
-  },true); // 捕获阶段，先于视图切换处理
+      move(mv.closest("button[data-view]"),mv.dataset.mv);}
+  },true);
 }
-
 
 /* 新模块的事件绑定（控件 change、文件导入、恢复预置） */
 function bindExtra(){
@@ -4876,13 +4950,16 @@ function init(){
     listening:renderListening, plan:renderPlan, stats:renderStats, search:renderSearch
   });
   applyTheme();
-  applyNavOrder();   // 应用用户保存的模块排序
+  renderNavGroups(); // 渲染一级分组与二级模块（含用户排序/展开状态）
   /* 预渲染全部视图（保证项目文件输入等元素就位），默认显示仪表盘 */
   Object.entries(RENDERERS).forEach(([k,fn])=>{try{fn();}catch(err){console.warn(k,err);}});
   bindProjectFile();
   bindExtra();
-  bindNavSort();     // 启用拖拽排序
-  switchView("dashboard");
+  bindNavSort();     // 启用二级模块排序
+  /* 初始路由：优先 hash（含旧路由别名），默认仪表盘 */
+  const initial=viewFromHash();
+  switchView(initial||"dashboard");
+  if(initial)toast("已按旧链接跳转到对应模块");
   /* 已配置 Supabase 则后台静默拉取 */
   if(state.settings.supabaseUrl)refreshAll().then(()=>{if($("#view-daily").classList.contains("active"))renderDaily();});
 }
