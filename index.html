@@ -1,0 +1,1350 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>核药CRA英文训练舱</title>
+<style>
+/* ============================================================
+   主题变量（浅色 / 深色）
+   ============================================================ */
+:root{
+  --bg:#f4f7f8; --surface:#ffffff; --surface-2:#eef3f4;
+  --text:#1f2937; --muted:#6b7280; --border:#dbe3e5;
+  --primary:#0f766e; --primary-soft:#ccfbf1; --primary-contrast:#ffffff;
+  --accent:#b45309; --danger:#b91c1c; --danger-soft:#fee2e2;
+  --good:#15803d; --good-soft:#dcfce7; --warn:#a16207; --warn-soft:#fef9c3;
+  --shadow:0 2px 10px rgba(15,23,42,.06);
+}
+body.dark{
+  --bg:#0f172a; --surface:#1e293b; --surface-2:#273449;
+  --text:#e2e8f0; --muted:#94a3b8; --border:#334155;
+  --primary:#2dd4bf; --primary-soft:#134e4a; --primary-contrast:#06231f;
+  --accent:#fbbf24; --danger:#f87171; --danger-soft:#4c1d1d;
+  --good:#4ade80; --good-soft:#14361f; --warn:#facc15; --warn-soft:#3a3312;
+  --shadow:0 2px 10px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:var(--bg); color:var(--text);
+  font-family:"Segoe UI","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+  font-size:15px; line-height:1.6;
+}
+/* ============================================================
+   顶部栏
+   ============================================================ */
+header.topbar{
+  position:sticky; top:0; z-index:50;
+  background:var(--surface); border-bottom:1px solid var(--border);
+  box-shadow:var(--shadow);
+}
+.topbar-inner{
+  max-width:1180px; margin:0 auto; padding:10px 16px;
+  display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+}
+.brand{font-size:18px; font-weight:700; color:var(--primary); margin-right:auto; white-space:nowrap;}
+.brand small{display:block; font-size:11px; color:var(--muted); font-weight:400;}
+.top-actions{display:flex; gap:6px; flex-wrap:wrap;}
+button{
+  font-family:inherit; font-size:14px; cursor:pointer;
+  border:1px solid var(--border); background:var(--surface); color:var(--text);
+  padding:7px 12px; border-radius:8px; transition:.15s;
+}
+button:hover{border-color:var(--primary); color:var(--primary);}
+button.primary{background:var(--primary); color:var(--primary-contrast); border-color:var(--primary);}
+button.primary:hover{opacity:.9; color:var(--primary-contrast);}
+button.danger{color:var(--danger); border-color:var(--danger);}
+button.sm{padding:4px 9px; font-size:13px;}
+button.block{width:100%;}
+button[disabled]{opacity:.5; cursor:not-allowed;}
+/* ============================================================
+   导航
+   ============================================================ */
+nav.tabs{
+  background:var(--surface); border-bottom:1px solid var(--border);
+  position:sticky; top:57px; z-index:40;
+}
+.tabs-inner{
+  max-width:1180px; margin:0 auto; padding:0 10px;
+  display:flex; gap:4px; overflow-x:auto; scrollbar-width:none;
+}
+.tabs-inner::-webkit-scrollbar{display:none;}
+.tab{
+  border:none; background:transparent; white-space:nowrap;
+  padding:12px 13px; border-bottom:3px solid transparent; border-radius:0;
+  color:var(--muted); font-size:14px;
+}
+.tab:hover{color:var(--primary);}
+.tab.active{color:var(--primary); border-bottom-color:var(--primary); font-weight:600;}
+/* ============================================================
+   布局
+   ============================================================ */
+main{max-width:1180px; margin:0 auto; padding:20px 16px 60px;}
+.view{display:none;}
+.view.active{display:block; animation:fade .2s ease;}
+@keyframes fade{from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:none;}}
+.grid{display:grid; gap:14px;}
+.grid.cols-2{grid-template-columns:repeat(auto-fit,minmax(320px,1fr));}
+.grid.cols-3{grid-template-columns:repeat(auto-fill,minmax(280px,1fr));}
+.card{
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:12px; padding:16px; box-shadow:var(--shadow);
+}
+.card h3{margin:0 0 10px; font-size:16px;}
+.section-title{font-size:20px; font-weight:700; margin:4px 0 14px;}
+.muted{color:var(--muted); font-size:13px;}
+.hint{color:var(--muted); font-size:12px; margin-top:6px;}
+.en{font-family:Georgia,"Times New Roman",serif;}
+.badge{
+  display:inline-block; font-size:12px; padding:2px 9px; border-radius:999px;
+  background:var(--surface-2); color:var(--muted); margin-right:6px;
+}
+.badge.cat{background:var(--primary-soft); color:var(--primary);}
+.tag{
+  display:inline-block; font-size:12px; padding:2px 8px; margin:2px 4px 2px 0;
+  background:var(--surface-2); border-radius:6px; color:var(--text);
+}
+/* 输入控件 */
+input[type=text],input[type=search],textarea,select{
+  width:100%; font-family:inherit; font-size:14px; color:var(--text);
+  background:var(--bg); border:1px solid var(--border); border-radius:8px;
+  padding:9px 11px; outline:none;
+}
+input:focus,textarea:focus,select:focus{border-color:var(--primary);}
+textarea{resize:vertical; min-height:70px;}
+label.chk{display:flex; align-items:flex-start; gap:9px; cursor:pointer; padding:7px 4px;}
+label.chk input{margin-top:4px; width:auto;}
+.toolbar{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px; align-items:center;}
+.toolbar input[type=search],.toolbar input[type=text]{max-width:280px;}
+.filter-row{display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px;}
+.filter-row button.active{background:var(--primary); color:var(--primary-contrast); border-color:var(--primary);}
+/* 仪表盘 */
+.dash-hero{display:grid; grid-template-columns:1fr auto; gap:18px; align-items:center;}
+.ring-wrap{position:relative; width:150px; height:150px; margin:0 auto;}
+.ring{width:150px; height:150px; transform:rotate(-90deg);}
+.ring-bg{fill:none; stroke:var(--surface-2); stroke-width:11;}
+.ring-fg{fill:none; stroke:var(--primary); stroke-width:11; stroke-linecap:round; transition:stroke-dashoffset .5s;}
+.ring-center{position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center;}
+.ring-center b{font-size:26px;}
+.stat-line{display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:12px;}
+.stat{background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:14px; text-align:center; box-shadow:var(--shadow);}
+.stat b{display:block; font-size:26px; color:var(--primary);}
+.task-item{display:flex; align-items:center; gap:10px; padding:10px 6px; border-bottom:1px dashed var(--border);}
+.task-item:last-child{border-bottom:none;}
+.task-item .min{margin-left:auto; color:var(--muted); font-size:13px; white-space:nowrap;}
+.mini-check{
+  width:22px; height:22px; border-radius:50%; border:2px solid var(--border);
+  display:inline-flex; align-items:center; justify-content:center; font-size:13px;
+  background:transparent; color:transparent; padding:0; flex:none;
+}
+.task-item.done .mini-check{background:var(--good); border-color:var(--good); color:#fff;}
+.task-item.done .task-name{text-decoration:line-through; color:var(--muted);}
+/* 词块卡片 */
+.chunk-card .en-head{font-size:17px; font-weight:700; font-family:Georgia,serif;}
+.status-row{display:flex; gap:6px; margin:10px 0; flex-wrap:wrap;}
+.status-row button.active{background:var(--primary); color:var(--primary-contrast); border-color:var(--primary);}
+.status-row button.s-good.active{background:var(--good); border-color:var(--good);}
+.rate-row{display:flex; gap:8px; margin-top:10px;}
+.rate-row button.active{background:var(--accent); color:#fff; border-color:var(--accent);}
+/* 条形图 */
+.bar{height:14px; background:var(--surface-2); border-radius:999px; overflow:hidden; margin:6px 0 12px;}
+.bar-fill{height:100%; background:var(--primary); border-radius:999px; transition:width .6s;}
+.bar-row{display:grid; grid-template-columns:130px 1fr 64px; gap:10px; align-items:center; font-size:13px;}
+@media(max-width:560px){.bar-row{grid-template-columns:96px 1fr 56px;}}
+/* 计时器 */
+.timer{font-size:40px; font-weight:700; font-variant-numeric:tabular-nums; text-align:center; letter-spacing:2px;}
+.timer.small{font-size:30px;}
+.star-tips{background:var(--surface-2); border-radius:10px; padding:10px 14px; font-size:13px;}
+.star-tips b{color:var(--primary);}
+/* 模态框 */
+.modal-mask{
+  position:fixed; inset:0; background:rgba(15,23,42,.55); z-index:100;
+  display:none; align-items:flex-start; justify-content:center; padding:30px 14px; overflow-y:auto;
+}
+.modal-mask.show{display:flex;}
+.modal{
+  background:var(--surface); border-radius:14px; max-width:680px; width:100%;
+  padding:20px; border:1px solid var(--border); box-shadow:0 12px 40px rgba(0,0,0,.3);
+}
+.modal-head{display:flex; align-items:center; gap:10px; margin-bottom:12px;}
+.modal-head h3{margin:0; font-size:17px; flex:1;}
+audio{width:100%; margin-top:8px;}
+/* Toast */
+#toast{
+  position:fixed; left:50%; bottom:30px; transform:translateX(-50%);
+  background:#111827; color:#fff; padding:10px 18px; border-radius:999px;
+  font-size:14px; z-index:200; opacity:0; pointer-events:none; transition:.25s;
+}
+#toast.show{opacity:.95;}
+.search-result{padding:10px 0; border-bottom:1px dashed var(--border);}
+.search-result:last-child{border-bottom:none;}
+.kw-chip{background:var(--primary-soft); color:var(--primary);}
+.score-pick button.active{background:var(--accent); border-color:var(--accent); color:#fff;}
+footer.foot{max-width:1180px; margin:0 auto; padding:0 16px 30px; color:var(--muted); font-size:12px;}
+</style>
+</head>
+<body>
+
+<!-- ================= 顶部栏 ================= -->
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">核药CRA英文训练舱
+      <small>Nuclear CRA English Training Cabin</small>
+    </div>
+    <div class="top-actions">
+      <button class="sm" onclick="exportData()">导出 JSON</button>
+      <button class="sm" onclick="document.getElementById('importFile').click()">导入 JSON</button>
+      <button class="sm danger" onclick="resetData()">重置数据</button>
+      <button class="sm primary" id="themeBtn" onclick="toggleTheme()">深色模式</button>
+    </div>
+    <input type="file" id="importFile" accept=".json,application/json" style="display:none" onchange="importData(event)" />
+  </div>
+</header>
+
+<!-- ================= 导航 ================= -->
+<nav class="tabs">
+  <div class="tabs-inner" id="tabsInner">
+    <button class="tab active" data-view="dashboard">首页仪表盘</button>
+    <button class="tab" data-view="chunks">词块学习</button>
+    <button class="tab" data-view="sentence">造句训练</button>
+    <button class="tab" data-view="projects">项目口述</button>
+    <button class="tab" data-view="interview">模拟面试</button>
+    <button class="tab" data-view="answers">答案库</button>
+    <button class="tab" data-view="listening">听力跟读</button>
+    <button class="tab" data-view="plan">周计划</button>
+    <button class="tab" data-view="stats">进度统计</button>
+    <button class="tab" data-view="search">搜索</button>
+  </div>
+</nav>
+
+<main>
+  <!-- 各视图容器，内容由 JS 渲染 -->
+  <section id="view-dashboard" class="view active"></section>
+  <section id="view-chunks" class="view"></section>
+  <section id="view-sentence" class="view"></section>
+  <section id="view-projects" class="view"></section>
+  <section id="view-interview" class="view"></section>
+  <section id="view-answers" class="view"></section>
+  <section id="view-listening" class="view"></section>
+  <section id="view-plan" class="view"></section>
+  <section id="view-stats" class="view"></section>
+  <section id="view-search" class="view"></section>
+</main>
+
+<footer class="foot">
+  快捷键：空格 = 一键打卡 ｜ N = 下一道面试题 ｜ R = 随机复习词块（输入框内不触发）。数据仅保存在本机浏览器。
+</footer>
+
+<!-- 通用模态框 -->
+<div class="modal-mask" id="modalMask" onclick="if(event.target===this)closeModal()">
+  <div class="modal" id="modalBox"></div>
+</div>
+<div id="toast"></div>
+
+<script>
+/* ================================================================
+   一、预置数据
+   ================================================================ */
+/* 词块分类：gcp GCP/监查  nuclear 核药专业  safety 安全/PD
+             data 数据/SDV  behavior 行为面试 */
+const PRESET_CHUNKS = [
+  /* ---------- GCP / 监查 ---------- */
+  {id:"c001",cat:"gcp",en:"ICH GCP",zh:"国际人用药品注册技术协调会《药物临床试验质量管理规范》",
+   example:"All monitoring activities must be conducted in compliance with ICH GCP and local regulations."},
+  {id:"c002",cat:"gcp",en:"SSU (Study Start-Up)",zh:"研究启动阶段",
+   example:"I supported SSU activities, including ethics committee submission and site file preparation."},
+  {id:"c003",cat:"gcp",en:"SIV (Site Initiation Visit)",zh:"中心启动访视",
+   example:"The SIV was conducted after all regulatory approvals were obtained."},
+  {id:"c004",cat:"gcp",en:"IMV (Interim Monitoring Visit)",zh:"中期/常规监查访视",
+   example:"I conduct IMVs every four to six weeks, depending on the enrollment rate."},
+  {id:"c005",cat:"gcp",en:"COV (Close-Out Visit)",zh:"中心关闭访视",
+   example:"At the COV, I confirmed that all queries were resolved and the TMF was complete."},
+  {id:"c006",cat:"gcp",en:"IRB / IEC",zh:"机构审查委员会 / 独立伦理委员会",
+   example:"The protocol amendment was approved by the IRB before it was implemented at the site."},
+  {id:"c007",cat:"gcp",en:"ICF (Informed Consent Form)",zh:"知情同意书",
+   example:"I verified that every subject had signed the most recent IRB-approved ICF."},
+  {id:"c008",cat:"gcp",en:"informed consent process",zh:"知情同意过程",
+   example:"The informed consent process must be completed before any study-specific procedure is performed."},
+  {id:"c009",cat:"gcp",en:"eligibility criteria",zh:"入选/排除标准",
+   example:"Two subjects were found not to meet the eligibility criteria during SDV."},
+  {id:"c010",cat:"gcp",en:"protocol amendment",zh:"方案修正案",
+   example:"No subject was enrolled under the new procedures before the amendment received IRB approval."},
+  {id:"c011",cat:"gcp",en:"monitoring plan",zh:"监查计划",
+   example:"The risk-based monitoring plan defines the SDV percentage for each visit."},
+  {id:"c012",cat:"gcp",en:"essential documents",zh:"必备文件",
+   example:"Essential documents should be filed in the ISF in a timely manner."},
+  {id:"c013",cat:"gcp",en:"TMF (Trial Master File)",zh:"试验主文档",
+   example:"I cross-checked the investigator site documents against the sponsor TMF index."},
+  {id:"c014",cat:"gcp",en:"ISF (Investigator Site File)",zh:"研究者文件夹",
+   example:"I helped the site keep the ISF organized and inspection-ready."},
+  {id:"c015",cat:"gcp",en:"risk-based monitoring",zh:"基于风险的监查",
+   example:"Risk-based monitoring allows us to focus our efforts on critical data and processes."},
+  {id:"c016",cat:"gcp",en:"ensure protocol compliance",zh:"确保方案依从性",
+   example:"As a CRA, I work closely with site staff to ensure protocol compliance throughout the study."},
+
+  /* ---------- 核药专业 ---------- */
+  {id:"c101",cat:"nuclear",en:"radiopharmaceutical",zh:"放射性药物",
+   example:"The investigational radiopharmaceutical was prepared in the hot lab on the morning of dosing."},
+  {id:"c102",cat:"nuclear",en:"radioligand",zh:"放射性配体",
+   example:"The radioligand binds specifically to the target expressed on tumor cells."},
+  {id:"c103",cat:"nuclear",en:"dosimetry",zh:"剂量学（内照射辐射剂量评估）",
+   example:"Whole-body dosimetry was performed to estimate the absorbed dose to critical organs."},
+  {id:"c104",cat:"nuclear",en:"PET/CT",zh:"正电子发射断层显像/计算机体层成像",
+   example:"PET/CT images were acquired at multiple time points after tracer injection."},
+  {id:"c105",cat:"nuclear",en:"SUV (Standardized Uptake Value)",zh:"标准摄取值",
+   example:"The SUV of the lesion was measured on the PET/CT images by the nuclear medicine physician."},
+  {id:"c106",cat:"nuclear",en:"half-life",zh:"半衰期",
+   example:"Because of the isotope's short half-life, the tracer had to be administered shortly after preparation."},
+  {id:"c107",cat:"nuclear",en:"dose calibration",zh:"剂量校准",
+   example:"Dose calibration was performed using the dose calibrator in the hot lab."},
+  {id:"c108",cat:"nuclear",en:"radiation safety",zh:"辐射安全",
+   example:"All site staff completed radiation safety training before participating in the study."},
+  {id:"c109",cat:"nuclear",en:"hot lab",zh:"热室（放射性药物操作间）",
+   example:"I reviewed the hot lab logs for radiochemical purity and administered activity."},
+  {id:"c110",cat:"nuclear",en:"decay correction",zh:"衰变校正",
+   example:"Decay correction was applied to calculate the activity at the time of injection."},
+  {id:"c111",cat:"nuclear",en:"tracer",zh:"示踪剂",
+   example:"The tracer was injected intravenously before the PET/CT scan."},
+  {id:"c112",cat:"nuclear",en:"radiochemical purity",zh:"放射化学纯度",
+   example:"Radiochemical purity must meet the release specification before the batch is administered."},
+  {id:"c113",cat:"nuclear",en:"administered activity",zh:"给药活度",
+   example:"The administered activity in megabecquerels was recorded for each subject."},
+  {id:"c114",cat:"nuclear",en:"cyclotron",zh:"回旋加速器",
+   example:"The radionuclide was produced by a nearby cyclotron and delivered to the site."},
+  {id:"c115",cat:"nuclear",en:"radionuclide generator",zh:"核素发生器",
+   example:"The site eluted the radionuclide generator following the manufacturer's instructions."},
+  {id:"c116",cat:"nuclear",en:"attenuation correction",zh:"衰减校正",
+   example:"CT-based attenuation correction was applied during PET image reconstruction."},
+  {id:"c117",cat:"nuclear",en:"time-activity curve",zh:"时间-活度曲线",
+   example:"The time-activity curve was used to support the dosimetry analysis."},
+  {id:"c118",cat:"nuclear",en:"coordinate with nuclear medicine department",zh:"与核医学科协调",
+   example:"I coordinate with the nuclear medicine department to align dosing and scanning schedules."},
+
+  /* ---------- 安全 / PD ---------- */
+  {id:"c201",cat:"safety",en:"AE (Adverse Event)",zh:"不良事件",
+   example:"All AEs, regardless of causality, must be documented in the eCRF."},
+  {id:"c202",cat:"safety",en:"SAE (Serious Adverse Event)",zh:"严重不良事件",
+   example:"The investigator assessed the seriousness and causality of the SAE."},
+  {id:"c203",cat:"safety",en:"PD (Protocol Deviation)",zh:"方案偏离",
+   example:"The PD was documented and reported to the sponsor and the ethics committee."},
+  {id:"c204",cat:"safety",en:"protocol deviation",zh:"方案偏离",
+   example:"A missed imaging window was recorded as a protocol deviation."},
+  {id:"c205",cat:"safety",en:"CAPA (Corrective and Preventive Action)",zh:"纠正与预防措施",
+   example:"CAPA actions were implemented after repeated consent process deviations."},
+  {id:"c206",cat:"safety",en:"report SAE within 24 hours",zh:"24小时内报告严重不良事件",
+   example:"The site is required to report an SAE within 24 hours of becoming aware of it."},
+  {id:"c207",cat:"safety",en:"SUSAR",zh:"可疑且非预期严重不良反应",
+   example:"The sponsor evaluated whether the event qualified as a SUSAR for expedited reporting."},
+  {id:"c208",cat:"safety",en:"causality assessment",zh:"因果关系评估",
+   example:"The investigator performed a causality assessment for every related adverse event."},
+  {id:"c209",cat:"safety",en:"expectedness",zh:"预期性（不良反应是否在说明书中预期）",
+   example:"Expectedness was determined by comparing the event with the investigator's brochure."},
+  {id:"c210",cat:"safety",en:"toxicity",zh:"毒性",
+   example:"Dose-limiting toxicity was assessed during the dose-escalation phase."},
+  {id:"c211",cat:"safety",en:"radiation exposure",zh:"辐射暴露",
+   example:"Subject radiation exposure was estimated as part of the dosimetry assessment."},
+  {id:"c212",cat:"safety",en:"safety reporting",zh:"安全性报告",
+   example:"I reminded the site of the safety reporting timelines during every monitoring visit."},
+
+  /* ---------- 数据 / SDV ---------- */
+  {id:"c301",cat:"data",en:"SDV (Source Data Verification)",zh:"源数据核查",
+   example:"SDV was performed on all safety and primary endpoint data."},
+  {id:"c302",cat:"data",en:"source document verification",zh:"源文件核查",
+   example:"Source document verification helps confirm that data are credible and accurate."},
+  {id:"c303",cat:"data",en:"verify eCRF against source documents",zh:"将电子病例报告表与源文件核对",
+   example:"I verify the eCRF against source documents such as medical records and lab reports."},
+  {id:"c304",cat:"data",en:"eCRF (electronic Case Report Form)",zh:"电子病例报告表",
+   example:"The coordinator entered the subject data into the eCRF within five working days."},
+  {id:"c305",cat:"data",en:"query",zh:"数据质疑",
+   example:"I raised a query for the inconsistent laboratory date."},
+  {id:"c306",cat:"data",en:"resolve data queries",zh:"解决数据质疑",
+   example:"I follow up with the site to resolve data queries before the next visit."},
+  {id:"c307",cat:"data",en:"data clarification form (DCF)",zh:"数据澄清表",
+   example:"The site responded to the DCF with source-document evidence."},
+  {id:"c308",cat:"data",en:"audit trail",zh:"审计追踪",
+   example:"I reviewed the EDC audit trail to confirm data changes were justified."},
+  {id:"c309",cat:"data",en:"database lock",zh:"数据库锁定",
+   example:"Database lock took place after all queries were closed."},
+  {id:"c310",cat:"data",en:"source document",zh:"源文件",
+   example:"Hospital records, lab printouts and imaging reports served as source documents."},
+  {id:"c311",cat:"data",en:"ALCOA+",zh:"数据质量原则（可归因、清晰、同步、原始、准确等）",
+   example:"Clinical data should meet the ALCOA+ principles throughout the data lifecycle."},
+  {id:"c312",cat:"data",en:"monitoring visit report",zh:"监查访视报告",
+   example:"I submitted the monitoring visit report within two working days after the visit."},
+  {id:"c313",cat:"data",en:"IP accountability",zh:"试验用产品（药品）核算",
+   example:"IP accountability covers receipt, storage, dispensing, return and destruction records."},
+  {id:"c314",cat:"data",en:"audit",zh:"稽查（申办方/第三方）",
+   example:"The sponsor audit found that the site file was well maintained."},
+  {id:"c315",cat:"data",en:"inspection",zh:"视察（监管机构现场检查）",
+   example:"The site passed the regulatory inspection with no critical findings."},
+
+  /* ---------- 行为面试 ---------- */
+  {id:"c401",cat:"behavior",en:"cross-functional collaboration",zh:"跨职能协作",
+   example:"Cross-functional collaboration with data management and pharmacovigilance is essential in my role."},
+  {id:"c402",cat:"behavior",en:"prioritize tasks",zh:"任务优先级排序",
+   example:"I prioritize tasks based on patient safety, data integrity and study timelines."},
+  {id:"c403",cat:"behavior",en:"stakeholder communication",zh:"利益相关方沟通",
+   example:"Clear stakeholder communication helps prevent misunderstandings and delays."},
+  {id:"c404",cat:"behavior",en:"attention to detail",zh:"注重细节",
+   example:"Monitoring requires strong attention to detail, especially during SDV."},
+  {id:"c405",cat:"behavior",en:"time management",zh:"时间管理",
+   example:"Good time management allows me to cover multiple sites effectively."},
+  {id:"c406",cat:"behavior",en:"conflict resolution",zh:"冲突解决",
+   example:"I approach conflict resolution by listening first and focusing on shared goals."},
+  {id:"c407",cat:"behavior",en:"proactive",zh:"积极主动的",
+   example:"I am proactive in identifying risks before they become serious issues."},
+  {id:"c408",cat:"behavior",en:"under pressure",zh:"在压力下",
+   example:"I stay organized and calm when working under pressure."},
+  {id:"c409",cat:"behavior",en:"continuous learning",zh:"持续学习",
+   example:"I invest in continuous learning to keep up with GCP and nuclear medicine advances."},
+  {id:"c410",cat:"behavior",en:"constructive feedback",zh:"建设性反馈",
+   example:"I appreciate constructive feedback because it helps me grow professionally."}
+];
+
+/* 面试题分类：self 自我介绍  motivation 动机  monitor 监查流程
+               nuclear 核药  behavior 行为面试  situational 情景题 */
+const PRESET_QUESTIONS = [
+  /* ---------- 自我介绍 ---------- */
+  {id:"q001",cat:"self",q:"Tell me about yourself."},
+  {id:"q002",cat:"self",q:"Walk me through your CV."},
+  {id:"q003",cat:"self",q:"What are your strengths and weaknesses?"},
+  {id:"q004",cat:"self",q:"How would your colleagues describe you?"},
+  {id:"q005",cat:"self",q:"What makes you a qualified CRA?"},
+  /* ---------- 动机 ---------- */
+  {id:"q101",cat:"motivation",q:"Why do you want to be a CRA?"},
+  {id:"q102",cat:"motivation",q:"Why PPD? Why are you interested in our company?"},
+  {id:"q103",cat:"motivation",q:"Why nuclear medicine?"},
+  {id:"q104",cat:"motivation",q:"Why are you looking to leave your current company?"},
+  {id:"q105",cat:"motivation",q:"Where do you see yourself in 5 years?"},
+  {id:"q106",cat:"motivation",q:"Do you have questions for us?"},
+  /* ---------- 监查流程 ---------- */
+  {id:"q201",cat:"monitor",q:"How do you prepare for a monitoring visit?"},
+  {id:"q202",cat:"monitor",q:"Walk me through what you do during an on-site monitoring visit."},
+  {id:"q203",cat:"monitor",q:"How do you conduct SDV?"},
+  {id:"q204",cat:"monitor",q:"How do you ensure data quality?"},
+  {id:"q205",cat:"monitor",q:"How do you handle protocol deviations?"},
+  {id:"q206",cat:"monitor",q:"How do you manage site issues?"},
+  {id:"q207",cat:"monitor",q:"What do you check during IP accountability?"},
+  {id:"q208",cat:"monitor",q:"How do you review the informed consent process?"},
+  {id:"q209",cat:"monitor",q:"What do you do before a close-out visit?"},
+  {id:"q210",cat:"monitor",q:"How do you prioritize monitoring tasks across multiple sites?"},
+  /* ---------- 核药 ---------- */
+  {id:"q301",cat:"nuclear",q:"How do you manage IP accountability for radiopharmaceuticals?"},
+  {id:"q302",cat:"nuclear",q:"How do you coordinate PET/CT imaging and dosimetry?"},
+  {id:"q303",cat:"nuclear",q:"How do you ensure radiation safety?"},
+  {id:"q304",cat:"nuclear",q:"What is special about monitoring a radiopharmaceutical trial compared with a conventional drug trial?"},
+  {id:"q305",cat:"nuclear",q:"How do you handle the short half-life of investigational radiopharmaceuticals?"},
+  {id:"q306",cat:"nuclear",q:"What do you check in the hot lab documentation?"},
+  {id:"q307",cat:"nuclear",q:"How do you verify administered activity and dose calibration records?"},
+  {id:"q308",cat:"nuclear",q:"Explain decay correction in simple terms."},
+  /* ---------- 行为面试 ---------- */
+  {id:"q401",cat:"behavior",q:"Tell me about a time you handled a difficult site."},
+  {id:"q402",cat:"behavior",q:"Tell me about a time you met a tight deadline."},
+  {id:"q403",cat:"behavior",q:"Tell me about a time you identified a serious data or compliance issue."},
+  {id:"q404",cat:"behavior",q:"Tell me about a time you disagreed with your manager or the sponsor."},
+  {id:"q405",cat:"behavior",q:"Tell me about a time you made a mistake."},
+  {id:"q406",cat:"behavior",q:"Tell me about a time you led a process improvement."},
+  {id:"q407",cat:"behavior",q:"Describe a time you worked under pressure."},
+  {id:"q408",cat:"behavior",q:"Tell me about a time you had to learn something new quickly."},
+  /* ---------- 情景题 ---------- */
+  {id:"q501",cat:"situational",q:"A site coordinator consistently misses deadlines. What do you do?"},
+  {id:"q502",cat:"situational",q:"You find a subject was dosed without a signed ICF. How do you react?"},
+  {id:"q503",cat:"situational",q:"A site refuses to resolve your queries. How do you handle it?"},
+  {id:"q504",cat:"situational",q:"You discover an SAE that was not reported. What steps do you take?"},
+  {id:"q505",cat:"situational",q:"Two sites need urgent visits in the same week. How do you manage?"},
+  {id:"q506",cat:"situational",q:"During SDV you suspect fabricated source data. What would you do?"}
+];
+
+/* 项目口述：9 个项目 */
+const PRESET_PROJECTS = [
+  {id:"p001",name:"PSMA 靶向核药前列腺癌诊断 II 期",
+   keywords:["Phase II","PSMA","PET/CT","diagnostic efficacy","sensitivity","specificity","nuclear medicine","SDV"],
+   template:"This is a Phase II, open-label, multi-center diagnostic study evaluating a PSMA-targeted PET radiopharmaceutical in patients with suspected or confirmed prostate cancer. The primary endpoint was diagnostic efficacy, including sensitivity and specificity against histopathology. As the CRA, I was responsible for site management, SSU, SIV, routine IMVs and COV. I coordinated closely with the nuclear medicine department to verify PET/CT acquisition parameters, dose calibration and administered activity. I conducted SDV of eCRF data against source documents, followed up ICFs, IP accountability and query resolution. I also tracked protocol deviations and ensured timely AE reporting. The study was completed on schedule with clean data."},
+  {id:"p002",name:"PSMA 靶向核药前列腺癌 I 期",
+   keywords:["Phase I","dose escalation","safety","tolerability","dosimetry","DLT","hot lab","SAE within 24 hours"],
+   template:"This was a Phase I first-in-human dose-escalation study of a PSMA-targeted radioligand in patients with metastatic castration-resistant prostate cancer. The study assessed safety, tolerability, dosimetry and preliminary efficacy. My responsibilities included preparing for the SIV, conducting IMVs, verifying eligibility and informed consent, and performing SDV with a focus on dose-level assignment and dose-limiting toxicity. I worked with the hot lab to review dose calibration records, radiochemical purity and decay correction. I supported SAE reporting within 24 hours and CAPA follow-up, and I maintained ISF and TMF documents throughout the study."},
+  {id:"p003",name:"CAIX 靶向核药肾透明细胞癌 PET/CT 诊断效能 IIT",
+   keywords:["IIT","CAIX","clear cell renal cell carcinoma","PET/CT","SUV","lesion read","real-world evidence"],
+   template:"This was an investigator-initiated trial evaluating a CAIX-targeted PET/CT tracer for diagnostic performance in clear cell renal cell carcinoma. As the CRA, I helped the principal investigator prepare regulatory and ethics submission packages and managed study start-up. During monitoring visits, I verified subject eligibility, informed consent and the PET/CT imaging workflow. I checked SUV measurements, time-activity curves and lesion-level read results, and I compared eCRF entries with source documents. I also assisted the site with query resolution, protocol deviation documentation and essential record filing. The study generated real-world evidence supporting further tracer development."},
+  {id:"p004",name:"CD73 靶向核药胰腺癌/胃癌 PET/CT 诊断效能 IIT",
+   keywords:["IIT","CD73","pancreatic cancer","gastric cancer","short half-life","injection-to-scan interval","attenuation correction"],
+   template:"This IIT evaluated a CD73-targeted PET/CT radiopharmaceutical for diagnostic efficacy in pancreatic and gastric cancer. My role covered end-to-end site monitoring: ethics submission support, SIV, interim visits and close-out. I coordinated with the nuclear medicine team on patient scheduling because of the tracer's short half-life, and I verified administered activity, injection-to-scan intervals and attenuation correction. I performed SDV of imaging and pathology source data, managed data queries and deviations, and ensured the investigator site file was inspection-ready."},
+  {id:"p005",name:"Nectin-4 靶向核药尿路上皮癌/乳腺癌 PET/CT 诊断效能 IIT",
+   keywords:["IIT","Nectin-4","urothelial carcinoma","breast cancer","lesion mapping","radiation safety","monitoring visit report","CAPA"],
+   template:"This was an IIT assessing a Nectin-4-targeted PET/CT tracer in urothelial carcinoma and breast cancer patients. I monitored screening and enrollment, verified informed consent and eligibility, and conducted source data verification with an emphasis on tumor lesion mapping and imaging read data. I coordinated PET/CT scheduling with nuclear medicine, reviewed dose calibration and radiation safety records, and resolved eCRF queries. I also prepared monitoring visit reports, tracked CAPA actions and supported close-out activities, including archiving the TMF."},
+  {id:"p006",name:"腰椎 CT 图像辅助评估软件临床试验",
+   keywords:["SaMD","lumbar CT","reader study","expert read","software version","validation","reader qualification"],
+   template:"This was a registrational clinical trial for deep-learning software that assists radiologists in evaluating lumbar CT images. The study assessed software performance against expert reads as the reference standard. As the CRA, I managed site initiation, routine monitoring and close-out. I verified reader qualification, reading independence and consistency of the evaluation workflow. I conducted SDV between software-generated outputs, reader worksheets and the eCRF, and I followed up missing data and queries. I also ensured the software version used at sites matched the validated version and that training records were filed."},
+  {id:"p007",name:"肝脏局灶性病变 CT 图像辅助检测软件临床试验",
+   keywords:["computer-aided detection","focal liver lesions","CT","reader blinding","image quality","audit trail","audit"],
+   template:"This registrational trial evaluated CT-based computer-aided detection software for focal liver lesions. I was responsible for monitoring multiple imaging sites, including case enrollment, image quality and reader workflow. I checked source documents such as radiology reports and pathology confirmations, conducted SDV and resolved data queries. I paid special attention to data-locking rules, reader blinding and audit trails in the software system. I also managed protocol deviations related to imaging acquisition and prepared sites for sponsor audits."},
+  {id:"p008",name:"血管成像 OUFR 软件临床试验",
+   keywords:["OUFR","vascular imaging","reconstruction parameters","traceability","version control","vendor communication"],
+   template:"This study evaluated vascular imaging software based on objective user-independent functional reading, known as OUFR. As the CRA, I monitored site compliance with the imaging acquisition protocol and the standardized reading process. I verified that source images, reconstruction parameters and reading outputs were complete and traceable. I conducted SDV, managed queries and deviations, and reviewed the site file for training logs and software version control. Clear communication with both the radiology team and the vendor was essential to keep the study on track."},
+  {id:"p009",name:"梅毒/单纯疱疹病毒核酸检测试剂盒临床试验",
+   keywords:["IVD","nucleic acid testing","syphilis","HSV","specimen traceability","comparator method","reagent accountability","temperature logs"],
+   template:"This was a registrational clinical trial for nucleic acid detection kits for syphilis and herpes simplex virus. I monitored enrollment and specimen collection at clinical and laboratory sites. I verified chain-of-custody records, specimen traceability and the performance of the investigational kits against comparator methods. I conducted SDV of laboratory reports and the eCRF, resolved queries and documented deviations such as specimen handling issues. I also ensured reagent accountability, storage temperature logs and equipment calibration records were maintained."}
+];
+
+/* 听力跟读短句 */
+const PRESET_LISTENING = [
+  {id:"l001",en:"Please verify the dose calibration record before administration.",zh:"给药前请核对剂量校准记录。"},
+  {id:"l002",en:"The radiopharmaceutical has a relatively short half-life.",zh:"这种放射性药物的半衰期较短。"},
+  {id:"l003",en:"I will coordinate the PET/CT scan with the nuclear medicine department.",zh:"我会与核医学科协调 PET/CT 扫描安排。"},
+  {id:"l004",en:"All adverse events must be documented in the eCRF.",zh:"所有不良事件都必须记录在电子病例报告表中。"},
+  {id:"l005",en:"The SAE was reported to the sponsor within 24 hours.",zh:"该严重不良事件已在24小时内报告给申办方。"},
+  {id:"l006",en:"Source data verification is a key part of every monitoring visit.",zh:"源数据核查是每次监查访视的关键环节。"},
+  {id:"l007",en:"Please resolve the outstanding queries before database lock.",zh:"请在数据库锁定前解决未决质疑。"},
+  {id:"l008",en:"The investigator must ensure protocol compliance at all times.",zh:"研究者必须始终确保方案依从性。"},
+  {id:"l009",en:"Decay correction is applied to calculate the activity at the time of injection.",zh:"采用衰变校正计算注射时刻的活度。"},
+  {id:"l010",en:"The hot lab must maintain radiochemical purity records.",zh:"热室必须保存放射化学纯度记录。"},
+  {id:"l011",en:"Dosimetry helps estimate the radiation dose absorbed by organs.",zh:"剂量学用于估算器官吸收的辐射剂量。"},
+  {id:"l012",en:"The SUV was measured on the PET/CT images.",zh:"标准摄取值在 PET/CT 图像上测量。"},
+  {id:"l013",en:"Please file the signed ICF in the investigator site file.",zh:"请将签署后的知情同意书归入研究者文件夹。"},
+  {id:"l014",en:"The site initiation visit was completed last week.",zh:"中心启动访视已于上周完成。"},
+  {id:"l015",en:"We implemented CAPA actions after the sponsor audit.",zh:"申办方稽查后我们落实了纠正与预防措施。"},
+  {id:"l016",en:"IP accountability includes receipt, storage, dispensing and destruction.",zh:"试验用产品核算包括接收、储存、发放和销毁。"},
+  {id:"l017",en:"The protocol deviation was assessed for its impact on subject safety.",zh:"已评估该方案偏离对受试者安全的影响。"},
+  {id:"l018",en:"Radiation safety training is required before entering the hot lab.",zh:"进入热室前必须完成辐射安全培训。"},
+  {id:"l019",en:"The monitoring visit report summarizes findings and follow-up actions.",zh:"监查访视报告汇总了发现的问题与跟进措施。"},
+  {id:"l020",en:"Good clinical practice protects the rights and safety of study subjects.",zh:"药物临床试验质量管理规范保护受试者的权益与安全。"}
+];
+
+/* 周计划 Q1-Q4 */
+const PLAN_QUARTERS = [
+  {id:"Q1",title:"Q1 基础期",desc:"英文简历、术语库、自我介绍、GCP 英文",tasks:[
+    {id:"q1t1",t:"完成英文简历（CV）初稿"},
+    {id:"q1t2",t:"建立 60+ 核药/GCP 术语库"},
+    {id:"q1t3",t:"撰写并背诵 1 分钟英文自我介绍"},
+    {id:"q1t4",t:"系统学习 ICH GCP 英文核心条款"},
+    {id:"q1t5",t:"完成 5 个项目英文描述模板"},
+    {id:"q1t6",t:"每天 15 分钟词块跟读"},
+    {id:"q1t7",t:"完成 LinkedIn 英文档案"},
+    {id:"q1t8",t:"整理目标公司清单（PPD/IQVIA/ICON 等）"},
+    {id:"q1t9",t:"首次全英文自我介绍录音并复盘"},
+    {id:"q1t10",t:"Q1 季度复盘与计划调整"}]},
+  {id:"Q2",title:"Q2 专业期",desc:"核药英语、英文监查报告、模拟监查、系统",tasks:[
+    {id:"q2t1",t:"核药专业英语：dosimetry、SUV、half-life 等"},
+    {id:"q2t2",t:"学习英文监查访视报告（MVR）结构"},
+    {id:"q2t3",t:"模拟 SIV / IMV / COV 全英文流程"},
+    {id:"q2t4",t:"熟悉 EDC/eCRF 英文界面与 query 术语"},
+    {id:"q2t5",t:"掌握 IP accountability 英文表述（含核药）"},
+    {id:"q2t6",t:"辐射安全与热室文件英文表达"},
+    {id:"q2t7",t:"完成 9 个项目 2 分钟口述录音"},
+    {id:"q2t8",t:"每周完成 3 次造句训练"},
+    {id:"q2t9",t:"精读 20 篇核药 PubMed 摘要"},
+    {id:"q2t10",t:"Q2 季度复盘"}]},
+  {id:"Q3",title:"Q3 面试期",desc:"行为面试、全英文模拟、投递试水、Networking",tasks:[
+    {id:"q3t1",t:"完成 STAR 行为面试题库准备"},
+    {id:"q3t2",t:"每周 2 次全英文模拟面试"},
+    {id:"q3t3",t:"投递 10+ 目标岗位试水"},
+    {id:"q3t4",t:"LinkedIn Networking 联系外企 CRA/HM"},
+    {id:"q3t5",t:"准备反问问题（questions for us）"},
+    {id:"q3t6",t:"录音复盘语速、语法与流利度"},
+    {id:"q3t7",t:"针对 Novartis/Telix/Lantheus/Curium 定向准备"},
+    {id:"q3t8",t:"面试题答案库定稿 40+ 道"},
+    {id:"q3t9",t:"模拟 Panel interview"},
+    {id:"q3t10",t:"Q3 季度复盘"}]},
+  {id:"Q4",title:"Q4 冲刺期",desc:"目标公司面试、Panel、谈薪、复盘",tasks:[
+    {id:"q4t1",t:"目标公司集中面试"},
+    {id:"q4t2",t:"Panel/多轮面试复盘与答案迭代"},
+    {id:"q4t3",t:"薪资行情调研与谈薪准备"},
+    {id:"q4t4",t:"背景调查与推荐人准备"},
+    {id:"q4t5",t:"Offer 对比与决策"},
+    {id:"q4t6",t:"未通过岗位复盘归档"},
+    {id:"q4t7",t:"入职准备与工作交接"},
+    {id:"q4t8",t:"持续维护术语库与文献更新"},
+    {id:"q4t9",t:"年度学习总结"},
+    {id:"q4t10",t:"制定入职后 90 天计划"}]}
+];
+
+const CHUNK_CAT_NAMES={gcp:"GCP/监查",nuclear:"核药专业",safety:"安全/PD",data:"数据/SDV",behavior:"行为面试"};
+const Q_CAT_NAMES={self:"自我介绍",motivation:"动机",monitor:"监查流程",nuclear:"核药",behavior:"行为面试",situational:"情景题"};
+const SRS_INTERVALS=[1,3,7,14,30]; // 依据 reviewCount 的复习间隔（天）
+
+/* ================================================================
+   二、状态管理（localStorage）
+   ================================================================ */
+const LS_KEY="nuclearCraStudyApp";
+let state=null;
+
+function clone(o){return JSON.parse(JSON.stringify(o));}
+function buildDefaultState(){
+  return {
+    appId:LS_KEY, version:1,
+    settings:{theme:"light"},
+    checkins:[], lastCheck:null, streak:0,
+    daily:{date:"",tasks:{word:false,project:false,interview:false,review:false}},
+    chunks:clone(PRESET_CHUNKS).map(c=>Object.assign({status:"未学",reviewCount:0,nextReview:"",sentence:"",sentences:[]},c)),
+    questions:clone(PRESET_QUESTIONS).map(q=>Object.assign({answer:"",practices:[]},q)),
+    projects:clone(PRESET_PROJECTS).map(p=>Object.assign({notes:"",score:0},p)),
+    listening:clone(PRESET_LISTENING),
+    plan:{}
+  };
+}
+function loadState(){
+  const base=buildDefaultState();
+  let stored=null;
+  try{stored=JSON.parse(localStorage.getItem(LS_KEY));}catch(e){stored=null;}
+  if(!stored)return base;
+  /* 按 id 合并预置集合：保留用户数据，同时自动加入后续新增预置内容 */
+  function merge(presetArr,storedArr){
+    const map={};
+    (storedArr||[]).forEach(x=>{map[x.id]=x;});
+    return presetArr.map(p=>map[p.id]?Object.assign({},p,map[p.id]):Object.assign({},p));
+  }
+  base.chunks=merge(base.chunks,stored.chunks);
+  base.questions=merge(base.questions,stored.questions);
+  base.projects=merge(base.projects,stored.projects);
+  base.listening=merge(base.listening,stored.listening);
+  base.checkins=stored.checkins||[];
+  base.lastCheck=stored.lastCheck||null;
+  base.streak=stored.streak||0;
+  base.daily=stored.daily||base.daily;
+  base.plan=stored.plan||{};
+  base.settings=Object.assign(base.settings,stored.settings||{});
+  return base;
+}
+function saveState(){
+  try{localStorage.setItem(LS_KEY,JSON.stringify(state));}
+  catch(e){toast("保存失败：存储空间可能不足");}
+}
+
+/* ================================================================
+   三、通用工具
+   ================================================================ */
+const $=id=>document.getElementById(id);
+function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));}
+function pad2(n){return String(n).padStart(2,"0");}
+function fmtClock(sec){return pad2(Math.floor(sec/60))+":"+pad2(sec%60);}
+function todayStr(){
+  const d=new Date(); return d.getFullYear()+"-"+pad2(d.getMonth()+1)+"-"+pad2(d.getDate());
+}
+function addDays(dateStr,n){
+  const d=new Date(dateStr+"T00:00:00"); d.setDate(d.getDate()+n);
+  return d.getFullYear()+"-"+pad2(d.getMonth()+1)+"-"+pad2(d.getDate());
+}
+function ensureDaily(){
+  if(state.daily.date!==todayStr())
+    state.daily={date:todayStr(),tasks:{word:false,project:false,interview:false,review:false}};
+}
+let toastTimer=null;
+function toast(msg){
+  const t=$("toast"); t.textContent=msg; t.classList.add("show");
+  clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.classList.remove("show"),1800);
+}
+/* 统计辅助 */
+const masteredChunks=()=>state.chunks.filter(c=>c.status==="已掌握");
+const practicedQuestions=()=>state.questions.filter(q=>q.practices.length>0);
+const totalSentences=()=>state.chunks.reduce((s,c)=>s+c.sentences.length,0);
+
+/* ================================================================
+   四、导航
+   ================================================================ */
+function go(view){
+  document.querySelectorAll(".tab").forEach(t=>t.classList.toggle("active",t.dataset.view===view));
+  document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));
+  const el=$("view-"+view);
+  if(el)el.classList.add("active");
+  closeModal();
+  const renderers={dashboard:renderDashboard,chunks:renderChunks,sentence:renderSentence,
+    projects:renderProjects,interview:renderInterview,answers:renderAnswers,
+    listening:renderListening,plan:renderPlan,stats:renderStats,search:renderSearch};
+  if(renderers[view])renderers[view]();
+  window.scrollTo({top:0});
+}
+document.getElementById("tabsInner").addEventListener("click",e=>{
+  const btn=e.target.closest(".tab"); if(btn)go(btn.dataset.view);
+});
+
+/* ================================================================
+   五、首页仪表盘
+   ================================================================ */
+function checkin(){
+  ensureDaily();
+  const t=todayStr();
+  if(state.lastCheck===t){toast("今天已经打卡过啦");return;}
+  state.streak=state.lastCheck===addDays(t,-1)?state.streak+1:1;
+  state.lastCheck=t;
+  if(!state.checkins.includes(t))state.checkins.push(t);
+  saveState(); renderDashboard(); toast("打卡成功，连续 "+state.streak+" 天");
+}
+function toggleDailyTask(key){
+  ensureDaily();
+  state.daily.tasks[key]=!state.daily.tasks[key];
+  saveState(); renderDashboard();
+}
+function renderDashboard(){
+  ensureDaily(); saveState();
+  const tasks=state.daily.tasks;
+  const doneCnt=Object.values(tasks).filter(Boolean).length;
+  const pct=doneCnt/4;
+  const C=2*Math.PI*60;
+  const taskDefs=[
+    {key:"word",name:"15 分钟词块学习",min:"15 min"},
+    {key:"project",name:"20 分钟项目口述",min:"20 min"},
+    {key:"interview",name:"10 分钟面试题",min:"10 min"},
+    {key:"review",name:"5 分钟复盘",min:"5 min"}];
+  const checkedToday=state.lastCheck===todayStr();
+  $("view-dashboard").innerHTML=`
+    <div class="grid cols-2">
+      <div class="card">
+        <h3>今日任务</h3>
+        ${taskDefs.map(td=>`
+          <div class="task-item ${tasks[td.key]?"done":""}" onclick="toggleDailyTask('${td.key}')">
+            <span class="mini-check">✓</span>
+            <span class="task-name">${td.name}</span>
+            <span class="min">${td.min}</span>
+          </div>`).join("")}
+        <div class="hint">点击任务条可勾选完成；四项全完成即今日通关。</div>
+      </div>
+      <div class="card" style="text-align:center">
+        <h3>今日完成进度</h3>
+        <div class="ring-wrap">
+          <svg class="ring" viewBox="0 0 140 140">
+            <circle class="ring-bg" cx="70" cy="70" r="60"/>
+            <circle class="ring-fg" cx="70" cy="70" r="60"
+              style="stroke-dasharray:${C};stroke-dashoffset:${C*(1-pct)}"/>
+          </svg>
+          <div class="ring-center"><b>${doneCnt}/4</b><span class="muted">任务</span></div>
+        </div>
+        <button class="primary block" style="margin-top:12px" onclick="checkin()">
+          ${checkedToday?"今日已打卡 ✓":"一键打卡（空格）"}
+        </button>
+      </div>
+    </div>
+    <h3 style="margin:20px 0 10px">学习数据总览</h3>
+    <div class="stat-line">
+      <div class="stat"><b>${state.checkins.length}</b><span class="muted">学习天数</span></div>
+      <div class="stat"><b>${state.streak}</b><span class="muted">连续打卡</span></div>
+      <div class="stat"><b>${masteredChunks().length}</b><span class="muted">词块已掌握 / ${state.chunks.length}</span></div>
+      <div class="stat"><b>${practicedQuestions().length}</b><span class="muted">面试题练习 / ${state.questions.length}</span></div>
+      <div class="stat"><b>${totalSentences()}</b><span class="muted">造句数量</span></div>
+    </div>
+    <div class="card" style="margin-top:16px">
+      <h3>一年目标</h3>
+      <p class="muted">目标外企：PPD、IQVIA、ICON、Parexel、Syneos、Fortrea、Medpace；
+      核药公司：Novartis、Telix、Lantheus、Curium。每天 50 分钟，坚持一年，用英文讲清楚 GCP 监查、核药项目、SDV、PD、AE、数据清理与行为面试。</p>
+    </div>`;
+}
+
+/* ================================================================
+   六、词块学习
+   ================================================================ */
+let chunkFilter="all", chunkSearch="";
+function setChunkFilter(cat){chunkFilter=cat;renderChunks();}
+function setChunkSearch(v){chunkSearch=v.trim().toLowerCase();renderChunks();}
+function setChunkStatus(id,status){
+  const c=state.chunks.find(x=>x.id===id); if(!c)return;
+  c.status=status; saveState(); renderChunks();
+  toast(status==="已掌握"?"已标记为掌握，继续保持":"状态已更新");
+}
+function saveChunkSentence(id,val){
+  const c=state.chunks.find(x=>x.id===id); if(!c)return;
+  c.sentence=val; saveState();
+}
+function reviewChunk(id){
+  const c=state.chunks.find(x=>x.id===id); if(!c)return;
+  const gap=SRS_INTERVALS[Math.min(c.reviewCount,SRS_INTERVALS.length-1)];
+  c.nextReview=addDays(todayStr(),gap);
+  c.reviewCount++;
+  if(c.status==="未学")c.status="学习中";
+  saveState(); renderChunks();
+  toast(`已复习，下次复习：${c.nextReview}（${gap} 天后）`);
+}
+function pickRandomChunk(){
+  /* 优先：到期且未掌握；其次：未掌握；最后：全部 */
+  const t=todayStr();
+  let pool=state.chunks.filter(c=>c.status!=="已掌握"&&c.nextReview&&c.nextReview<=t);
+  if(!pool.length)pool=state.chunks.filter(c=>c.status!=="已掌握");
+  if(!pool.length)pool=state.chunks;
+  return pool[Math.floor(Math.random()*pool.length)];
+}
+function openRandomReview(){
+  const c=pickRandomChunk(); if(!c)return;
+  showRandomChunk(c.id);
+}
+function showRandomChunk(id){
+  const c=state.chunks.find(x=>x.id===id); if(!c)return;
+  const statuses=["未学","学习中","已掌握"];
+  openModal(`随机复习 · ${CHUNK_CAT_NAMES[c.cat]}`,`
+    <p class="en-head en" style="font-size:20px;font-weight:700">${esc(c.en)}</p>
+    <p>${esc(c.zh)}</p>
+    <p class="muted en">Example: ${esc(c.example)}</p>
+    <div class="status-row">
+      ${statuses.map(s=>`<button class="${s==="已掌握"?"s-good":""} ${c.status===s?"active":""}"
+        onclick="setChunkStatusFromModal('${c.id}','${s}')">${s}</button>`).join("")}
+    </div>
+    <div class="toolbar" style="margin-top:12px">
+      <button onclick="reviewChunkFromModal('${c.id}')">完成本次复习</button>
+      <button onclick="showRandomChunk(pickRandomChunk().id)">换一个</button>
+    </div>
+    <p class="hint">已复习 ${c.reviewCount} 次 ${c.nextReview?"｜下次复习 "+esc(c.nextReview):""}</p>`);
+}
+function setChunkStatusFromModal(id,status){setChunkStatus(id,status);showRandomChunk(id);}
+function reviewChunkFromModal(id){reviewChunk(id);closeModal();}
+function renderChunks(){
+  const list=state.chunks.filter(c=>{
+    if(chunkFilter!=="all"&&c.cat!==chunkFilter)return false;
+    if(chunkSearch&&!(c.en.toLowerCase().includes(chunkSearch)||c.zh.toLowerCase().includes(chunkSearch)))return false;
+    return true;
+  });
+  const mastered=masteredChunks().length;
+  $("view-chunks").innerHTML=`
+    <div class="section-title">词块学习 <span class="muted" style="font-size:14px">已掌握 ${mastered}/${state.chunks.length}</span></div>
+    <div class="toolbar">
+      <input type="search" placeholder="搜索英文或中文…" value="${esc(chunkSearch)}"
+        oninput="setChunkSearch(this.value)"/>
+      <button class="primary" onclick="openRandomReview()">随机抽词（R）</button>
+    </div>
+    <div class="filter-row">
+      <button class="${chunkFilter==="all"?"active":""}" onclick="setChunkFilter('all')">全部</button>
+      ${Object.keys(CHUNK_CAT_NAMES).map(k=>
+        `<button class="${chunkFilter===k?"active":""}" onclick="setChunkFilter('${k}')">${CHUNK_CAT_NAMES[k]}</button>`).join("")}
+    </div>
+    <div class="grid cols-2">
+      ${list.map(c=>`
+        <div class="card chunk-card">
+          <span class="badge cat">${CHUNK_CAT_NAMES[c.cat]}</span>
+          ${c.nextReview&&c.nextReview<=todayStr()&&c.status!=="已掌握"?`<span class="badge" style="background:var(--warn-soft);color:var(--warn)">待复习</span>`:""}
+          <p class="en-head en">${esc(c.en)}</p>
+          <p>${esc(c.zh)}</p>
+          <p class="muted en">Example: ${esc(c.example)}</p>
+          <textarea placeholder="用这个词块写一个自己的英文句子…" oninput="saveChunkSentence('${c.id}',this.value)">${esc(c.sentence)}</textarea>
+          <div class="status-row">
+            ${["未学","学习中","已掌握"].map(s=>
+              `<button class="${s==="已掌握"?"s-good":""} ${c.status===s?"active":""}"
+                onclick="setChunkStatus('${c.id}','${s}')">${s}</button>`).join("")}
+            <button onclick="reviewChunk('${c.id}')">复习 +1</button>
+          </div>
+          <p class="hint">复习 ${c.reviewCount} 次 ${c.nextReview?"｜下次复习 "+esc(c.nextReview):"｜间隔 1/3/7/14/30 天"}</p>
+        </div>`).join("")}
+    </div>
+    ${list.length?"":`<p class="muted">没有符合条件的词块。</p>`}`;
+}
+
+/* ================================================================
+   七、造句训练
+   ================================================================ */
+let sentenceChunkId=null;
+function nextSentenceChunk(){
+  const c=pickRandomChunk();
+  sentenceChunkId=c.id; renderSentence();
+}
+function saveSentence(rating){
+  const c=state.chunks.find(x=>x.id===sentenceChunkId); if(!c)return;
+  const area=$("sentenceInput"); const text=area?area.value.trim():"";
+  if(!text){toast("请先输入英文句子");return;}
+  c.sentence=text;
+  c.sentences.push({text,rating,date:todayStr()});
+  if(c.status==="未学")c.status="学习中";
+  saveState(); renderSentence(); toast("句子已保存（"+({1:"差",2:"一般",3:"好"}[rating])+"）");
+}
+function renderSentence(){
+  if(!sentenceChunkId||!state.chunks.some(c=>c.id===sentenceChunkId)){
+    sentenceChunkId=pickRandomChunk().id;
+  }
+  const c=state.chunks.find(x=>x.id===sentenceChunkId);
+  $("view-sentence").innerHTML=`
+    <div class="section-title">造句训练</div>
+    <div class="card">
+      <span class="badge cat">${CHUNK_CAT_NAMES[c.cat]}</span>
+      <p class="en" style="font-size:20px;font-weight:700">${esc(c.en)}</p>
+      <p>${esc(c.zh)}</p>
+      <textarea id="sentenceInput" style="min-height:100px" placeholder="Type your English sentence here…">${esc(c.sentence)}</textarea>
+      <div class="rate-row">
+        <span class="muted">自评：</span>
+        <button onclick="saveSentence(1)">差</button>
+        <button onclick="saveSentence(2)">一般</button>
+        <button onclick="saveSentence(3)">好</button>
+        <button style="margin-left:auto" onclick="document.getElementById('refExample').style.display='block'">显示参考例句</button>
+        <button class="primary" onclick="nextSentenceChunk()">换一个词块</button>
+      </div>
+      <p id="refExample" class="star-tips en" style="display:none;margin-top:12px">Reference: ${esc(c.example)}</p>
+    </div>
+    <div class="card" style="margin-top:14px">
+      <h3>本词块历史造句（${c.sentences.length}）</h3>
+      ${c.sentences.slice(-5).reverse().map(s=>
+        `<p class="en">${esc(s.text)} <span class="badge">${{1:"差",2:"一般",3:"好"}[s.rating]}</span></p>`).join("")||'<p class="muted">还没有历史造句。</p>'}
+    </div>`;
+}
+
+/* ================================================================
+   八、项目口述
+   ================================================================ */
+function renderProjects(){
+  $("view-projects").innerHTML=`
+    <div class="section-title">项目口述 <span class="muted" style="font-size:14px">每个项目练习 2 分钟英文口述</span></div>
+    <div class="grid cols-3">
+      ${state.projects.map(p=>`
+        <div class="card">
+          <h3>${esc(p.name)}</h3>
+          <div>${p.keywords.slice(0,5).map(k=>`<span class="tag">${esc(k)}</span>`).join("")}</div>
+          <p class="hint">自评得分：${p.score?"★".repeat(p.score):"未评分"}</p>
+          <button class="primary block" onclick="openProject('${p.id}')">开始口述练习</button>
+        </div>`).join("")}
+    </div>`;
+}
+let projectTimerInt=null, projectRemain=120;
+function openProject(id){
+  const p=state.projects.find(x=>x.id===id); if(!p)return;
+  resetProjectTimer(true);
+  openModal("项目口述 · 2 分钟",`
+    <p><b>${esc(p.name)}</b></p>
+    <div>${p.keywords.map(k=>`<span class="tag kw-chip">${esc(k)}</span>`).join("")}</div>
+    <div class="timer small" id="ptTime" style="margin:14px 0">02:00</div>
+    <div class="toolbar" style="justify-content:center">
+      <button id="ptStart" onclick="startProjectTimer()">开始</button>
+      <button onclick="resetProjectTimer(false)">重置</button>
+      <button id="ptRecBtn" onclick="toggleRecording(this,document.getElementById('ptRecBox'))">录音</button>
+    </div>
+    <div id="ptRecBox"></div>
+    <h3 style="margin-top:14px">英文描述模板（可按自己的实际情况修改）</h3>
+    <textarea id="ptNotes" style="min-height:170px" oninput="saveProjectNotes('${p.id}',this.value)">${esc(p.notes||p.template)}</textarea>
+    <div class="score-pick toolbar" style="margin-top:12px">
+      <span class="muted">自评打分：</span>
+      ${[1,2,3,4,5].map(n=>`<button class="${p.score===n?"active":""}" onclick="setProjectScore('${p.id}',${n})">${n} 分</button>`).join("")}
+    </div>
+    <p class="hint">计时器为 2 分钟倒计时；录音仅在本次浏览中可回放，不会写入本地存储。</p>`);
+}
+function startProjectTimer(){
+  const btn=$("ptStart");
+  if(projectTimerInt){clearInterval(projectTimerInt);projectTimerInt=null;btn.textContent="继续";return;}
+  btn.textContent="暂停";
+  projectTimerInt=setInterval(()=>{
+    projectRemain--;
+    const el=$("ptTime"); if(el)el.textContent=fmtClock(projectRemain);
+    if(projectRemain<=0){
+      clearInterval(projectTimerInt);projectTimerInt=null;
+      if(btn)btn.textContent="开始";
+      toast("2 分钟时间到"); beep();
+    }
+  },1000);
+}
+function resetProjectTimer(silent){
+  clearInterval(projectTimerInt);projectTimerInt=null;projectRemain=120;
+  const el=$("ptTime"); if(el)el.textContent="02:00";
+  const btn=$("ptStart"); if(btn)btn.textContent="开始";
+  if(!silent)toast("计时器已重置");
+}
+function saveProjectNotes(id,val){
+  const p=state.projects.find(x=>x.id===id); if(!p)return;
+  p.notes=val; saveState();
+}
+function setProjectScore(id,score){
+  const p=state.projects.find(x=>x.id===id); if(!p)return;
+  p.score=score; saveState(); openProject(id); toast("已保存自评："+score+" 分");
+}
+function beep(){
+  try{
+    const ac=new (window.AudioContext||window.webkitAudioContext)();
+    const o=ac.createOscillator(),g=ac.createGain();
+    o.connect(g);g.connect(ac.destination);
+    o.frequency.value=880;
+    g.gain.setValueAtTime(.2,ac.currentTime);
+    g.gain.exponentialRampToValueAtTime(.001,ac.currentTime+.6);
+    o.start();o.stop(ac.currentTime+.6);
+  }catch(e){}
+}
+
+/* ================================================================
+   九、模拟面试
+   ================================================================ */
+let currentQid=null, ivInt=null, ivSec=0;
+function pickQuestionId(){
+  let id;
+  do{id=state.questions[Math.floor(Math.random()*state.questions.length)].id;}
+  while(state.questions.length>1&&id===currentQid);
+  return id;
+}
+function nextQuestion(){
+  currentQid=pickQuestionId();
+  resetIVTimer(true); renderInterview();
+}
+function toggleIVTimer(){
+  const btn=$("ivStart");
+  if(ivInt){clearInterval(ivInt);ivInt=null;btn.textContent="开始计时";return;}
+  btn.textContent="暂停";
+  ivInt=setInterval(()=>{
+    ivSec++;
+    const el=$("ivTime"); if(el)el.textContent=fmtClock(ivSec);
+  },1000);
+}
+function resetIVTimer(silent){
+  clearInterval(ivInt);ivInt=null;ivSec=0;
+  const el=$("ivTime"); if(el)el.textContent="00:00";
+  const btn=$("ivStart"); if(btn)btn.textContent="开始计时";
+}
+function saveIVAnswer(id,val){
+  const q=state.questions.find(x=>x.id===id); if(!q)return;
+  q.answer=val; saveState();
+}
+function rateQuestion(id,rating){
+  const q=state.questions.find(x=>x.id===id); if(!q)return;
+  q.practices.push({rating,date:todayStr()});
+  saveState(); renderInterview();
+  toast("练习已记录，本题累计 "+q.practices.length+" 次");
+}
+function renderInterview(){
+  if(!currentQid||!state.questions.some(q=>q.id===currentQid))currentQid=pickQuestionId();
+  const q=state.questions.find(x=>x.id===currentQid);
+  resetIVTimer(true);
+  $("view-interview").innerHTML=`
+    <div class="section-title">模拟面试</div>
+    <div class="card">
+      <span class="badge cat">${Q_CAT_NAMES[q.cat]}</span>
+      <span class="badge">已练 ${q.practices.length} 次</span>
+      <p class="en" style="font-size:21px;font-weight:700;margin-top:10px">${esc(q.q)}</p>
+      <div class="star-tips">
+        <b>STAR 作答提示：</b>
+        <b>S</b>ituation 情境 → <b>T</b>ask 任务 → <b>A</b>ction 行动 → <b>R</b>esult 结果。
+        行为/情景题请按 STAR 结构；流程题按“准备-现场-跟进”顺序回答。
+      </div>
+      <div class="timer small" id="ivTime" style="margin:14px 0">00:00</div>
+      <div class="toolbar" style="justify-content:center">
+        <button id="ivStart" onclick="toggleIVTimer()">开始计时</button>
+        <button onclick="resetIVTimer(false)">重置</button>
+        <button class="primary" onclick="nextQuestion()">下一题（N）</button>
+      </div>
+    </div>
+    <div class="card" style="margin-top:14px">
+      <h3>我的英文答案（自动保存，同步至答案库）</h3>
+      <textarea style="min-height:140px" placeholder="Speak or write your answer in English…"
+        oninput="saveIVAnswer('${q.id}',this.value)">${esc(q.answer)}</textarea>
+      <div class="score-pick toolbar" style="margin-top:12px">
+        <span class="muted">作答自评：</span>
+        <button onclick="rateQuestion('${q.id}',1)">差</button>
+        <button onclick="rateQuestion('${q.id}',2)">一般</button>
+        <button onclick="rateQuestion('${q.id}',3)">好</button>
+      </div>
+    </div>`;
+}
+
+/* ================================================================
+   十、答案库
+   ================================================================ */
+let answerFilter="all", answerSearch="";
+function setAnswerFilter(cat){answerFilter=cat;renderAnswers();}
+function setAnswerSearch(v){answerSearch=v.trim().toLowerCase();renderAnswers();}
+function clearAnswer(id){
+  const q=state.questions.find(x=>x.id===id); if(!q)return;
+  q.answer=""; saveState(); renderAnswers(); toast("答案已删除");
+}
+function renderAnswers(){
+  const list=state.questions.filter(q=>{
+    if(answerFilter!=="all"&&q.cat!==answerFilter)return false;
+    if(answerSearch&&!(q.q.toLowerCase().includes(answerSearch)||q.answer.toLowerCase().includes(answerSearch)))return false;
+    return true;
+  });
+  $("view-answers").innerHTML=`
+    <div class="section-title">答案库</div>
+    <div class="toolbar">
+      <input type="search" placeholder="搜索题目或答案…" value="${esc(answerSearch)}"
+        oninput="setAnswerSearch(this.value)"/>
+    </div>
+    <div class="filter-row">
+      <button class="${answerFilter==="all"?"active":""}" onclick="setAnswerFilter('all')">全部</button>
+      ${Object.keys(Q_CAT_NAMES).map(k=>
+        `<button class="${answerFilter===k?"active":""}" onclick="setAnswerFilter('${k}')">${Q_CAT_NAMES[k]}</button>`).join("")}
+    </div>
+    <div class="grid cols-2">
+      ${list.map(q=>`
+        <div class="card">
+          <span class="badge cat">${Q_CAT_NAMES[q.cat]}</span>
+          <p class="en" style="font-weight:600">${esc(q.q)}</p>
+          <textarea placeholder="Write your English answer here…"
+            oninput="saveIVAnswer('${q.id}',this.value)">${esc(q.answer)}</textarea>
+          <div class="toolbar" style="margin-top:8px">
+            <button class="sm danger" onclick="clearAnswer('${q.id}')">删除答案</button>
+          </div>
+        </div>`).join("")}
+    </div>
+    ${list.length?"":'<p class="muted">没有符合条件的题目。</p>'}`;
+}
+
+/* ================================================================
+   十一、听力跟读
+   ================================================================ */
+function speak(text,rate){
+  if(!("speechSynthesis"in window)){toast("当前浏览器不支持语音朗读");return;}
+  speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(text);
+  u.lang="en-US"; u.rate=rate||0.95;
+  speechSynthesis.speak(u);
+}
+function stopSpeak(){if("speechSynthesis"in window)speechSynthesis.cancel();}
+function renderListening(){
+  $("view-listening").innerHTML=`
+    <div class="section-title">听力跟读</div>
+    <div class="toolbar">
+      <span class="muted">朗读语速：</span>
+      <input type="range" id="listenRate" min="0.6" max="1.2" step="0.05" value="0.95" style="width:180px"/>
+      <button class="sm" onclick="stopSpeak()">停止朗读</button>
+    </div>
+    <div class="grid cols-2">
+      ${state.listening.map(l=>`
+        <div class="card">
+          <p class="en" style="font-weight:600">${esc(l.en)}</p>
+          <p class="muted">${esc(l.zh)}</p>
+          <div class="toolbar" style="margin:8px 0 0">
+            <button class="sm primary" onclick="speak(document.getElementById('en-${l.id}').textContent,parseFloat(document.getElementById('listenRate').value))">朗读</button>
+            <button class="sm" id="rec-${l.id}" onclick="toggleRecording(this,document.getElementById('recbox-${l.id}'))">跟读录音</button>
+          </div>
+          <span id="en-${l.id}" style="display:none">${esc(l.en)}</span>
+          <div id="recbox-${l.id}"></div>
+        </div>`).join("")}
+    </div>`;
+}
+
+/* ================================================================
+   十二、周计划
+   ================================================================ */
+function togglePlanTask(id){
+  state.plan[id]=!state.plan[id];
+  saveState(); renderPlan();
+}
+function renderPlan(){
+  $("view-plan").innerHTML=`
+    <div class="section-title">一年准备周计划</div>
+    <div class="grid cols-2">
+      ${PLAN_QUARTERS.map(q=>{
+        const done=q.tasks.filter(t=>state.plan[t.id]).length;
+        const pct=Math.round(done/q.tasks.length*100);
+        return `
+        <div class="card">
+          <h3>${q.title}</h3>
+          <p class="muted">${q.desc}</p>
+          <div class="bar"><div class="bar-fill" style="width:${pct}%"></div></div>
+          <p class="hint">${done}/${q.tasks.length}（${pct}%）</p>
+          ${q.tasks.map(t=>`
+            <label class="chk">
+              <input type="checkbox" ${state.plan[t.id]?"checked":""} onchange="togglePlanTask('${t.id}')"/>
+              <span class="${state.plan[t.id]?"muted":""}">${esc(t.t)}</span>
+            </label>`).join("")}
+        </div>`;
+      }).join("")}
+    </div>`;
+}
+
+/* ================================================================
+   十三、进度统计（纯 CSS 条形图）
+   ================================================================ */
+function barRow(label,pct,right){
+  return `<div class="bar-row"><span>${label}</span>
+    <div class="bar" style="margin:0"><div class="bar-fill" style="width:${pct}%"></div></div>
+    <span class="muted">${right}</span></div>`;
+}
+function renderStats(){
+  const chunkPct=Math.round(masteredChunks().length/state.chunks.length*100);
+  const qPracticedPct=Math.round(practicedQuestions().length/state.questions.length*100);
+  const totalPractices=state.questions.reduce((s,q)=>s+q.practices.length,0);
+  const sentencePct=Math.min(100,Math.round(totalSentences()/100*100));
+  const planTotal=PLAN_QUARTERS.reduce((s,q)=>s+q.tasks.length,0);
+  const planDone=PLAN_QUARTERS.reduce((s,q)=>s+q.tasks.filter(t=>state.plan[t.id]).length,0);
+  const planPct=Math.round(planDone/planTotal*100);
+  $("view-stats").innerHTML=`
+    <div class="section-title">进度统计</div>
+    <div class="stat-line" style="margin-bottom:18px">
+      <div class="stat"><b>${state.checkins.length}</b><span class="muted">打卡天数</span></div>
+      <div class="stat"><b>${state.streak}</b><span class="muted">连续打卡</span></div>
+      <div class="stat"><b>${masteredChunks().length}</b><span class="muted">已掌握词块</span></div>
+      <div class="stat"><b>${totalPractices}</b><span class="muted">面试作答总次数</span></div>
+      <div class="stat"><b>${totalSentences()}</b><span class="muted">造句数量</span></div>
+    </div>
+    <div class="card">
+      <h3>总体进度</h3>
+      ${barRow("词块掌握比例",chunkPct,masteredChunks().length+"/"+state.chunks.length)}
+      ${barRow("面试题练习比例",qPracticedPct,practicedQuestions().length+"/"+state.questions.length)}
+      ${barRow("造句数量（/100）",sentencePct,totalSentences()+"")}
+      ${barRow("周计划完成率",planPct,planDone+"/"+planTotal)}
+    </div>
+    <div class="card" style="margin-top:14px">
+      <h3>词块分类掌握情况</h3>
+      ${Object.keys(CHUNK_CAT_NAMES).map(k=>{
+        const all=state.chunks.filter(c=>c.cat===k);
+        const done=all.filter(c=>c.status==="已掌握").length;
+        const pct=all.length?Math.round(done/all.length*100):0;
+        return barRow(CHUNK_CAT_NAMES[k],pct,done+"/"+all.length);
+      }).join("")}
+    </div>
+    <div class="card" style="margin-top:14px">
+      <h3>面试题分类练习情况</h3>
+      ${Object.keys(Q_CAT_NAMES).map(k=>{
+        const all=state.questions.filter(q=>q.cat===k);
+        const done=all.filter(q=>q.practices.length>0).length;
+        const pct=all.length?Math.round(done/all.length*100):0;
+        return barRow(Q_CAT_NAMES[k],pct,done+"/"+all.length);
+      }).join("")}
+    </div>`;
+}
+
+/* ================================================================
+   十四、全局搜索
+   ================================================================ */
+let globalSearchTerm="";
+function setGlobalSearch(v){globalSearchTerm=v.trim().toLowerCase();renderSearchResults();}
+function renderSearchResults(){
+  const kw=globalSearchTerm;
+  const box=$("globalSearchResults");
+  if(!kw){box.innerHTML='<p class="muted">输入关键词，可同时搜索词块、面试题、项目和答案库。</p>';return;}
+  const chunks=state.chunks.filter(c=>c.en.toLowerCase().includes(kw)||c.zh.toLowerCase().includes(kw));
+  const questions=state.questions.filter(q=>q.q.toLowerCase().includes(kw)||q.answer.toLowerCase().includes(kw));
+  const projects=state.projects.filter(p=>p.name.toLowerCase().includes(kw)||
+    p.template.toLowerCase().includes(kw)||p.keywords.join(" ").toLowerCase().includes(kw));
+  const section=(title,items,render,onclickGo)=>`
+    <h3 style="margin-top:16px">${title}（${items.length}）</h3>
+    ${items.slice(0,20).map(x=>`<div class="search-result" onclick="${onclickGo}">${render(x)}</div>`).join("")
+      ||'<p class="muted">无匹配结果。</p>'}`;
+  box.innerHTML=
+    section("词块",chunks,c=>
+      `<p class="en" style="font-weight:600;margin:0">${esc(c.en)}</p><p class="muted" style="margin:0">${esc(c.zh)} ｜ ${CHUNK_CAT_NAMES[c.cat]} ｜ ${c.status}</p>`,
+      "go('chunks')")+
+    section("面试题 / 答案库",questions,q=>
+      `<p class="en" style="font-weight:600;margin:0">${esc(q.q)}</p><p class="muted" style="margin:0">${Q_CAT_NAMES[q.cat]} ｜ 已练 ${q.practices.length} 次${q.answer?" ｜ 已有答案":""}</p>`,
+      "go('answers')")+
+    section("项目",projects,p=>
+      `<p style="font-weight:600;margin:0">${esc(p.name)}</p><p class="muted" style="margin:0">${p.keywords.map(esc).join(" / ")}</p>`,
+      "go('projects')");
+}
+function renderSearch(){
+  $("view-search").innerHTML=`
+    <div class="section-title">全局搜索</div>
+    <input type="search" autofocus placeholder="搜索词块、面试题、项目、答案…" value="${esc(globalSearchTerm)}"
+      oninput="setGlobalSearch(this.value)"/>
+    <div id="globalSearchResults" style="margin-top:10px"></div>`;
+  renderSearchResults();
+}
+
+/* ================================================================
+   十五、深色模式
+   ================================================================ */
+function toggleTheme(){
+  const dark=document.body.classList.toggle("dark");
+  state.settings.theme=dark?"dark":"light";
+  $("themeBtn").textContent=dark?"浅色模式":"深色模式";
+  saveState();
+}
+function applyTheme(){
+  const dark=state.settings.theme==="dark";
+  document.body.classList.toggle("dark",dark);
+  $("themeBtn").textContent=dark?"浅色模式":"深色模式";
+}
+
+/* ================================================================
+   十六、导出 / 导入 / 重置
+   ================================================================ */
+function exportData(){
+  const blob=new Blob([JSON.stringify(state,null,2)],{type:"application/json"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download="nuclear-cra-study-backup.json";
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(a.href);
+  toast("已导出备份文件");
+}
+function importData(event){
+  const file=event.target.files[0]; if(!file)return;
+  const reader=new FileReader();
+  reader.onload=()=>{
+    try{
+      const data=JSON.parse(reader.result);
+      if(!data||data.appId!==LS_KEY)throw new Error("文件格式不匹配");
+      state=data; saveState(); applyTheme(); go("dashboard");
+      toast("导入成功");
+    }catch(e){toast("导入失败：文件格式不正确");}
+  };
+  reader.readAsText(file);
+  event.target.value="";
+}
+function resetData(){
+  if(!confirm("确定要清空全部学习数据并恢复初始内容吗？"))return;
+  if(!confirm("再次确认：此操作不可恢复，建议先导出备份。"))return;
+  localStorage.removeItem(LS_KEY);
+  state=buildDefaultState(); saveState(); applyTheme(); go("dashboard");
+  toast("数据已重置");
+}
+
+/* ================================================================
+   十七、模态框
+   ================================================================ */
+function openModal(title,html){
+  $("modalBox").innerHTML=
+    `<div class="modal-head"><h3>${esc(title)}</h3>
+       <button class="sm" onclick="closeModal()">关闭</button></div>${html}`;
+  $("modalMask").classList.add("show");
+}
+function closeModal(){
+  $("modalMask").classList.remove("show");
+  clearInterval(projectTimerInt); projectTimerInt=null;
+}
+
+/* ================================================================
+   十八、录音（MediaRecorder，可选能力）
+   ================================================================ */
+const Recorder={
+  mediaRecorder:null,chunks:[],stream:null,
+  get supported(){return !!(navigator.mediaDevices&&window.MediaRecorder);},
+  get recording(){return !!(this.mediaRecorder&&this.mediaRecorder.state==="recording");},
+  async start(){
+    if(!this.supported)return false;
+    this.chunks=[];
+    this.stream=await navigator.mediaDevices.getUserMedia({audio:true});
+    this.mediaRecorder=new MediaRecorder(this.stream);
+    this.mediaRecorder.ondataavailable=e=>{if(e.data.size)this.chunks.push(e.data);};
+    this.mediaRecorder.start();
+    return true;
+  },
+  stop(){
+    return new Promise(resolve=>{
+      if(!this.mediaRecorder){resolve(null);return;}
+      this.mediaRecorder.onstop=()=>{
+        const blob=new Blob(this.chunks,{type:"audio/webm"});
+        const url=URL.createObjectURL(blob);
+        if(this.stream){this.stream.getTracks().forEach(t=>t.stop());this.stream=null;}
+        this.mediaRecorder=null;
+        resolve(url);
+      };
+      this.mediaRecorder.stop();
+    });
+  }
+};
+async function toggleRecording(btnEl,boxEl){
+  if(!Recorder.supported){toast("当前浏览器不支持录音（需 HTTPS 或 localhost）");return;}
+  try{
+    if(Recorder.recording){
+      const url=await Recorder.stop();
+      btnEl.textContent=btnEl.id&&btnEl.id.indexOf("rec-")===0?"跟读录音":"录音";
+      if(url)boxEl.innerHTML=`<audio controls src="${url}"></audio><p class="hint">录音仅本次浏览有效，不会保存。</p>`;
+    }else{
+      const ok=await Recorder.start();
+      if(ok)btnEl.textContent="停止并回放";
+      else toast("无法获取麦克风权限");
+    }
+  }catch(e){toast("录音失败："+e.message);}
+}
+
+/* ================================================================
+   十九、键盘快捷键 & 初始化
+   ================================================================ */
+document.addEventListener("keydown",e=>{
+  if(e.key==="Escape"){closeModal();return;}
+  const tag=e.target.tagName;
+  const typing=tag==="INPUT"||tag==="TEXTAREA"||tag==="SELECT"||e.target.isContentEditable;
+  if(typing)return;
+  if(e.code==="Space"){e.preventDefault();checkin();}
+  else if(e.key==="n"||e.key==="N"){go("interview");nextQuestion();}
+  else if(e.key==="r"||e.key==="R"){openRandomReview();}
+});
+
+function init(){
+  state=loadState();
+  ensureDaily();
+  applyTheme();
+  renderDashboard();
+  saveState();
+}
+init();
+</script>
+</body>
+</html>
