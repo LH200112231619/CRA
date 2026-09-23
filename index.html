@@ -193,6 +193,11 @@ select[data-act=jbStatus]{padding:4px 6px;}
 .nav.nav-editing button:active{cursor:grabbing;}
 .nav.nav-editing button.drag-over{outline:2px dashed var(--brand);outline-offset:1px;}
 .nav.nav-editing button.dragging{opacity:.45;}
+.mv{display:inline-flex;align-items:center;justify-content:center;
+  width:20px;height:20px;margin-left:3px;border-radius:5px;
+  background:var(--brand-soft);color:var(--brand);font-size:9px;cursor:pointer;}
+.mv:active{background:var(--brand);color:#fff;}
+.nav.nav-editing button{padding-right:6px;}
 /* 红色安全警告 */
 .security-warn{background:var(--red-soft);border:1.5px solid var(--red);color:var(--red);
   border-radius:10px;padding:10px 12px;font-weight:600;margin:8px 0;}
@@ -2515,7 +2520,11 @@ function switchView(v){
   if(RENDERERS[v])RENDERERS[v]();
   window.scrollTo(0,0);
 }
-$("#nav").addEventListener("click",e=>{const b=e.target.closest("button[data-view]");if(b)switchView(b.dataset.view);});
+$("#nav").addEventListener("click",e=>{
+  /* 排序编辑模式下不切换视图（拖动、▲▼ 操作时） */
+  if($("#nav").classList.contains("nav-editing"))return;
+  const b=e.target.closest("button[data-view]");if(b)switchView(b.dataset.view);
+});
 
 /* ---------- 键盘快捷键：空格打卡 / N 下一题 / R 随机复习 ---------- */
 document.addEventListener("keydown",e=>{
@@ -4739,48 +4748,93 @@ let dragSrc=null;
 function bindNavSort(){
   if(bindNavSort._bound)return;bindNavSort._bound=true;
   const nav=$("#nav");
+  /* 读取/保存顺序 */
+  const readOrder=()=>[...nav.querySelectorAll("button")].map(b=>b.dataset.view);
+  const saveOrder=()=>{state.settings.navOrder=readOrder();saveState();};
+  /* 为每个按钮添加 ▲▼ 移动按钮（触屏/鼠标通用的备选方案） */
+  const addMoveBtns=()=>nav.querySelectorAll("button").forEach(b=>{
+    if(b.querySelector(".mv"))return;
+    b.insertAdjacentHTML("beforeend",
+      '<span class="mv" data-mv="up" title="上移">▲</span><span class="mv" data-mv="down" title="下移">▼</span>');
+  });
+  const rmMoveBtns=()=>nav.querySelectorAll(".mv").forEach(x=>x.remove());
   const setEdit=on=>{
     nav.classList.toggle("nav-editing",on);
     nav.querySelectorAll("button").forEach(b=>b.draggable=on);
+    if(on)addMoveBtns();else rmMoveBtns();
     $("#btnNavEdit").classList.toggle("hide",on);
     $("#btnNavDone").classList.toggle("hide",!on);
     $("#btnNavReset").classList.toggle("hide",!on);
   };
-  $("#btnNavEdit").addEventListener("click",()=>setEdit(true));
+  /* ▲▼ 移动：在 DOM 中交换相邻位置并立即保存 */
+  const move=(b,dir)=>{
+    const btns=[...nav.querySelectorAll("button")];
+    const i=btns.indexOf(b);
+    const j=dir==="up"?i-1:i+1;
+    if(j<0||j>=btns.length){toast(dir==="up"?"已在最顶部":"已在最底部");return;}
+    if(dir==="up")nav.insertBefore(b,btns[j]);
+    else nav.insertBefore(b,btns[j].nextSibling);
+    saveOrder();toast("顺序已调整并保存");
+  };
+  $("#btnNavEdit").addEventListener("click",()=>{
+    setEdit(true);
+    // 触屏设备提示可用 ▲▼ 按钮
+    if(("ontouchstart" in window)||navigator.maxTouchPoints>0)
+      toast("触屏设备可直接点击模块上的 ▲ ▼ 按钮调整顺序");
+  });
   $("#btnNavDone").addEventListener("click",()=>{
-    // 从 DOM 读取新顺序并保存
-    state.settings.navOrder=[...nav.querySelectorAll("button")].map(b=>b.dataset.view);
-    saveState();setEdit(false);toast("模块顺序已保存");
+    saveOrder();setEdit(false);toast("模块顺序已保存");
   });
   $("#btnNavReset").addEventListener("click",()=>{
     state.settings.navOrder=null;saveState();applyNavOrder();setEdit(false);toast("已恢复默认排序");
   });
+  /* ---------- 原生 HTML5 拖拽 ---------- */
   nav.addEventListener("dragstart",e=>{
     const b=e.target.closest("button");if(!b)return;
     dragSrc=b;b.classList.add("dragging");
     e.dataTransfer.effectAllowed="move";
     try{e.dataTransfer.setData("text/plain",b.dataset.view);}catch(_){}
   });
-  nav.addEventListener("dragend",e=>{
-    const b=e.target.closest("button");if(b)b.classList.remove("dragging");
+  nav.addEventListener("dragend",()=>{
+    if(dragSrc)dragSrc.classList.remove("dragging");
+    dragSrc=null;
     nav.querySelectorAll("button").forEach(x=>x.classList.remove("drag-over"));
   });
-  nav.addEventListener("dragover",e=>{
+  /* dragenter / dragover 必须 preventDefault 才允许放置 */
+  const over=e=>{
     e.preventDefault();
+    if(e.dataTransfer)e.dataTransfer.dropEffect="move";
     const b=e.target.closest("button");
     nav.querySelectorAll("button").forEach(x=>x.classList.remove("drag-over"));
     if(b)b.classList.add("drag-over");
-  });
+  };
+  nav.addEventListener("dragenter",over);
+  nav.addEventListener("dragover",over);
+  /* drop：按鼠标在目标按钮上的位置决定插到前面还是后面，随即保存 */
   nav.addEventListener("drop",e=>{
     e.preventDefault();
+    e.stopPropagation();
     const target=e.target.closest("button");
     if(!target||!dragSrc||target===dragSrc)return;
-    const btns=[...nav.querySelectorAll("button")];
-    const si=btns.indexOf(dragSrc),ti=btns.indexOf(target);
-    // 插入到目标之前/之后（按鼠标位置）
-    if(si<ti)target.after(dragSrc);else target.before(dragSrc);
+    const r=target.getBoundingClientRect();
+    const horizontal=r.width>=r.height;
+    /* 水平导航按 X，垂直（手机）按 Y，判断鼠标落在目标的前半还是后半 */
+    const after=horizontal
+      ?(e.clientX-r.left)>r.width/2
+      :(e.clientY-r.top)>r.height/2;
+    if(after)target.after(dragSrc);else target.before(dragSrc);
+    target.classList.remove("drag-over");
+    saveOrder();                       // 放置成功立即持久化
+    toast("已放置，顺序已保存");
   });
+  /* ▲▼ 按钮点击（事件委托；阻止冒泡触发视图切换） */
+  nav.addEventListener("click",e=>{
+    const mv=e.target.closest(".mv");
+    if(mv){e.preventDefault();e.stopPropagation();
+      move(mv.closest("button"),mv.dataset.mv);}
+  },true); // 捕获阶段，先于视图切换处理
 }
+
 
 /* 新模块的事件绑定（控件 change、文件导入、恢复预置） */
 function bindExtra(){
