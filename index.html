@@ -1631,26 +1631,28 @@ function loadState(){
   try{raw=JSON.parse(localStorage.getItem(LS_KEY));}catch(e){raw=null;}
   const d=defaultState();
   if(!raw){state=d;saveState();return;}
+  // 先保存预置数组引用：Object.assign 会用 raw.chunks 覆盖 d.chunks
+  const presetChunks=d.chunks, presetQ=d.extQuestions;
   // 顶层字段合并
   state=Object.assign(d,raw);
-  state.settings=Object.assign(d.settings,raw.settings||{});
-  state.daily=Object.assign(d.daily,raw.daily||{});
-  state.daily.tasks=Object.assign(d.daily.tasks,(raw.daily&&raw.daily.tasks)||{});
+  state.settings=Object.assign({theme:"light",supabaseUrl:"",supabaseAnonKey:""},raw.settings||{});
+  state.daily=Object.assign({date:todayStr(),tasks:{}},raw.daily||{});
+  state.daily.tasks=Object.assign({word:false,project:false,interview:false,review:false},(raw.daily&&raw.daily.tasks)||{});
   state.cloud=Object.assign(d.cloud,raw.cloud||{});
   // 词块：以预置为基准，按 id 回填用户字段；新增预置词块自动出现
   const oldChunks={};(raw.chunks||[]).forEach(c=>oldChunks[c.id]=c);
-  state.chunks=d.chunks.map(p=>{
+  state.chunks=presetChunks.map(p=>{
     const o=oldChunks[p.id];
     if(!o)return p;
     return Object.assign(p,{status:o.status,reviewCount:o.reviewCount,nextReview:o.nextReview,
-      sentences:o.sentences||[],pronRating:o.pronRating||"",myExample:o.myExample||""});
+      sentences:o.sentences||[],pronRating:o.pronRating||"",myExample:o.myExample||"",recUrl:o.recUrl||p.recUrl});
   });
   // 外企题：同理
-  const oldQ={};(raw.extQuestions||[]).forEach(q=>oldQ[q.id]=q);
-  state.extQuestions=d.extQuestions.map(p=>{
+  const oldQ={};(raw.extQuestions||raw.questions||[]).forEach(q=>oldQ[q.id]=q);
+  state.extQuestions=presetQ.map(p=>{
     const o=oldQ[p.id];
     if(!o)return p;
-    return Object.assign(p,{fav:!!o.fav,practiced:!!o.practiced,myAnswer:o.myAnswer||"",status:o.status||"未准备",rating:o.rating||0});
+    return Object.assign(p,{fav:!!o.fav,practiced:!!o.practiced,myAnswer:o.myAnswer||o.answer||"",status:o.status||"未准备",rating:o.rating||0});
   });
   // 用户自建项目/我的题库/手动条目直接保留
   state.projects=raw.projects||d.projects;
