@@ -1,5 +1,7 @@
+# 核药CRA英文训练舱 - Python 依赖
+# GitHub Actions 通过 `pip install -r requirements.txt` 安装
+requests
+supabase
 biopython
 feedparser
-requests
 beautifulsoup4
-supabase
