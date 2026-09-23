@@ -272,6 +272,7 @@ select[data-act=jbStatus]{padding:4px 6px;}
   <section class="view" id="view-sentence"></section>
   <section class="view" id="view-projects"></section>
   <section class="view" id="view-targets"></section>
+  <section class="view" id="view-nuclides"></section>
   <section class="view" id="view-jobs"></section>
   <section class="view" id="view-myq"></section>
   <section class="view" id="view-extq"></section>
@@ -2417,6 +2418,7 @@ function defaultState(){
     cloud:{fetchedAt:"",regulations:[],literature:[],jobs:[],trials:[],questions:[]},
     jobApps:[],                // 岗位投递追踪
     targetFav:{},              // 靶点收藏 {name:true}
+    nucFav:{},                 // 核素收藏 {id:true}
     wordStudy:{bank:"med",dailyGoal:30,progress:{},learnedDates:{},extraLoaded:0},
     transStudy:{dir:"zh2en",tab:"practice",fav:{},wrong:{},ratings:{},history:[],
       filterCat:"",filterSrc:"",filterLv:"",q:"",curId:"",submitted:false},
@@ -2473,6 +2475,7 @@ function loadState(){
   // 新增模块字段（旧数据缺失时使用默认值）
   state.jobApps=Array.isArray(raw.jobApps)?raw.jobApps:[];
   state.targetFav=raw.targetFav||{};
+  state.nucFav=raw.nucFav||{};
   state.wordStudy=Object.assign(d.wordStudy,raw.wordStudy||{});
   // 翻译练习：合并用户数据（收藏/错题/历史），缺字段用默认
   state.transStudy=Object.assign(d.transStudy,raw.transStudy||{});
@@ -2530,7 +2533,7 @@ const RENDERERS={};
 const DEFAULT_GROUPS=[
  {id:"study",name:"学习中心",items:[["dashboard","首页仪表盘"],["daily","每日更新中心"],["plan","周计划"],["stats","进度统计"]]},
  {id:"vocab",name:"词汇训练",items:[["chunks","专业词块练习"],["words","常规背单词"],["sentence","造句练习"]]},
- {id:"proj",name:"项目与资料",items:[["projects","项目口述库"],["targets","靶点库"],["reglib","法规库"]]},
+ {id:"proj",name:"项目与资料",items:[["projects","项目口述库"],["targets","靶点库"],["nuclides","核素库"],["reglib","法规库"]]},
  {id:"interview",name:"面试与求职",items:[["myq","我的面试题库"],["extq","外企面试题库"],["answers","答案库"],["jobs","岗位追踪"]]},
  {id:"lt",name:"听力与翻译",items:[["listening","听力跟读"],["trans","法规翻译练习"]]}
 ];
@@ -2672,6 +2675,13 @@ function randomReview(){
   setTimeout(()=>chunkFocus(c.id),50);
 }
 
+/* ---------- 通用：导出任意 JSON 对象为文件 ---------- */
+function downloadJSON(obj,filename){
+  const blob=new Blob([JSON.stringify(obj,null,2)],{type:"application/json"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);a.download=filename;
+  a.click();URL.revokeObjectURL(a.href);
+}
 /* ---------- 导出 / 导入 / 重置 ---------- */
 $("#btnExport").addEventListener("click",()=>{
   const blob=new Blob([JSON.stringify(state,null,2)],{type:"application/json"});
@@ -3539,6 +3549,7 @@ function renderSearch(){
   const ext=s?state.extQuestions.filter(q=>hit(q.q)||hit(q.zh)||hit(q.myAnswer)):[];
   const my=s?state.myQuestions.filter(q=>hit(q.q)||hit(q.answer)):[];
   const projs=s?state.projects.filter(p=>hit(p.name)||hit(p.indication)||hit(p.target)):[];
+  const nucs=s?NUCLIDES.filter(n=>hit(n.nuclide)||hit(n.commonTargets.join(" "))||hit(n.representativeDrugs.join(" "))):[];
   $("#view-search").innerHTML=`
   <h2 class="page">全局搜索</h2>
   <input class="grow" id="gQ" placeholder="搜索词块、面试题、项目、答案…" value="${esc(searchQ)}" style="display:block;margin:10px 0">
@@ -3553,7 +3564,10 @@ function renderSearch(){
     <button class="sm" data-act="goMy">去我的题库</button></div>`).join("")}
     <h3 class="section-title">项目（${projs.length}）</h3>
     ${projs.slice(0,20).map(p=>`<div class="item-card"><div class="en">${esc(p.name)}</div><p class="muted">${[p.phase,p.indication].filter(Boolean).join(" · ")}</p>
-    <button class="sm" data-act="goProject" data-id="${p.id}">打开项目</button></div>`).join("")}`
+    <button class="sm" data-act="goProject" data-id="${p.id}">打开项目</button></div>`).join("")}
+    <h3 class="section-title">核素（${nucs.length}）</h3>
+    ${nucs.slice(0,20).map(n=>`<div class="item-card"><div class="en">${n.nuclide}</div><p class="muted">${n.halfLife} · ${n.emissionType}</p>
+    <button class="sm" data-act="goNuc" data-id="${n.id}">查看核素</button></div>`).join("")}`
   :'<p class="muted">输入关键词开始搜索。</p>'}`;
   $("#gQ").oninput=e=>{searchQ=e.target.value;clearTimeout(window._st);window._st=setTimeout(renderSearch,250);};
 }
@@ -3671,6 +3685,7 @@ document.addEventListener("click",async e=>{
     case "goExt":switchView("extq");break;
     case "goMy":switchView("myq");break;
     case "goProject":switchView("projects");setTimeout(()=>projectOpen(id),100);break;
+    case "goNuc":switchView("nuclides");nucUI.open=id;renderNuclides();break;
     /* 靶点库 */
     case "tgFav":if(state.targetFav[id])delete state.targetFav[id];else state.targetFav[id]=true;
       saveState();renderTargets();break;
@@ -4425,6 +4440,410 @@ function openTargetDetail(name){
 }
 
 /* =====================================================================
+ * 模块：核素库（预置 25 个常用诊断/治疗核素）
+ * ===================================================================== */
+let nucUI={q:"",filter:"",open:""};
+const NUCLIDES=[
+ {id:"n01",nuclide:"Ga-68",halfLife:"67.71 分钟",decayMode:"β+（约89%）/ EC",emissionType:"诊断",
+  commonTargets:["PSMA","SSTR2","FAP","GRPR","CXCR4"],
+  representativeDrugs:["NetSpot（Ga-68 DOTATATE）","SomaKit TOC","Ga-68 PSMA-11","Ga-68 FAPI"],
+  productionMethod:"Ge-68/Ga-68 发生器（也可回旋加速器液相合成）",
+  craMonitoringPoints:[
+    "发生器洗脱与当天可获得活度决定排程，监查受试者注射时间窗",
+    "热室剂量校准（dose calibrator）核对给药活度，记录校准时间",
+    "短半衰期需做衰变校正（decay correction），核对处方与实际给药活度",
+    "PET/CT 采集在注射后协议规定时间窗内完成",
+    "IP accountability：洗脱液接收、标记、给药、剩余活度全程记录"],
+  references:[{t:"SNMMI Ga-68 DOTATATE",u:"http://www.snmmi.org/"},{t:"IAEA Radiopharmaceuticals",u:"https://www.iaea.org/"}]},
+ {id:"n02",nuclide:"F-18",halfLife:"109.77 分钟",decayMode:"β+（96.7%）",emissionType:"诊断",
+  commonTargets:["PSMA","FAP","葡萄糖代谢"],
+  representativeDrugs:["F-18 FDG","Pylarify（F-18 fluciclovine? PIFLUFOLASTAT）","Axumin（F-18 fluciclovine）","F-18 FAPI"],
+  productionMethod:"回旋加速器（18O(p,n)18F）",
+  craMonitoringPoints:[
+    "FDG 检查前血糖筛查与禁食依从性监查",
+    "药物由回旋加速器当日生产，核对批放行与给药时间",
+    "注射后静息等待与 PET/CT 采集时间窗监查",
+    "衰变校正核对给药活度；剩余药液衰变后处理记录",
+    "辐射防护与受检者陪同人员管理"],
+  references:[{t:"SNMMI FDG PET/CT",u:"http://www.snmmi.org/"}]},
+ {id:"n03",nuclide:"Cu-64",halfLife:"12.7 小时",decayMode:"β+（17.9%）/ β-（39%）/ EC（43%）",emissionType:"诊疗一体",
+  commonTargets:["PSMA","SSTR2","CXCR4"],
+  representativeDrugs:["Cu-64 DOTATATE","Cu-64 PSMA","Cu-64 ATSM"],
+  productionMethod:"回旋加速器（64Ni(p,n)64Cu）",
+  craMonitoringPoints:[
+    "半衰期较长，可支持延迟显像，监查延迟时间点图像采集",
+    "同时具 β+/β-，方案若含治疗扩展需收集剂量学数据",
+    "剂量校准与给药活度衰变校正",
+    "辐射防护按 β+ 处理，屏蔽与剂量计佩戴",
+    "IP accountability 记录生产、给药与废物活度"],
+  references:[{t:"IAEA Cu-64",u:"https://www.iaea.org/"}]},
+ {id:"n04",nuclide:"Zr-89",halfLife:"78.4 小时",decayMode:"β+（22.7%）/ EC",emissionType:"诊断",
+  commonTargets:["HER2","CD20","PD-L1","Trop-2"],
+  representativeDrugs:["Zr-89 trastuzumab","Zr-89 atezolizumab","Zr-89 pembrolizumab"],
+  productionMethod:"回旋加速器（89Y(p,n)89Zr）",
+  craMonitoringPoints:[
+    "抗体标记药物（immuno-PET）注射后数天显像，监查多时间点随访",
+    "核对标记抗体的比活度、放射化学纯度与放行记录",
+    "长半衰期需关注受试者及家属辐射防护告知",
+    "PET/CT 采集窗与抗体药代时间点一致性",
+    "IP accountability 与冷链（抗体稳定性）记录"],
+  references:[{t:"SNMMI Immuno-PET",u:"http://www.snmmi.org/"}]},
+ {id:"n05",nuclide:"C-11",halfLife:"20.33 分钟",decayMode:"β+（99.8%）",emissionType:"诊断",
+  commonTargets:["胆碱代谢","乙酸代谢","PSMA"],
+  representativeDrugs:["C-11 choline","C-11 acetate","C-11 methionine","C-11 PSMA"],
+  productionMethod:"回旋加速器（现场合成，11C 标记模块）",
+  craMonitoringPoints:[
+    "半衰期仅20分钟，必须现场合成、即制即用，严格排程受试者",
+    "合成失败/活度不足时受试者改约流程需记录（可能构成 PD）",
+    "给药与采集时间精确到分钟，衰变校正核对",
+    "剂量校准仪快速复核活度",
+    "IP accountability：每批次合成量、给药量、剩余量记录"],
+  references:[{t:"EANM C-11",u:"https://www.eanm.org/"}]},
+ {id:"n06",nuclide:"N-13",halfLife:"9.97 分钟",decayMode:"β+",emissionType:"诊断",
+  commonTargets:["心肌灌注"],
+  representativeDrugs:["N-13 ammonia（氨）"],
+  productionMethod:"回旋加速器（现场合成）",
+  craMonitoringPoints:[
+    "极短半衰期，现场合成后立即注射，受试者就位后再启动合成",
+    "心肌负荷/静息两次注射的时间间隔与图像采集监查",
+    "衰变校正与给药活度核对",
+    "合成失败改约记录",
+    "辐射防护与废物即时衰变处理"],
+  references:[{t:"SNMMI Cardiac PET",u:"http://www.snmmi.org/"}]},
+ {id:"n07",nuclide:"O-15",halfLife:"2.04 分钟",decayMode:"β+",emissionType:"诊断",
+  commonTargets:["脑/心肌血流"],
+  representativeDrugs:["O-15 water"],
+  productionMethod:"回旋加速器（现场合成，常配套在线输注系统）",
+  craMonitoringPoints:[
+    "半衰期仅2分钟，多采用自动化在线输注，核对此类设备校准",
+    "灌注显像多时间点采集与注射同步性监查",
+    "给药活度测量与记录方式（在线系统）需在监查前确认",
+    "受试者排程与设备可用性核对",
+    "辐射防护按 PET β+ 管理"],
+  references:[{t:"IAEA PET perfusion",u:"https://www.iaea.org/"}]},
+ {id:"n08",nuclide:"Rb-82",halfLife:"1.27 分钟",decayMode:"β+（约95%）/ EC",emissionType:"诊断",
+  commonTargets:["心肌灌注"],
+  representativeDrugs:["CardioGen-82（Sr-82/Rb-82 发生器）"],
+  productionMethod:"Sr-82/Rb-82 发生器（床旁输注系统）",
+  craMonitoringPoints:[
+    "发生器有效期与每日洗脱质控（QC）记录监查",
+    "自动化输注系统流速、活度校准与定期校准证书核对",
+    "负荷/静息灌注图像采集与洗脱同步",
+    "Sr-82 穿透（breakthrough）质控限值核对",
+    "发生器接收、使用、报废的 IP accountability"],
+  references:[{t:"FDA CardioGen-82",u:"https://www.fda.gov/"}]},
+ {id:"n09",nuclide:"Tc-99m",halfLife:"6.01 小时",decayMode:"IT（γ 140 keV）",emissionType:"诊断",
+  commonTargets:["骨显像","心肌灌注","肾血流","炎症/脑灌注"],
+  representativeDrugs:["Tc-99m MDP","Tc-99m sestamibi","Tc-99m MAG3","Tc-99m HMPAO"],
+  productionMethod:"Mo-99/Tc-99m 发生器（医院核医学科常规）",
+  craMonitoringPoints:[
+    "发生器每日洗脱质控、Mo-99 穿透限值核对",
+    "标记试剂盒标记后有效期（preparation time）与给药时间核对",
+    "剂量校准核对给药活度；SPECT 采集时间窗监查",
+    "IP accountability：洗脱、标记、给药、剩余活度记录",
+    "放射性废物衰变储存记录"],
+  references:[{t:"SNMMI Tc-99m",u:"http://www.snmmi.org/"}]},
+ {id:"n10",nuclide:"In-111",halfLife:"67.3 小时（2.8天）",decayMode:"EC（γ 171/245 keV）",emissionType:"诊断",
+  commonTargets:["SSTR2","PSMA","血小板/白细胞"],
+  representativeDrugs:["Octreoscan（In-111 pentetreotide）","ProstaScint（capromab pendetide）","In-111 ibritumomab 剂量学"],
+  productionMethod:"回旋加速器（111In）",
+  craMonitoringPoints:[
+    "SPECT 多时间点（如4h/24h/48h）显像随访监查",
+    "长半衰期受试者辐射告知与图像采集时间窗",
+    "给药活度校准与衰变校正",
+    "用于 Zevalin 剂量学时，核对 biodistribution 评估流程",
+    "IP accountability 与废物活度记录"],
+  references:[{t:"SNMMI In-111",u:"http://www.snmmi.org/"}]},
+ {id:"n11",nuclide:"I-123",halfLife:"13.2 小时",decayMode:"EC（γ 159 keV）",emissionType:"诊断",
+  commonTargets:["甲状腺摄取","肾上腺素能（MIBG）"],
+  representativeDrugs:["I-123 MIBG（Adreview）","Na I-123（甲状腺）","I-123 ioflupane（DaTscan）"],
+  productionMethod:"回旋加速器（123I）",
+  craMonitoringPoints:[
+    "甲状腺阻断（如 SSKI）给药与依从性核对（MIBG 项目）",
+    "干扰药物（如抗抑郁药、降压药）清洗期核对",
+    "SPECT 采集时间窗（注射后3-6h/24h）监查",
+    "给药活度校准与 IP accountability",
+    "既往甲状腺疾病/碘暴露的入排核对"],
+  references:[{t:"SNMMI MIBG",u:"http://www.snmmi.org/"}]},
+ {id:"n12",nuclide:"I-131",halfLife:"8.02 天",decayMode:"β-（最大894 keV）/ γ 364 keV",emissionType:"诊疗一体",
+  commonTargets:["甲状腺（NIS）","肾上腺素能（MIBG）","CD20"],
+  representativeDrugs:["Na I-131","I-131 MIBG（Azedra）","tositumomab（Bexxar）"],
+  productionMethod:"反应堆（130Te 靶或裂变产物）",
+  craMonitoringPoints:[
+    "高活度治疗需住院/隔离条件，核对此类机构资质与出院辐射限值",
+    "甲状腺阻断、给药后隔离与排泄物管理流程监查",
+    "治疗剂量学（治疗活度、骨髓/全身剂量）数据收集",
+    "给药活度校准、衰变校正与双人核对",
+    "AE（骨髓抑制等）随访与 SAE 报告；废物按长半衰期管理"],
+  references:[{t:"FDA Azedra",u:"https://www.fda.gov/"}]},
+ {id:"n13",nuclide:"Lu-177",halfLife:"6.65 天",decayMode:"β-（最大497 keV）/ γ 113、208 keV",emissionType:"治疗（可显像）",
+  commonTargets:["PSMA","SSTR2"],
+  representativeDrugs:["Pluvicto（Lu-177 vipivotide tetraxetan / PSMA-617）","Lutathera（Lu-177 DOTATATE）"],
+  productionMethod:"反应堆（176Lu(n,γ)177Lu，无载体添加 NCA 路线）",
+  craMonitoringPoints:[
+    "核对治疗周期数、间隔（如每6/8周）与给药活度",
+    "给药前后肾保护（氨基酸输注）、止吐给药依从性（Lutathera）",
+    "治疗后 SPECT/CT 显像（利用γ）与剂量学数据收集",
+    "IP accountability：接收活度、给药、剩余/废物活度衰变记录",
+    "血液学/肾毒性 AE 随访与剂量延迟/减量规则执行"],
+  references:[{t:"FDA Pluvicto label",u:"https://www.fda.gov/"},{t:"EANM/SNMMI 177Lu-PSMA 指南",u:"https://www.eanm.org/"}]},
+ {id:"n14",nuclide:"Y-90",halfLife:"64.1 小时（2.67天）",decayMode:"β-（最大2.28 MeV）",emissionType:"治疗",
+  commonTargets:["CD20","SSTR2","肝肿瘤（微球）"],
+  representativeDrugs:["Zevalin（ibritumomab tiuxetan）","Y-90 DOTATATE","SIR-Spheres / TheraSphere 微球"],
+  productionMethod:"反应堆（90Sr/90Y 发生器或靶照）",
+  craMonitoringPoints:[
+    "纯β-无γ影像，治疗后疗效评估用替代影像，核对方案规定",
+    "肝微球项目需先做 MAA 评估（肺分流 fraction），核对流程",
+    "高能量β-需亚克力屏蔽，个人剂量计与废物管理",
+    "给药活度校准（注意 Y-90 在剂量仪的几何校正）",
+    "IP accountability：微球/药物一次性使用，剩余活度记录"],
+  references:[{t:"FDA TheraSphere",u:"https://www.fda.gov/"}]},
+ {id:"n15",nuclide:"Re-188",halfLife:"17.0 小时",decayMode:"β-（最大2.12 MeV）/ γ 155 keV",emissionType:"治疗（可显像）",
+  commonTargets:["骨转移疼痛","肝肿瘤","皮肤病变"],
+  representativeDrugs:["Re-188 HEDP","Re-188 Lipiodol","Re-188 MAG3"],
+  productionMethod:"W-188/Re-188 发生器",
+  craMonitoringPoints:[
+    "发生器洗脱与当天治疗排程核对",
+    "治疗后可利用155 keV γ 做 SPECT 显像，核对采集时间",
+    "高能量β-屏蔽与辐射防护、废物管理",
+    "给药活度校准与衰变校正",
+    "骨痛治疗后镇痛效果/flare AE 随访"],
+  references:[{t:"IAEA Re-188",u:"https://www.iaea.org/"}]},
+ {id:"n16",nuclide:"Sm-153",halfLife:"46.3 小时（1.93天）",decayMode:"β-（最大807 keV）/ γ 103 keV",emissionType:"治疗（可显像）",
+  commonTargets:["骨转移（羟基磷灰石）"],
+  representativeDrugs:["Quadramet（Sm-153 EDTMP）"],
+  productionMethod:"反应堆（152Sm(n,γ)153Sm）",
+  craMonitoringPoints:[
+    "骨转移姑息治疗，核对给药活度（MBq/kg）与体重",
+    "治疗后骨痛短暂加重（flare）告知与镇痛记录",
+    "血细胞（尤其血小板/白细胞）随访，骨髓抑制 AE",
+    "给药活度校准、IP accountability 与废物记录",
+    "γ 可做全身显像/生物分布核对"],
+  references:[{t:"FDA Quadramet",u:"https://www.fda.gov/"}]},
+ {id:"n17",nuclide:"Ho-166",halfLife:"26.8 小时",decayMode:"β-（最大1.85 MeV）/ γ 81 keV",emissionType:"治疗（可显像）",
+  commonTargets:["肝肿瘤（微球）","骨转移","滑膜切除"],
+  representativeDrugs:["QuiremSpheres（Ho-166 微球）","Ho-166 DOTMP","Ho-166 chitosan"],
+  productionMethod:"反应堆（165Ho(n,γ)166Ho）",
+  craMonitoringPoints:[
+    "Ho 微球可 MRI/SPECT 双显像，核对治疗前 scout 剂量与剂量学",
+    "肝动脉给药的介入手术排程与肺/胃肠分流评估",
+    "高能量β-屏蔽、个人剂量计与废物管理",
+    "给药活度校准与衰变校正",
+    "术后 AE（腹痛、胃肠溃疡）随访"],
+  references:[{t:"QuiremSpheres",u:"https://www.quiremmedicals.com/"}]},
+ {id:"n18",nuclide:"Ra-223",halfLife:"11.43 天",decayMode:"α（4个α粒子，总约27 MeV）",emissionType:"治疗",
+  commonTargets:["骨转移（模拟钙，羟基磷灰石）"],
+  representativeDrugs:["Xofigo（Ra-223 dichloride）"],
+  productionMethod:"反应堆/加速器路线（227Ac 发生器体系）",
+  craMonitoringPoints:[
+    "mCRPC 骨转移，6次注射每4周，核对周期与活度",
+    "入排：内脏转移、合并化疗/双膦酸盐使用限制核对",
+    "血液学（血小板、中性粒）基线与每次随访，骨髓抑制 AE",
+    "α 粒子组织射程短，废物与排泄物按长半衰期管理",
+    "IP accountability：接收、给药、剩余活度记录"],
+  references:[{t:"FDA Xofigo label",u:"https://www.fda.gov/"}]},
+ {id:"n19",nuclide:"Ac-225",halfLife:"9.92 天",decayMode:"α（每次衰变链4个α粒子）",emissionType:"治疗",
+  commonTargets:["PSMA","FAP","HER2","SSTR2"],
+  representativeDrugs:["Ac-225 PSMA-617","Ac-225 DOTATATE","Ac-225 FAPI"],
+  productionMethod:"Th-229/Ac-225 发生器（加速器生产 Ac-225 路线在发展）",
+  craMonitoringPoints:[
+    "α 治疗供应极稀缺，核对药物接收与受试者排程",
+    "子核素（Fr-221、Bi-213）可能游离，收集剂量学/肾毒性数据",
+    "给药活度很低（kBq 级），剂量仪灵敏度与校准核对",
+    "唾液腺/骨髓/肾毒性 AE 重点随访",
+    "IP accountability 精确到 kBq，废物长半衰期管理"],
+  references:[{t:"SNMMI Alpha therapy",u:"http://www.snmmi.org/"}]},
+ {id:"n20",nuclide:"Th-227",halfLife:"18.7 天",decayMode:"α（衰变链）",emissionType:"治疗",
+  commonTargets:["间皮素（mesothelin）","PSMA"],
+  representativeDrugs:["Th-227–anetumab 偶联物（BAY 2287411）","Th-227 PSMA 偶联物"],
+  productionMethod:"反应堆/加速器路线（227Ac 来源）",
+  craMonitoringPoints:[
+    "靶向α偶联物（TAC），核对抗体偶联比与放射化学纯度",
+    "长半衰期抗体药代与多时间点随访、影像（如有）",
+    "α 治疗废物长半衰期管理与排泄物处理",
+    "局部毒性（如正常组织间皮素表达）AE 随访",
+    "冷链与抗体稳定性、IP accountability"],
+  references:[{t:"Targeted Alpha Therapy",u:"https://www.iaea.org/"}]},
+ {id:"n21",nuclide:"Tb-161",halfLife:"6.9 天",decayMode:"β-（平均154 keV）/ 转换电子、Auger 电子 / γ",emissionType:"治疗（可显像）",
+  commonTargets:["PSMA","SSTR2","CD20"],
+  representativeDrugs:["Tb-161 PSMA","Tb-161 DOTATATE","Tb-161 rituximab"],
+  productionMethod:"反应堆（160Gd(n,γ)161Tb，需分离）",
+  craMonitoringPoints:[
+    "低能β+Auger/转换电子，骨髓/肾剂量学数据收集",
+    "γ 发射支持 SPECT 显像，核对治疗后采集",
+    "半衰期与 Lu-177 接近，周期排程与活度核对",
+    "核素分离纯度（其他 Tb 同位素）质控记录",
+    "IP accountability 与废物管理"],
+  references:[{t:"Tb-161 theranostics",u:"https://www.iaea.org/"}]},
+ {id:"n22",nuclide:"Sc-44",halfLife:"3.97 小时",decayMode:"β+（94.3%）",emissionType:"诊断",
+  commonTargets:["PSMA","FAP","SSTR2"],
+  representativeDrugs:["Sc-44 PSMA","Sc-44 FAPI","Sc-44 DOTATATE"],
+  productionMethod:"Ti-44/Sc-44 发生器（或回旋加速器 44Ca 路线）",
+  craMonitoringPoints:[
+    "与 Sc-47 构成诊疗对，核对诊断/治疗方案衔接",
+    "发生器洗脱质控与 PET 给药时间窗",
+    "给药活度校准与衰变校正",
+    "PET/CT 采集时间点监查",
+    "IP accountability：洗脱、给药、剩余活度"],
+  references:[{t:"Sc-44/47 theranostics",u:"https://www.iaea.org/"}]},
+ {id:"n23",nuclide:"Sc-47",halfLife:"3.35 天",decayMode:"β-（平均约600 keV?）/ γ 159 keV",emissionType:"治疗（可显像）",
+  commonTargets:["PSMA","SSTR2"],
+  representativeDrugs:["Sc-47 PSMA","Sc-47 DOTATATE"],
+  productionMethod:"反应堆（46/47Ca? 47Ti 靶照后分离）",
+  craMonitoringPoints:[
+    "Sc-44 诊断筛选后接 Sc-47 治疗，核对配对流程",
+    "γ 159 keV 可 SPECT 显像/剂量学，核对采集",
+    "给药活度校准与 IP accountability",
+    "血液学/肾毒性 AE 随访",
+    "废物管理与辐射防护"],
+  references:[{t:"Sc-47 therapy",u:"https://www.iaea.org/"}]},
+ {id:"n24",nuclide:"Pb-212",halfLife:"10.64 小时",decayMode:"β-（至 Bi-212，再 α/β-）",emissionType:"治疗",
+  commonTargets:["HER2","间皮素","EGFR"],
+  representativeDrugs:["Pb-212-TCMC-trastuzumab","Pb-212 偶联抗体"],
+  productionMethod:"Th-228/Pb-212 发生器体系",
+  craMonitoringPoints:[
+    "体内发生器：Pb-212 衰变产生 α，核对标记稳定性（防止游离核素）",
+    "腹腔/局部给药项目核对给药途径与操作流程",
+    "短半衰期要求标记后尽快给药，排程与衰变校正",
+    "剂量学与肾/骨髓毒性 AE 随访",
+    "IP accountability 与废物记录"],
+  references:[{t:"Pb-212 targeted therapy",u:"https://www.iaea.org/"}]},
+ {id:"n25",nuclide:"At-211",halfLife:"7.2 小时",decayMode:"α（5.87 MeV）/ EC",emissionType:"治疗",
+  commonTargets:["胶质瘤","卵巢癌","黑色素瘤（细胞表面/抗体）"],
+  representativeDrugs:["At-211 标记单抗","At-211 氨基酸/小分子"],
+  productionMethod:"回旋加速器（209Bi(α,2n)211At）",
+  craMonitoringPoints:[
+    "卤素化学与碘不同，标记方法与放射化学纯度质控核对",
+    "短半衰期要求现场生产当天给药，严格排程",
+    "α 治疗（如脑胶质瘤腔内给药）操作与防护流程",
+    "给药活度校准（At-211 测量校正）核对",
+    "局部毒性与废物管理、IP accountability"],
+  references:[{t:"Astatine-211",u:"https://www.iaea.org/"}]}
+];
+/* 关联：自动匹配我的项目（按核素名或靶点） */
+function nucRelatedProjects(n){
+  return state.projects.filter(p=>{
+    const iso=(p.isotope||"").toUpperCase();
+    if(iso&&iso.includes(n.nuclide.toUpperCase().replace("-","")))return true;
+    if(iso&&iso.includes(n.nuclide.toUpperCase()))return true;
+    return n.commonTargets.some(t=>(p.target||"").toUpperCase().includes(t.toUpperCase()));
+  });
+}
+/* 关联：靶点库 */
+function nucRelatedTargets(n){
+  return T_TARGETS.filter(t=>n.commonTargets.some(c=>t.name.toUpperCase()===c.toUpperCase()));
+}
+function renderNuclides(){
+  const el=$("#view-nuclides");
+  /* 详情模式 */
+  if(nucUI.open){
+    const n=NUCLIDES.find(x=>x.id===nucUI.open);if(!n){nucUI.open="";return renderNuclides();}
+    const fav=state.nucFav[n.id];
+    const li=arr=>arr&&arr.length?arr.map(x=>`<li>${esc(x)}</li>`).join(""):"<li class='muted'>暂无</li>";
+    const rp=nucRelatedProjects(n);
+    const rt=nucRelatedTargets(n);
+    el.innerHTML=`
+    <div class="row gap"><button class="btn sm ghost" data-act="nucBack">← 返回核素列表</button></div>
+    <div class="card mts">
+      <div class="row space-between">
+        <h2>${n.nuclide} <span class="muted small">${n.decayMode}</span></h2>
+        <div class="row gap">
+          <button class="sm" data-act="nucSpeak" data-id="${n.id}">🔊 朗读</button>
+          <button class="sm ${fav?"":"ghost"}" data-act="nucFav" data-id="${n.id}">${fav?"★ 已收藏":"☆ 收藏"}</button>
+        </div>
+      </div>
+      <div class="reg-meta mts">
+        <span class="chip">半衰期：${n.halfLife}</span>
+        <span class="chip">${n.emissionType}</span>
+        <span class="chip">${n.decayMode}</span>
+        <span class="chip">${n.productionMethod}</span>
+      </div>
+      <div class="grid grid2 mts">
+        <div><h4>常用标记靶点</h4><ul>${li(n.commonTargets)}</ul></div>
+        <div><h4>代表药物 / 显像剂</h4><ul>${li(n.representativeDrugs)}</ul></div>
+      </div>
+      <h4>CRA 监查要点</h4><ul>${li(n.craMonitoringPoints)}</ul>
+      <h4>关联我的项目（${rp.length}）</h4>
+      ${rp.length?`<ul>${rp.map(p=>`<li><a href="#" data-act="projectOpen" data-id="${p.id}">${esc(p.name)}</a></li>`).join("")}</ul>`
+        :`<div class="empty small">暂无关联项目；项目填写核素/靶点后会自动关联。</div>`}
+      <h4>关联靶点库（${rt.length}）</h4>
+      ${rt.length?rt.map(t=>`<span class="chip">${t.name} · ${t.fullNameCN}</span>`).join("")
+        :`<span class="muted small">暂无</span>`}
+      <h4>参考来源</h4>
+      <ul>${n.references.map(r=>`<li><a href="${r.u}" target="_blank" rel="noopener">${esc(r.t)}</a></li>`).join("")}</ul>
+    </div>`;
+    return;
+  }
+  /* 列表模式 */
+  const q=nucUI.q.toLowerCase();
+  const list=NUCLIDES.filter(n=>{
+    if(nucUI.filter==="__THERAPY__"){
+      if(!(n.emissionType==="治疗"||n.emissionType==="治疗（可显像）"))return false;
+    }else if(nucUI.filter&&n.emissionType!==nucUI.filter)return false;
+    if(q){const hay=(n.nuclide+" "+n.commonTargets.join(" ")+" "+n.representativeDrugs.join(" ")).toLowerCase();
+      if(!hay.includes(q))return false;}
+    return true;
+  });
+  el.innerHTML=`
+  <h2 class="page">核素库 <span class="muted">（${NUCLIDES.length} 个常用核素）</span></h2>
+  <p class="muted small">覆盖 PET/SPECT 诊断与 α/β- 治疗核素；点卡片查看半衰期、衰变、生产方式、CRA 监查要点及自动关联。</p>
+  <div class="filterbar2">
+    <select id="nucFilter">
+      <option value="">全部用途</option>
+      <option ${nucUI.filter==="诊断"?"selected":""}>诊断</option>
+      <option ${nucUI.filter==="__THERAPY__"?"selected":""}>治疗</option>
+      <option ${nucUI.filter==="诊疗一体"?"selected":""}>诊疗一体</option>
+    </select>
+    <input id="nucQ" placeholder="搜索核素 / 靶点 / 药物（如 PSMA、Pluvicto）" value="${esc(nucUI.q)}">
+    <button class="sm ghost" data-act="nucExport">导出本模块 JSON</button>
+  </div>
+  ${list.length?`<div class="grid grid3">${list.map(n=>{
+    const fav=state.nucFav[n.id];
+    return `<div class="card">
+      <div class="tg-head">
+        <div class="tg-name">${n.nuclide}</div>
+        <button class="sm ${fav?"":"ghost"}" data-act="nucFav" data-id="${n.id}">${fav?"★":"☆"}</button>
+      </div>
+      <div class="small muted">半衰期：${n.halfLife}</div>
+      <div class="reg-meta mts"><span class="chip">${n.emissionType}</span></div>
+      <div class="small mts">靶点：${n.commonTargets.slice(0,3).map(t=>`<span class="chip">${t}</span>`).join("")}${n.commonTargets.length>3?'<span class="muted"> …</span>':""}</div>
+      <div class="row gap mts">
+        <button class="sm" data-act="nucDetail" data-id="${n.id}">查看详情</button>
+        <button class="sm ghost" data-act="nucSpeak" data-id="${n.id}">🔊</button>
+      </div>
+    </div>`;}).join("")}</div>`
+  :`<div class="empty">没有匹配的核素；可清空筛选或更换关键词。</div>`}`;
+  /* 筛选与搜索绑定 */
+  const f=$("#nucFilter");if(f)f.onchange=e=>{
+    /* “治疗”选项同时匹配纯治疗与可显像治疗，用特殊值处理 */
+    nucUI.filter=e.target.value;
+    if(e.target.value==="治疗")nucUI.filter="__THERAPY__";
+    renderNuclides();
+  };
+  const qi=$("#nucQ");if(qi)qi.oninput=e=>{nucUI.q=e.target.value;clearTimeout(window._nq);
+    window._nq=setTimeout(renderNuclides,300);};
+}
+/* 核素库按钮事件（收藏/详情/返回/朗读/导出） */
+document.addEventListener("click",async e=>{
+  const t=e.target.closest("[data-act=nucFav],[data-act=nucDetail],[data-act=nucBack],[data-act=nucSpeak],[data-act=nucExport]");
+  if(!t)return;
+  const a=t.dataset.act;
+  if(a==="nucFav"){
+    if(state.nucFav[t.dataset.id])delete state.nucFav[t.dataset.id];else state.nucFav[t.dataset.id]=true;
+    saveState();renderNuclides();toast("收藏已更新");
+  }else if(a==="nucDetail"){nucUI.open=t.dataset.id;renderNuclides();
+  }else if(a==="nucBack"){nucUI.open="";renderNuclides();
+  }else if(a==="nucSpeak"){
+    const n=NUCLIDES.find(x=>x.id===t.dataset.id);
+    if(window.speechSynthesis&&speechSynthesis.speaking){speechSynthesis.cancel();toast("已停止朗读");}
+    else{speak(n.nuclide);toast("朗读中…");}
+  }else if(a==="nucExport"){
+    downloadJSON({nuclides:NUCLIDES,fav:state.nucFav},"nuclides.json");
+    toast("核素库 JSON 已导出");
+  }
+});
+
+/* =====================================================================
  * 模块：岗位追踪（渠道 + 投递表）
  * ===================================================================== */
 const JOB_STATUS=["未投","已投递","HR沟通中","面试中","Offer","拒信","暂缓"];
@@ -5014,7 +5433,7 @@ function init(){
   Object.assign(RENDERERS,{
     dashboard:renderDashboard, daily:renderDaily, chunks:renderChunks,
     words:renderWords, sentence:renderSentence, projects:renderProjects,
-    targets:renderTargets, jobs:renderJobs, myq:renderMyQ,
+    targets:renderTargets, nuclides:renderNuclides, jobs:renderJobs, myq:renderMyQ,
     extq:renderExtQ, reglib:renderRegLibrary, trans:renderTrans, answers:renderAnswers,
     listening:renderListening, plan:renderPlan, stats:renderStats, search:renderSearch
   });
