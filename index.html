@@ -239,6 +239,42 @@ select[data-act=jbStatus]{padding:4px 6px;}
 /* 翻译练习术语高亮 */
 .term-hit{background:var(--green-soft);color:var(--green);border-radius:4px;padding:0 3px;}
 .term-miss{background:rgba(217,160,25,.18);color:var(--amber);border-radius:4px;padding:0 3px;}
+/* ====================== 审核中心 ====================== */
+button.danger{background:#dc2626;color:#fff;}
+button.danger:hover{background:#b91c1c;}
+.review-toolbar{padding:12px;margin-bottom:12px;display:flex;flex-direction:column;gap:8px;}
+.review-toolbar input{min-width:220px;padding:7px 10px;}
+.rv-rows{border:1px solid var(--line);border-radius:10px;overflow:hidden;}
+.rv-row{display:flex;align-items:center;gap:10px;padding:9px 12px;border-bottom:1px solid var(--line);font-size:13.5px;flex-wrap:wrap;}
+.rv-row:last-child{border-bottom:none;}
+.rv-row.rv-head{background:var(--bg2);font-size:12.5px;}
+.rv-row .rv-check{width:16px;height:16px;flex:0 0 auto;}
+.rv-nocheck{width:16px;flex:0 0 auto;}
+.rv-badge{flex:0 0 auto;font-size:11.5px;padding:2px 8px;border-radius:20px;background:var(--bg3);border:1px solid var(--line);white-space:nowrap;}
+.rv-badge.lib-target{background:#e0f2fe;color:#0369a1;border-color:#7dd3fc;}
+.rv-badge.lib-nuclide{background:#fef3c7;color:#b45309;border-color:#fcd34d;}
+.rv-badge.lib-vocabulary{background:#dcfce7;color:#15803d;border-color:#86efac;}
+.rv-badge.lib-interview{background:#fae8ff;color:#a21caf;border-color:#f0abfc;}
+.rv-badge.lib-regulation{background:#fee2e2;color:#b91c1c;border-color:#fca5a5;}
+.rv-badge.lib-literature{background:#e0e7ff;color:#4338ca;border-color:#a5b4fc;}
+.rv-title{flex:1 1 260px;cursor:pointer;min-width:200px;}
+.rv-title:hover{color:var(--brand);}
+.rv-tag{display:inline-block;font-size:10.5px;padding:1px 7px;border-radius:10px;background:var(--bg3);border:1px solid var(--line);margin-left:6px;vertical-align:middle;}
+.rv-tag.ai{background:#fff7ed;color:#c2410c;border-color:#fdba74;}
+.rv-src{flex:0 1 130px;font-size:11.5px;color:var(--muted,var(--text));overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.rv-date{flex:0 0 120px;font-size:11.5px;color:var(--muted,var(--text));text-align:right;}
+.rv-ops{flex:0 0 auto;display:flex;gap:6px;}
+.rv-note{flex:1 1 200px;font-size:11.5px;color:#b91c1c;}
+.review-empty{text-align:center;padding:36px 16px;color:var(--muted,var(--text));}
+.json-area{width:100%;min-height:280px;font-family:Consolas,Menlo,monospace;font-size:12.5px;
+  padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--bg2);color:var(--text);resize:vertical;line-height:1.5;}
+.note-area{width:100%;min-height:64px;padding:9px;border:1px solid var(--line);border-radius:8px;background:var(--bg2);color:var(--text);}
+#rvPager{margin-top:12px;gap:10px;align-items:center;}
+.rv-tab.active{outline:2px solid var(--brand);}
+@media(max-width:640px){
+  .rv-src,.rv-date{flex-basis:auto;}
+  .rv-title{flex-basis:100%;}
+}
 </style>
 </head>
 <body>
@@ -267,6 +303,7 @@ select[data-act=jbStatus]{padding:4px 6px;}
 <main>
   <section class="view active" id="view-dashboard"></section>
   <section class="view" id="view-daily"></section>
+  <section class="view" id="view-review"></section>
   <section class="view" id="view-chunks"></section>
   <section class="view" id="view-words"></section>
   <section class="view" id="view-sentence"></section>
@@ -3101,7 +3138,8 @@ function defaultState(){
     wordStudy:{bank:"med",dailyGoal:30,progress:{},learnedDates:{},extraLoaded:0},
     transStudy:{dir:"zh2en",tab:"practice",fav:{},wrong:{},ratings:{},history:[],
       filterCat:"",filterSrc:"",filterLv:"",q:"",curId:"",submitted:false},
-    sentenceCount:0
+    sentenceCount:0,
+    extraNuclides:[]   // 审核通过后同步到本地核素库的额外核素（持久化）
   };
 }
 
@@ -3155,6 +3193,7 @@ function loadState(){
   state.jobApps=Array.isArray(raw.jobApps)?raw.jobApps:[];
   state.targetFav=raw.targetFav||{};
   state.nucFav=raw.nucFav||{};
+  state.extraNuclides=Array.isArray(raw.extraNuclides)?raw.extraNuclides:[];
   state.wordStudy=Object.assign(d.wordStudy,raw.wordStudy||{});
   // 翻译练习：合并用户数据（收藏/错题/历史），缺字段用默认
   state.transStudy=Object.assign(d.transStudy,raw.transStudy||{});
@@ -3210,7 +3249,7 @@ $("#btnTheme").addEventListener("click",()=>{
 const RENDERERS={};
 /* 一级菜单固定；二级模块可在组内排序 */
 const DEFAULT_GROUPS=[
- {id:"study",name:"学习中心",items:[["dashboard","首页仪表盘"],["daily","每日更新中心"],["plan","周计划"],["stats","进度统计"]]},
+ {id:"study",name:"学习中心",items:[["dashboard","首页仪表盘"],["daily","每日更新中心"],["review","审核中心"],["plan","周计划"],["stats","进度统计"]]},
  {id:"vocab",name:"词汇训练",items:[["chunks","专业词块练习"],["words","常规背单词"],["sentence","造句练习"]]},
  {id:"proj",name:"项目与资料",items:[["projects","项目口述库"],["targets","靶点库"],["nuclides","核素库"],["reglib","法规库"]]},
  {id:"interview",name:"面试与求职",items:[["myq","我的面试题库"],["extq","外企面试题库"],["answers","答案库"],["jobs","岗位追踪"]]},
@@ -6405,19 +6444,397 @@ function bindExtra(){
 }
 
 /* =====================================================================
+ * 模块：审核中心（AI 草稿 -> 人工审核 -> 自动入库）
+ * 前端只使用 anon public key；所有写操作走 SECURITY DEFINER RPC，
+ * 不能直接写正式表。
+ * ===================================================================== */
+const RV_LIB_LABEL={target:"靶点",nuclide:"核素",vocabulary:"词块",interview:"面试题",regulation:"法规",literature:"文献"};
+const RV_STATUS_LABEL={pending:"待审核",approved:"已通过",rejected:"已拒绝"};
+const rvUI={lib:"",status:"pending",q:"",page:1,pageSize:8,sort:"desc",selected:[],rows:[],total:0};
+
+/* 调用 Postgres RPC（统一走 anon key） */
+async function rvRpc(name,params){
+  if(!state.settings.supabaseUrl||!state.settings.supabaseAnonKey)throw new Error("未配置 Supabase");
+  const res=await fetch(state.settings.supabaseUrl+"/rest/v1/rpc/"+name,{
+    method:"POST",
+    headers:{"Content-Type":"application/json",
+      apikey:state.settings.supabaseAnonKey,
+      Authorization:"Bearer "+state.settings.supabaseAnonKey},
+    body:JSON.stringify(params||{})
+  });
+  const text=await res.text();
+  let data=null; if(text){try{data=JSON.parse(text);}catch(e){data=text;}}
+  if(!res.ok)throw new Error("HTTP "+res.status);
+  return data;
+}
+
+/* 分页拉取草稿（按库/状态/搜索/日期排序），Range + count=exact 获取总数 */
+async function rvLoad(){
+  const s=rvUI,size=s.pageSize,start=(s.page-1)*size,end=start+size-1;
+  const qs=new URLSearchParams();
+  qs.set("select","id,library,action,title,source,status,created_at,reviewed_at,reviewer_note");
+  if(s.lib)qs.set("library","eq."+s.lib);
+  if(s.status)qs.set("status","eq."+s.status);
+  if(s.q){const q=s.q.replace(/[*%]/g,"");if(q)qs.set("title","ilike.*"+q+"*");}
+  qs.set("order","created_at."+s.sort);
+  const res=await fetch(state.settings.supabaseUrl+"/rest/v1/pending_updates?"+qs.toString(),{
+    headers:{apikey:state.settings.supabaseAnonKey,
+      Authorization:"Bearer "+state.settings.supabaseAnonKey,
+      "Range-Unit":"items",Range:start+"-"+end,
+      Prefer:"count=exact"}
+  });
+  if(!res.ok)throw new Error("HTTP "+res.status);
+  const rows=await res.json();
+  let total=rows.length;
+  const cr=res.headers.get("content-range")||"";
+  const m=cr.match(/\/(\d+)$/); if(m)total=parseInt(m[1]);
+  return {rows,total};
+}
+
+function rvFmtDate(iso){
+  try{const d=new Date(iso);
+    return d.toLocaleDateString()+" "+d.toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"});
+  }catch(e){return iso||"";}
+}
+
+/* 审核中心主渲染 */
+function renderReview(){
+  const el=$("#view-review");
+  const configured=!!(state.settings.supabaseUrl&&state.settings.supabaseAnonKey);
+  if(!configured){
+    el.innerHTML=`<h2 class="page">审核中心</h2>
+      <div class="card review-empty">
+        <h3>需要先连接 Supabase</h3>
+        <p>审核中心读取后端每日生成、写入 <b>pending_updates</b> 表的 AI 草稿；人工通过后自动写入正式库。</p>
+        <button class="primary" data-rv="config">配置 Supabase（anon key）</button>
+      </div>`;
+    return;
+  }
+  const bad=isServiceKey(state.settings.supabaseAnonKey);
+  el.innerHTML=`
+  <h2 class="page">审核中心</h2>
+  <p class="muted small">AI 每日生成草稿 → 人工审核 → 通过自动写入正式库；所有 AI 内容必须经人工审核才能入库。</p>
+  ${bad?`<div class="security-warn">🚨 检测到当前配置可能是 service_role key！前端只能使用 anon key，请立即前往 Supabase 重置并更换。</div>`:""}
+  <div class="review-toolbar">
+    <div class="row wrap" id="rvStatusTabs">
+      ${Object.keys(RV_STATUS_LABEL).map(st=>`<button class="sm ${rvUI.status===st?"primary":"ghost"}" data-rv-status="${st}">${RV_STATUS_LABEL[st]}</button>`).join("")}
+    </div>
+    <div class="row wrap" id="rvLibTabs">
+      <button class="sm ${!rvUI.lib?"primary":"ghost"}" data-rv-lib="">全部</button>
+      ${Object.entries(RV_LIB_LABEL).map(([k,v])=>`<button class="sm ${rvUI.lib===k?"primary":"ghost"}" data-rv-lib="${k}">${v}</button>`).join("")}
+    </div>
+    <div class="row wrap">
+      <input id="rvSearch" placeholder="搜索标题…" value="${esc(rvUI.q)}">
+      <button class="sm ghost" id="rvSortBtn">日期：${rvUI.sort==="desc"?"新→旧":"旧→新"}</button>
+      <button class="sm" id="rvRefreshBtn">刷新</button>
+      ${rvUI.status==="pending"?`<button class="sm primary" id="rvBatchApprove" disabled>批量通过 (0)</button>
+      <button class="sm danger" id="rvBatchReject" disabled>批量拒绝</button>`:""}
+    </div>
+  </div>
+  <div id="rvList"><div class="review-empty muted">加载中…</div></div>
+  <div class="row" id="rvPager"></div>`;
+  rvBindToolbar();
+  rvReload();
+}
+
+/* 只刷新列表区（保留工具栏，不打断搜索输入） */
+async function rvReload(){
+  const list=$("#rvList"); if(!list)return;
+  list.innerHTML=`<div class="review-empty muted">加载中…</div>`;
+  try{
+    const r=await rvLoad();
+    rvUI.rows=r.rows;rvUI.total=r.total;
+    // 选中项跨页保留（批量操作可能跨多页勾选）；已处理项由操作处显式移除
+    rvRenderList();
+  }catch(e){
+    list.innerHTML=`<div class="card review-empty">读取失败：${esc(e.message)}<br><br>
+      <button class="sm" data-rv="retry">重试</button></div>`;
+  }
+}
+
+function rvRenderList(){
+  const list=$("#rvList");
+  const rows=rvUI.rows;
+  const emptyText={pending:"暂无待审核内容，明天再来看看",approved:"暂无已通过内容",rejected:"暂无已拒绝内容"}[rvUI.status];
+  if(!rows.length){list.innerHTML=`<div class="card review-empty">${emptyText}</div>`;}
+  else{
+    list.innerHTML=`<div class="rv-rows">
+      ${rvUI.status==="pending"?`<label class="rv-row rv-head"><input type="checkbox" id="rvAll"><span>全选本页</span></label>`:""}
+      ${rows.map(r=>{
+        const pending=r.status==="pending";
+        const checked=rvUI.selected.includes(r.id);
+        return `<div class="rv-row">
+          ${pending?`<input type="checkbox" class="rv-check" data-rv-id="${r.id}" ${checked?"checked":""}>`:`<span class="rv-nocheck"></span>`}
+          <span class="rv-badge lib-${r.library}">${RV_LIB_LABEL[r.library]||r.library}</span>
+          <span class="rv-title" data-rv-open="${r.id}">${esc(r.title||"(无标题)")}
+            ${r.action==="update"?`<span class="rv-tag">更新</span>`:""}
+            ${pending?`<span class="rv-tag ai">AI 待审核</span>`:""}</span>
+          <span class="rv-src">${r.source&&r.source!=="待补充"?esc(r.source):""}</span>
+          <span class="rv-date">${rvFmtDate(r.created_at)}</span>
+          ${pending?`<span class="rv-ops">
+              <button class="sm primary" data-rv-approve="${r.id}">通过</button>
+              <button class="sm danger" data-rv-reject="${r.id}">拒绝</button></span>`
+            :`<span class="rv-note">${r.reviewer_note?esc(r.reviewer_note):""}</span>`}
+        </div>`;
+      }).join("")}</div>`;
+  }
+  rvRenderPager();
+  rvUpdateBatch();
+}
+
+function rvRenderPager(){
+  const pager=$("#rvPager"); if(!pager)return;
+  const pages=Math.max(1,Math.ceil(rvUI.total/rvUI.pageSize));
+  pager.innerHTML=`<span class="muted small">共 ${rvUI.total} 条，第 ${rvUI.page}/${pages} 页</span>
+    <button class="sm" id="rvPrev" ${rvUI.page<=1?"disabled":""}>上一页</button>
+    <button class="sm" id="rvNext" ${rvUI.page>=pages?"disabled":""}>下一页</button>`;
+}
+
+function rvUpdateBatch(){
+  const n=rvUI.selected.length;
+  const a=$("#rvBatchApprove"),r=$("#rvBatchReject");
+  if(a){a.textContent="批量通过 ("+n+")";a.disabled=n===0;}
+  if(r){r.disabled=n===0;}
+}
+
+/* 工具栏事件（每次主渲染后重新绑定） */
+function rvBindToolbar(){
+  const st=$("#rvStatusTabs");
+  if(st)st.addEventListener("click",e=>{
+    const b=e.target.closest("[data-rv-status]");if(!b)return;
+    rvUI.status=b.dataset.rvStatus;rvUI.page=1;rvUI.selected=[];renderReview();
+  });
+  const lt=$("#rvLibTabs");
+  if(lt)lt.addEventListener("click",e=>{
+    const b=e.target.closest("[data-rv-lib]");if(!b)return;
+    rvUI.lib=b.dataset.rvLib;rvUI.page=1;rvUI.selected=[];renderReview();
+  });
+  const si=$("#rvSearch");
+  if(si)si.addEventListener("input",e=>{
+    rvUI.q=e.target.value;rvUI.page=1;
+    clearTimeout(window._rvqt);window._rvqt=setTimeout(rvReload,350);
+  });
+  const sb=$("#rvSortBtn");
+  if(sb)sb.addEventListener("click",()=>{rvUI.sort=rvUI.sort==="desc"?"asc":"desc";rvUI.page=1;renderReview();});
+  const rf=$("#rvRefreshBtn");
+  if(rf)rf.addEventListener("click",()=>{rvReload();toast("已刷新审核列表");});
+  const ba=$("#rvBatchApprove");
+  if(ba)ba.addEventListener("click",rvBatchApprove);
+  const br=$("#rvBatchReject");
+  if(br)br.addEventListener("click",rvBatchReject);
+}
+
+/* ---------------- 详情弹窗（查看 / 编辑 content_json） ---------------- */
+async function rvOpenDetail(id){
+  let rows;
+  try{rows=await loadData("pending_updates",{select:"*",id:"eq."+id});}
+  catch(e){toast("读取失败："+e.message);return;}
+  const r=rows[0]; if(!r){toast("草稿不存在");return;}
+  const editable=r.status==="pending";
+  const srcUrl=r.content_json&&(r.content_json.sourceUrl||r.content_json.url);
+  openModal(`<h3>${RV_LIB_LABEL[r.library]||r.library}草稿详情</h3>
+  <p class="muted small">${rvFmtDate(r.created_at)} · 动作：${r.action} · 状态：${RV_STATUS_LABEL[r.status]||r.status}</p>
+  <div class="field"><label>标题</label><input id="rvdTitle" value="${esc(r.title||"")}" ${editable?"":"disabled"}></div>
+  <div class="field"><label>content_json（${editable?"可编辑，保存/通过时校验 JSON":"只读"}）</label>
+    <textarea id="rvdJson" class="json-area" ${editable?"":"disabled"}>${esc(JSON.stringify(r.content_json,null,2))}</textarea></div>
+  <div class="field"><label>来源</label>
+    ${r.source&&r.source!=="待补充"?`${esc(r.source)}${srcUrl?` · <a href="${esc(srcUrl)}" target="_blank" rel="noopener">查看来源</a>`:""}`:"待补充（AI 未提供可靠来源）"}</div>
+  <div class="field"><label>审核备注 / 拒绝理由</label><textarea id="rvdNote" class="note-area" ${editable?"":"disabled"}>${esc(r.reviewer_note||"")}</textarea></div>
+  ${editable?`<div class="row wrap">
+      <button class="primary" data-rvd="approve" data-rvd-id="${r.id}" data-rvd-lib="${r.library}">通过并入库</button>
+      <button class="danger" data-rvd="reject" data-rvd-id="${r.id}" data-rvd-lib="${r.library}">拒绝</button>
+      <button class="ghost" data-rvd="save" data-rvd-id="${r.id}">保存修改</button>
+      <button data-act="modalClose">关闭</button></div>`
+    :`<div class="row"><button data-act="modalClose">关闭</button></div>`}`);
+}
+
+function rvReadEdited(){
+  const title=$("#rvdTitle").value.trim();
+  let content;
+  try{content=JSON.parse($("#rvdJson").value);}
+  catch(e){throw new Error("content_json 不是合法 JSON："+e.message);}
+  return {title,content};
+}
+
+/* 详情弹窗按钮：通过 / 拒绝 / 保存修改 */
+document.addEventListener("click",async e=>{
+  const b=e.target.closest("[data-rvd]");if(!b)return;
+  const act=b.dataset.rvd,id=parseInt(b.dataset.rvdId),lib=b.dataset.rvdLib;
+  let edited;
+  try{edited=rvReadEdited();}catch(err){toast(err.message);return;}
+  const note=($("#rvdNote").value||"").trim();
+  b.disabled=true;
+  try{
+    if(act==="save"){
+      const r=await rvRpc("update_pending_content",
+        {p_id:id,p_title:edited.title,p_content:edited.content});
+      if(r&&r.ok)toast("修改已保存");
+      else toast("保存失败："+(r?r.error:"未知错误"));
+    }else if(act==="approve"){
+      const r=await rvRpc("approve_pending",
+        {p_id:id,p_content:edited.content,p_note:note||null});
+      if(r&&r.ok){toast("已通过，内容写入正式库");closeModal();rvAfterChange(lib,edited.content);}
+      else toast("通过失败："+(r?r.error:"未知错误"));
+    }else if(act==="reject"){
+      if(!note){toast("请先填写拒绝理由");b.disabled=false;return;}
+      const r=await rvRpc("reject_pending",{p_id:id,p_note:note});
+      if(r&&r.ok){toast("已拒绝该草稿");closeModal();rvReload();rvRefreshCloud();}
+      else toast("拒绝失败："+(r?r.error:"未知错误"));
+    }
+  }catch(err){toast("操作失败："+err.message);}
+  if(act!=="approve")b.disabled=false;
+});
+
+/* 列表/页面级事件委托（只注册一次） */
+document.addEventListener("click",async e=>{
+  const cfg=e.target.closest('[data-rv="config"]');
+  if(cfg){openSupabaseConfig();return;}
+  const rt=e.target.closest('[data-rv="retry"]');
+  if(rt){rvReload();return;}
+  const op=e.target.closest("[data-rv-open]");
+  if(op){rvOpenDetail(parseInt(op.dataset.rvOpen));return;}
+  const ap=e.target.closest("[data-rv-approve]");
+  if(ap){await rvQuickApprove(parseInt(ap.dataset.rvApprove));return;}
+  const rj=e.target.closest("[data-rv-reject]");
+  if(rj){await rvQuickReject(parseInt(rj.dataset.rvReject));return;}
+  const prev=e.target.closest("#rvPrev");
+  if(prev&&!prev.disabled){rvUI.page--;rvReload();return;}
+  const next=e.target.closest("#rvNext");
+  if(next&&!next.disabled){rvUI.page++;rvReload();return;}
+});
+
+/* 勾选（含全选本页） */
+document.addEventListener("change",e=>{
+  const c=e.target.closest(".rv-check");
+  if(c){
+    const id=parseInt(c.dataset.rvId);
+    if(c.checked){if(!rvUI.selected.includes(id))rvUI.selected.push(id);}
+    else rvUI.selected=rvUI.selected.filter(x=>x!==id);
+    rvUpdateBatch();
+    const all=$("#rvAll");
+    if(all)all.checked=rvUI.rows.filter(r=>r.status==="pending")
+      .every(r=>rvUI.selected.includes(r.id));
+    return;
+  }
+  if(e.target.closest("#rvAll")){
+    const ids=rvUI.rows.filter(r=>r.status==="pending").map(r=>r.id);
+    if(e.target.checked)rvUI.selected=Array.from(new Set([...rvUI.selected,...ids]));
+    else rvUI.selected=rvUI.selected.filter(x=>!ids.includes(x));
+    document.querySelectorAll(".rv-check").forEach(cb=>
+      cb.checked=rvUI.selected.includes(parseInt(cb.dataset.rvId)));
+    rvUpdateBatch();
+  }
+});
+
+/* 列表行快速通过（不打开弹窗，使用原始内容） */
+async function rvQuickApprove(id){
+  try{
+    const rows=await loadData("pending_updates",{select:"*",id:"eq."+id});
+    const r0=rows[0];
+    const r=await rvRpc("approve_pending",{p_id:id,p_content:null,p_note:null});
+    if(r&&r.ok){toast("已通过，内容写入正式库");rvAfterChange(r0?r0.library:"",r0?r0.content_json:null);}
+    else toast("通过失败："+(r?r.error:"未知错误"));
+  }catch(e){toast("通过失败："+e.message);}
+}
+/* 列表行快速拒绝（prompt 收集理由） */
+async function rvQuickReject(id){
+  const note=window.prompt("请填写拒绝理由（可留空；点取消则不操作）","");
+  if(note===null)return;
+  try{
+    const r=await rvRpc("reject_pending",{p_id:id,p_note:note});
+    if(r&&r.ok){toast("已拒绝该草稿");rvReload();rvRefreshCloud();}
+    else toast("拒绝失败："+(r?r.error:"未知错误"));
+  }catch(e){toast("拒绝失败："+e.message);}
+}
+
+/* 批量通过（先取完整内容用于本地合并，再调批量 RPC） */
+async function rvBatchApprove(){
+  const ids=[...rvUI.selected];
+  if(!ids.length){toast("请先勾选草稿");return;}
+  try{
+    let full=[];
+    try{full=await loadData("pending_updates",
+      {select:"library,content_json",id:"in.("+ids.join(",")+")"});}catch(e){}
+    const r=await rvRpc("approve_pending_batch",{p_ids:ids});
+    if(r&&r.ok){
+      toast("批量通过："+r.approved+" 条"+(r.failed?"，失败 "+r.failed+" 条":""));
+      full.forEach(f=>{try{rvMergeLocal(f.library,f.content_json);}catch(e){}});
+      rvUI.selected=[];rvReload();rvRefreshCloud();
+    }else toast("批量通过失败："+(r?r.error:"未知错误"));
+  }catch(e){toast("批量通过失败："+e.message);}
+}
+/* 批量拒绝 */
+async function rvBatchReject(){
+  const ids=[...rvUI.selected];
+  if(!ids.length){toast("请先勾选草稿");return;}
+  const note=window.prompt("请填写批量拒绝理由（可留空；点取消则不操作）","");
+  if(note===null)return;
+  try{
+    const r=await rvRpc("reject_pending_batch",{p_ids:ids,p_note:note});
+    if(r&&r.ok){
+      toast("批量拒绝："+r.rejected+" 条"+(r.failed?"，失败 "+r.failed+" 条":""));
+      rvUI.selected=[];rvReload();
+    }else toast("批量拒绝失败："+(r?r.error:"未知错误"));
+  }catch(e){toast("批量拒绝失败："+e.message);}
+}
+
+/* 审核后处理：重载列表 + 本地合并 + 后台刷新云端正式库数据 */
+function rvAfterChange(lib,content){
+  rvReload();
+  rvMergeLocal(lib,content);
+  rvRefreshCloud();
+}
+function rvRefreshCloud(){
+  if(state.settings.supabaseUrl){try{refreshAll();}catch(e){}}
+}
+/* 通过的核素/词块同步到本地对应模块（其余四类由 Supabase 正式表承载） */
+function rvMergeLocal(lib,c){
+  if(!c)return;
+  if(lib==="nuclide"&&c.nuclide){
+    const key=String(c.nuclide).toLowerCase();
+    if(NUCLIDES.some(n=>String(n.nuclide).toLowerCase()===key))return;
+    const obj={id:"nAI"+Date.now(),nuclide:c.nuclide,halfLife:c.halfLife||"",
+      decayMode:c.decayMode||"",emissionType:c.emissionType||"诊断",
+      commonTargets:c.commonTargets||[],representativeDrugs:c.representativeDrugs||[],
+      productionMethod:c.productionMethod||"",craMonitoringPoints:c.craMonitoringPoints||[],
+      references:c.references||[]};
+    NUCLIDES.push(obj);
+    state.extraNuclides=state.extraNuclides||[];
+    if(!state.extraNuclides.some(n=>String(n.nuclide).toLowerCase()===key))
+      state.extraNuclides.push(obj);
+    saveState();
+    toast("新核素已同步到核素库");
+  }else if(lib==="vocabulary"&&c.en){
+    const key=String(c.en).toLowerCase();
+    if(state.chunks.some(x=>String(x.en).toLowerCase()===key))return;
+    state.chunks.push({id:uid("c"),en:c.en,ipa:c.ipa||"",zh:c.zh||"",
+      ex:c.ex||"",exZh:c.exZh||"",cat:c.cat||"",lv:c.lv||"",
+      target:c.target||"",ptype:c.ptype||"",
+      status:"未学",reviewCount:0,nextReview:"",sentences:[],pronRating:"",myExample:""});
+    saveState();
+    toast("新词块已同步到专业词块练习");
+  }
+}
+
+/* =====================================================================
  * 初始化
  * ===================================================================== */
 function init(){
   loadState();   // loadState 内部直接设置全局 state
   /* 注册视图渲染器（导航与预渲染共用） */
   Object.assign(RENDERERS,{
-    dashboard:renderDashboard, daily:renderDaily, chunks:renderChunks,
+    dashboard:renderDashboard, daily:renderDaily, review:renderReview, chunks:renderChunks,
     words:renderWords, sentence:renderSentence, projects:renderProjects,
     targets:renderTargets, nuclides:renderNuclides, jobs:renderJobs, myq:renderMyQ,
     extq:renderExtQ, reglib:renderRegLibrary, trans:renderTrans, answers:renderAnswers,
     listening:renderListening, plan:renderPlan, stats:renderStats, search:renderSearch
   });
   applyTheme();
+  /* 合并审核通过、持久化在本地的额外核素到 NUCLIDES（去重） */
+  (state.extraNuclides||[]).forEach(n=>{
+    if(n&&n.nuclide&&!NUCLIDES.some(x=>String(x.nuclide).toLowerCase()
+        ===String(n.nuclide).toLowerCase()))NUCLIDES.push(n);
+  });
   renderNavGroups(); // 渲染一级分组与二级模块（含用户排序/展开状态）
   /* 预渲染全部视图（保证项目文件输入等元素就位），默认显示仪表盘 */
   Object.entries(RENDERERS).forEach(([k,fn])=>{try{fn();}catch(err){console.warn(k,err);}});
