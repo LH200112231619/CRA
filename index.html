@@ -239,42 +239,6 @@ select[data-act=jbStatus]{padding:4px 6px;}
 /* 翻译练习术语高亮 */
 .term-hit{background:var(--green-soft);color:var(--green);border-radius:4px;padding:0 3px;}
 .term-miss{background:rgba(217,160,25,.18);color:var(--amber);border-radius:4px;padding:0 3px;}
-/* ====================== 审核中心 ====================== */
-button.danger{background:#dc2626;color:#fff;}
-button.danger:hover{background:#b91c1c;}
-.review-toolbar{padding:12px;margin-bottom:12px;display:flex;flex-direction:column;gap:8px;}
-.review-toolbar input{min-width:220px;padding:7px 10px;}
-.rv-rows{border:1px solid var(--line);border-radius:10px;overflow:hidden;}
-.rv-row{display:flex;align-items:center;gap:10px;padding:9px 12px;border-bottom:1px solid var(--line);font-size:13.5px;flex-wrap:wrap;}
-.rv-row:last-child{border-bottom:none;}
-.rv-row.rv-head{background:var(--bg2);font-size:12.5px;}
-.rv-row .rv-check{width:16px;height:16px;flex:0 0 auto;}
-.rv-nocheck{width:16px;flex:0 0 auto;}
-.rv-badge{flex:0 0 auto;font-size:11.5px;padding:2px 8px;border-radius:20px;background:var(--bg3);border:1px solid var(--line);white-space:nowrap;}
-.rv-badge.lib-target{background:#e0f2fe;color:#0369a1;border-color:#7dd3fc;}
-.rv-badge.lib-nuclide{background:#fef3c7;color:#b45309;border-color:#fcd34d;}
-.rv-badge.lib-vocabulary{background:#dcfce7;color:#15803d;border-color:#86efac;}
-.rv-badge.lib-interview{background:#fae8ff;color:#a21caf;border-color:#f0abfc;}
-.rv-badge.lib-regulation{background:#fee2e2;color:#b91c1c;border-color:#fca5a5;}
-.rv-badge.lib-literature{background:#e0e7ff;color:#4338ca;border-color:#a5b4fc;}
-.rv-title{flex:1 1 260px;cursor:pointer;min-width:200px;}
-.rv-title:hover{color:var(--brand);}
-.rv-tag{display:inline-block;font-size:10.5px;padding:1px 7px;border-radius:10px;background:var(--bg3);border:1px solid var(--line);margin-left:6px;vertical-align:middle;}
-.rv-tag.ai{background:#fff7ed;color:#c2410c;border-color:#fdba74;}
-.rv-src{flex:0 1 130px;font-size:11.5px;color:var(--muted,var(--text));overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.rv-date{flex:0 0 120px;font-size:11.5px;color:var(--muted,var(--text));text-align:right;}
-.rv-ops{flex:0 0 auto;display:flex;gap:6px;}
-.rv-note{flex:1 1 200px;font-size:11.5px;color:#b91c1c;}
-.review-empty{text-align:center;padding:36px 16px;color:var(--muted,var(--text));}
-.json-area{width:100%;min-height:280px;font-family:Consolas,Menlo,monospace;font-size:12.5px;
-  padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--bg2);color:var(--text);resize:vertical;line-height:1.5;}
-.note-area{width:100%;min-height:64px;padding:9px;border:1px solid var(--line);border-radius:8px;background:var(--bg2);color:var(--text);}
-#rvPager{margin-top:12px;gap:10px;align-items:center;}
-.rv-tab.active{outline:2px solid var(--brand);}
-@media(max-width:640px){
-  .rv-src,.rv-date{flex-basis:auto;}
-  .rv-title{flex-basis:100%;}
-}
 </style>
 </head>
 <body>
@@ -303,7 +267,6 @@ button.danger:hover{background:#b91c1c;}
 <main>
   <section class="view active" id="view-dashboard"></section>
   <section class="view" id="view-daily"></section>
-  <section class="view" id="view-review"></section>
   <section class="view" id="view-chunks"></section>
   <section class="view" id="view-words"></section>
   <section class="view" id="view-sentence"></section>
@@ -859,7 +822,48 @@ scores:{fluency:0,accuracy:0,structure:0,pron:0},notes:"",recUrl:""},
 keywords:["pharmacokinetics","delivery device","weight-loss injection","bioequivalence","sampling schedule"],
 template2:"This pharmacokinetic study compared different delivery devices for a weight-loss injection. As the CRA, I monitored the dense PK sampling schedule and verified device training and administration technique. I performed SDV of dosing times, blood sampling time points and concentration data, and I checked IP accountability for the devices. I tracked deviations related to sampling windows and followed up queries. The project strengthened my experience in Phase I unit studies and PK data oversight.",
 followups:["How did you monitor the PK sampling schedule?","How were device administration errors prevented?","What deviations affected sampling windows?","How was device accountability handled?","How did you verify concentration data?"],
-scores:{fluency:0,accuracy:0,structure:0,pron:0},notes:"",recUrl:""}
+scores:{fluency:0,accuracy:0,structure:0,pron:0},notes:"",recUrl:""},
+/* ===== 扩充项目 p13-p20 ===== */
+{id:"p13",name:"SSTR2 靶向胃肠胰神经内分泌肿瘤 Lu-177 DOTATATE 治疗 III 期",codeNo:"（按实际方案编号填写）",indication:"胃肠胰神经内分泌肿瘤",phase:"III 期（治疗）",target:"SSTR2",isotope:"Lu-177",sites:"多中心",enrollment:"按方案",role:"CRA（监查）",period:"（填写起止年月）",
+ keywords:["SSTR2","DOTATATE","Lutathera","peptide receptor radionuclide therapy","amino acid infusion","dosimetry","progression-free survival"],
+ template2:"This Phase III therapeutic trial evaluated Lu-177 DOTATATE peptide receptor radionuclide therapy in SSTR-positive midgut neuroendocrine tumors. As the CRA, I verified SSTR expression and receptor-positive imaging at screening, and I monitored each treatment cycle including the amino acid infusion for kidney protection and the pre-/post-therapy SPECT/CT used for dosimetry. I performed targeted SDV of dosing activity, AE grading and efficacy assessments such as RECIST, and I reconciled IP accountability for received, administered and residual activity. I tracked dose-delay rules for cytopenias and followed up queries with data management. The project deepened my experience in therapeutic radiopharmaceutical monitoring.",
+ followups:["How was kidney protection implemented?","How did you verify SSTR positivity?","What caused dose delays?","How were post-therapy scans used?","How did you monitor the long treatment cycles?"],
+ scores:{fluency:0,accuracy:0,structure:0,pron:0},notes:"",recUrl:""},
+{id:"p14",name:"FAP 靶向核药多瘤种 PET/CT 诊断 IIT",codeNo:"IIT（按实际编号填写）",indication:"胰腺癌、肺癌、肉瘤等 FAP 高表达肿瘤",phase:"IIT（诊断效能）",target:"FAP",isotope:"Ga-68 / F-18",sites:"单/多中心",enrollment:"按 IIT 方案",role:"CRA（监查）",period:"（填写起止年月）",
+ keywords:["FAP","FAPI","cancer-associated fibroblasts","tumor microenvironment","PET/CT","SUV"],
+ template2:"This investigator-initiated trial evaluated FAP-targeted FAPI PET/CT across several tumor types. FAP is expressed by cancer-associated fibroblasts in the tumor stroma. As the CRA, I verified consent and eligibility and monitored the short imaging window suited to the rapid uptake and clearance of FAPI. I performed SDV of PET/CT reports, SUV data and pathology, and I coordinated with nuclear medicine on dose calibration and administered activity. I tracked queries, deviations and the ISF, paying attention to multi-tumor-type eligibility. The study broadened my understanding of stromal targets.",
+ followups:["Why does FAPI show high contrast early?","How did you handle multiple tumor types?","What was the imaging time window?","How is FAP linked to fibroblasts?","What deviations were common?"],
+ scores:{fluency:0,accuracy:0,structure:0,pron:0},notes:"",recUrl:""},
+{id:"p15",name:"CXCR4 靶向核药淋巴瘤/多发性骨髓瘤 PET/CT 诊断 IIT",codeNo:"IIT（按实际编号填写）",indication:"淋巴瘤、多发性骨髓瘤",phase:"IIT（诊断/治疗配对）",target:"CXCR4",isotope:"Ga-68 / Lu-177",sites:"单中心",enrollment:"按 IIT 方案",role:"CRA（监查）",period:"（填写起止年月）",
+ keywords:["CXCR4","PentixaFor","PentixaTher","lymphoma","multiple myeloma","theranostics"],
+ template2:"This IIT used Ga-68 pentixafor CXCR4-directed PET/CT to select patients for CXCR4-targeted endoradiotherapy, forming a theranostic pair. As the CRA, I verified that diagnostic uptake preceded treatment assignment and monitored both imaging and therapy visits. I performed SDV of eligibility, dosimetry and safety data, and I checked IP accountability, dose calibration and radiation safety records. I followed up queries and documented deviations. The project gave me a clear example of the diagnostic-to-therapeutic theranostic pathway.",
+ followups:["What is the theranostic pair here?","How did diagnostic imaging determine treatment?","What organs showed high CXCR4 uptake?","How was dosimetry handled?","What safety signals were monitored?"],
+ scores:{fluency:0,accuracy:0,structure:0,pron:0},notes:"",recUrl:""},
+{id:"p16",name:"Ac-225 PSMA 靶向 α 核素治疗 mCRPC I 期",codeNo:"（按实际方案编号填写）",indication:"转移性去势抵抗性前列腺癌",phase:"I 期（α 治疗/剂量递增）",target:"PSMA",isotope:"Ac-225",sites:"多中心",enrollment:"按方案",role:"CRA（监查）",period:"（填写起止年月）",
+ keywords:["Actinium-225","alpha therapy","PSMA","dose escalation","salivary gland toxicity","bone marrow","dosimetry"],
+ template2:"This Phase I trial evaluated an Ac-225 PSMA-targeted alpha therapy in metastatic castration-resistant prostate cancer. As the CRA, I monitored dose escalation with very low administered activities measured in kBq, and I verified PSMA expression and prior treatment history. I supported collection of dosimetry and serial safety labs focused on bone marrow, kidneys and salivary glands, and I performed SDV of AE and efficacy data. I checked hot-lab handling, calibration appropriate to low activities and long-half-life waste records, and I reconciled IP accountability. The study gave me exposure to targeted alpha therapy.",
+ followups:["Why are alpha emitters potent?","Why is salivary toxicity important?","How were kBq-level activities verified?","How does supply scarcity affect scheduling?","What differs from Lu-177 therapy?"],
+ scores:{fluency:0,accuracy:0,structure:0,pron:0},notes:"",recUrl:""},
+{id:"p17",name:"I-131 分化型甲状腺癌放射性核素治疗监查",codeNo:"（按实际方案编号填写）",indication:"分化型甲状腺癌",phase:"治疗（住院隔离）",target:"NIS（钠碘同向转运体）",isotope:"I-131",sites:"核医学病房",enrollment:"按方案",role:"CRA（监查）",period:"（填写起止年月）",
+ keywords:["I-131","differentiated thyroid cancer","isolation","thyroid hormone withdrawal","rhTSH","dosimetry","waste"],
+ template2:"This therapeutic study involved high-activity I-131 for differentiated thyroid cancer, requiring inpatient isolation. As the CRA, I verified preparation via thyroid hormone withdrawal or recombinant TSH, and I checked the facility isolation conditions and release criteria based on dose-rate measurements. I monitored dosimetry and whole-body scans, and I performed SDV of safety labs and AE data. I reviewed handling of excreta and long-half-life waste and reconciled IP accountability for received and administered activity. The project strengthened my understanding of inpatient radiopharmaceutical therapy.",
+ followups:["What determines patient release?","How were patients prepared?","How was excreta managed?","What post-therapy imaging was required?","How were staff exposures controlled?"],
+ scores:{fluency:0,accuracy:0,structure:0,pron:0},notes:"",recUrl:""},
+{id:"p18",name:"HER2 靶向 Zr-89 免疫 PET 乳腺癌 IIT",codeNo:"IIT（按实际编号填写）",indication:"HER2 阳性乳腺癌",phase:"IIT（immuno-PET）",target:"HER2",isotope:"Zr-89",sites:"单中心",enrollment:"按 IIT 方案",role:"CRA（监查）",period:"（填写起止年月）",
+ keywords:["HER2","Zr-89 trastuzumab","immuno-PET","heterogeneity","delayed imaging","cold chain"],
+ template2:"This IIT used Zr-89 labeled trastuzumab immuno-PET to map HER2 expression heterogeneity in breast cancer. As the CRA, I monitored the long half-life tracer and the delayed imaging visits several days after injection, and I verified cold-chain and radiolabeling release records. I performed SDV of consent, HER2 IHC/FISH data and imaging findings, and I tracked queries and deviations. I also reviewed radiation safety counseling given the long half-life. The study gave me experience with antibody-based PET and companion imaging.",
+ followups:["Why image days after injection?","How does immuno-PET show heterogeneity?","What cold-chain records mattered?","How was HER2 status confirmed?","What radiation advice was given?"],
+ scores:{fluency:0,accuracy:0,structure:0,pron:0},notes:"",recUrl:""},
+{id:"p19",name:"呼吸道病原体多重核酸检测试剂盒临床试验",codeNo:"（按实际方案编号填写）",indication:"呼吸道感染病原体检测",phase:"IVD 注册",target:"病原体核酸",isotope:"",sites:"多中心",enrollment:"按方案",role:"CRA（监查）",period:"（填写起止年月）",
+ keywords:["multiplex PCR","respiratory pathogens","IVD","analytical specificity","clinical sensitivity","reference method"],
+ template2:"This IVD registration trial evaluated a multiplex nucleic acid amplification kit for respiratory pathogens. As the CRA, I monitored specimen collection, transport and storage and verified comparison with a reference method. I performed SDV of result concordance, including positive and negative agreement, and checked analytical performance such as specificity and cross-reactivity. I followed up queries and deviations related to specimen handling and ensured essential documents were filed. The project strengthened my IVD and laboratory data monitoring experience.",
+ followups:["How was the reference method chosen?","How were invalid specimens handled?","What specimen conditions were critical?","How was concordance calculated?","What cross-reactivity data were reviewed?"],
+ scores:{fluency:0,accuracy:0,structure:0,pron:0},notes:"",recUrl:""},
+{id:"p20",name:"冠脉 CT 血流储备分数（FFR-CT）软件临床试验",codeNo:"（按实际方案编号填写）",indication:"冠心病/冠脉影像",phase:"器械注册（SaMD）",target:"",isotope:"",sites:"多中心",enrollment:"按方案",role:"CRA（监查）",period:"（填写起止年月）",
+ keywords:["FFR-CT","coronary","software","reader study","invasive FFR reference","CT angiography"],
+ template2:"This registration trial evaluated FFR-CT software that derives fractional flow reserve from coronary CT angiography. As the CRA, I monitored a reader study using invasive FFR as the reference standard, and I verified CT acquisition quality and case selection. I performed SDV of per-vessel results and reader agreement, and I tracked queries, deviations and device documentation including software version control. I checked reader qualifications and blinding. The project broadened my experience with quantitative imaging software.",
+ followups:["What was the reference standard?","How were non-diagnostic CTs handled?","How was per-vessel accuracy assessed?","What version controls were checked?","How was reader blinding kept?"],
+ scores:{fluency:0,accuracy:0,structure:0,pron:0},notes:"",recUrl:""}
 ];
 
 /* 5 分钟口述模板：在 2 分钟模板基础上扩展背景、职责细节、挑战与收获 */
@@ -1022,11 +1026,166 @@ const T_TARGETS=[
  trialPhase:"I/II 期",
  craMonitoringPoints:["受试者选择","显像时间点","肾/胃摄取与安全","AE 记录"],
  keyReferences:[{t:"CCK2R targeted imaging",u:"https://pubmed.ncbi.nlm.nih.gov/?term=CCK2+receptor+imaging"}],
- relatedProjects:[],relatedChunks:["minigastrin"]}
+ relatedProjects:[],relatedChunks:["minigastrin"]},
+ /* ===== 扩充靶点（16-30） ===== */
+ {name:"GPC3",fullName:"Glypican-3",fullNameCN:"磷脂酰肌醇蛋白聚糖 3",
+  pathway:"细胞膜硫酸乙酰肝素蛋白聚糖 / Wnt 信号",
+  functionCN:"在肝细胞癌高表达，参与 Wnt/YAP 促增殖信号，成人正常肝组织几乎不表达。",
+  indications:["肝细胞癌","肝母细胞瘤"],
+  diagnosticIsotopes:["Zr-89","Ga-68","F-18"],therapeuticIsotopes:["Lu-177","Y-90","Ac-225"],
+  representativeDrugs:["GPC3 单抗（codrituzumab 参照）","GPC3 核素标记肽/抗体（研究阶段）"],
+  trialPhase:"I/II 期",
+  craMonitoringPoints:["病理 GPC3 表达（IHC）入组核对","PET 显像时间窗","肝功能/AFP 数据 SDV","治疗剂量学与 AE"],
+  keyReferences:[{t:"GPC3 targeted imaging/therapy",u:"https://pubmed.ncbi.nlm.nih.gov/?term=GPC3+imaging"}],
+  relatedProjects:["肝脏局灶性病变 CT 图像辅助检测软件临床试验"],relatedChunks:["glypican","hepatocellular carcinoma"]},
+ {name:"DLL3",fullName:"Delta-like Ligand 3",fullNameCN:"Delta 样配体 3",
+  pathway:"Notch 信号通路配体",
+  functionCN:"在神经内分泌肿瘤（小细胞肺癌、肺外神经内分泌癌）表面高表达，正常脑组织中不暴露于循环。",
+  indications:["小细胞肺癌","神经内分泌肿瘤","胶质母细胞瘤（部分）"],
+  diagnosticIsotopes:["Zr-89","Ga-68"],therapeuticIsotopes:["Lu-177","Ac-225","Pb-212"],
+  representativeDrugs:["Rovalpituzumab tesirine（参照）","DLL3 核素偶联物（研究阶段）","tarlatamab（参照）"],
+  trialPhase:"I/II 期",
+  craMonitoringPoints:["神经内分泌病理确认","短半衰期显像排程","胸部肿瘤 AE（胸腔积液等）","影像疗效评估 SDV"],
+  keyReferences:[{t:"DLL3 imaging/therapy",u:"https://pubmed.ncbi.nlm.nih.gov/?term=DLL3+imaging"}],
+  relatedProjects:[],relatedChunks:["neuroendocrine","Notch"]},
+ {name:"MUC1",fullName:"Mucin 1 (EMA/CD227)",fullNameCN:"黏蛋白 1（上皮膜抗原）",
+  pathway:"跨膜糖蛋白 / 酪氨酸激酶受体信号",
+  functionCN:"异常糖基化 MUC1 在胰腺癌、乳腺癌、卵巢癌等腺癌高表达，掩盖正常细胞表面。",
+  indications:["胰腺癌","乳腺癌","卵巢癌","多发性骨髓瘤"],
+  diagnosticIsotopes:["Tc-99m","In-111","Zr-89"],therapeuticIsotopes:["Lu-177","Ac-225","Y-90"],
+  representativeDrugs:["MUC1 单抗核素标记","90Y-MUC1 抗体（研究阶段）"],
+  trialPhase:"I/II 期",
+  craMonitoringPoints:["肿瘤 MUC1 表达核对","腹盆腔影像时间点","胃肠道 AE 随访","病理/影像 SDV"],
+  keyReferences:[{t:"MUC1 radiopharmaceutical",u:"https://pubmed.ncbi.nlm.nih.gov/?term=MUC1+radiopharmaceutical"}],
+  relatedProjects:[],relatedChunks:["mucin","adenocarcinoma"]},
+ {name:"EGFR",fullName:"Epidermal Growth Factor Receptor (HER1)",fullNameCN:"表皮生长因子受体",
+  pathway:"受体酪氨酸激酶 / RAS-RAF-MAPK、PI3K-AKT",
+  functionCN:"在非小细胞肺癌、结直肠癌、头颈部鳞癌等过表达或突变，驱动增殖与转移。",
+  indications:["非小细胞肺癌","结直肠癌","头颈部鳞癌","胶质瘤"],
+  diagnosticIsotopes:["Zr-89","Ga-68","C-11"],therapeuticIsotopes:["Lu-177","Ac-225"],
+  representativeDrugs:["Zr-89 cetuximab","EGFR 靶向核素偶联（研究阶段）","erlotinib/gefitinib（参照）"],
+  trialPhase:"I/II 期",
+  craMonitoringPoints:["EGFR 突变状态（伴随诊断）核对","靶向治疗合并用药记录","皮疹/腹泻 AE","影像复查窗"],
+  keyReferences:[{t:"EGFR immuno-PET",u:"https://pubmed.ncbi.nlm.nih.gov/?term=EGFR+immuno-PET"}],
+  relatedProjects:[],relatedChunks:["epidermal growth factor receptor","companion diagnostic"]},
+ {name:"EpCAM",fullName:"Epithelial Cell Adhesion Molecule (CD326)",fullNameCN:"上皮细胞黏附分子",
+  pathway:"同型黏附 / Wnt、增殖信号",
+  functionCN:"在多数上皮来源肿瘤高表达，参与黏附、增殖与循环肿瘤细胞形成。",
+  indications:["结直肠癌","胃癌","乳腺癌","卵巢癌","腹膜癌"],
+  diagnosticIsotopes:["Tc-99m","In-111","Zr-89"],therapeuticIsotopes:["Lu-177","Ac-225","I-131"],
+  representativeDrugs:["Catumaxomab（参照）","Edrecolomab（参照）","EpCAM 核素标记（研究阶段）"],
+  trialPhase:"I/II 期",
+  craMonitoringPoints:["上皮肿瘤病理确认","腹腔给药操作核对（如适用）","腹部 AE 随访","影像/病理 SDV"],
+  keyReferences:[{t:"EpCAM radioimmunotherapy",u:"https://pubmed.ncbi.nlm.nih.gov/?term=EpCAM+radioimmunotherapy"}],
+  relatedProjects:[],relatedChunks:["epithelial cell adhesion molecule"]},
+ {name:"Integrin αvβ3",fullName:"Integrin alpha-v beta-3",fullNameCN:"整合素 αvβ3",
+  pathway:"细胞外基质黏附 / 血管生成",
+  functionCN:"在活化的肿瘤血管内皮细胞及部分肿瘤（黑色素瘤、胶质母细胞瘤）高表达，结合含 RGD 序列配体。",
+  indications:["胶质母细胞瘤","黑色素瘤","肺癌","新生血管显像"],
+  diagnosticIsotopes:["Ga-68","F-18","Cu-64"],therapeuticIsotopes:["Lu-177","Y-90"],
+  representativeDrugs:["Ga-68 RGD（如 Ga-68 NOTA-PRGD2）","F-18 Galacto-RGD","RGD 核素治疗（研究阶段）"],
+  trialPhase:"I/II 期",
+  craMonitoringPoints:["RGD 显像注射后采集时间窗","抗血管生成合并用药记录","出血/高血压 AE","影像血管参数 SDV"],
+  keyReferences:[{t:"RGD integrin imaging",u:"https://pubmed.ncbi.nlm.nih.gov/?term=RGD+PET+imaging"}],
+  relatedProjects:[],relatedChunks:["angiogenesis","RGD"]},
+ {name:"NTSR1",fullName:"Neurotensin Receptor 1",fullNameCN:"神经降压素受体 1",
+  pathway:"G 蛋白偶联受体",
+  functionCN:"在胰腺癌、结直肠癌、前列腺癌等异常高表达，介导神经降压素促生长信号。",
+  indications:["胰腺癌","结直肠癌","前列腺癌","乳腺癌"],
+  diagnosticIsotopes:["Ga-68","F-18"],therapeuticIsotopes:["Lu-177","Tb-161"],
+  representativeDrugs:["Ga-68 NTSR1 拮抗剂肽","Lu-177 NTSR1（研究阶段）"],
+  trialPhase:"I/II 期",
+  craMonitoringPoints:["靶点表达/病理核对","肽类药物肾摄取与肾保护","PET 采集窗","AE 随访"],
+  keyReferences:[{t:"NTSR1 targeted imaging",u:"https://pubmed.ncbi.nlm.nih.gov/?term=neurotensin+receptor+imaging"}],
+  relatedProjects:[],relatedChunks:["neurotensin"]},
+ {name:"Bombesin receptor",fullName:"Bombesin Receptor Subtype 2 (GRPR/BB2)",fullNameCN:"蛙皮素受体（BB2/GRPR）",
+  pathway:"G 蛋白偶联受体 / 蛙皮素家族",
+  functionCN:"GRPR 在前列腺癌、乳腺癌、胃肠道肿瘤高表达；与 NMBR（BB1）、BRS-3（BB3）同属蛙皮素受体家族。",
+  indications:["前列腺癌","乳腺癌","胃肠肿瘤"],
+  diagnosticIsotopes:["Ga-68","F-18","Tc-99m"],therapeuticIsotopes:["Lu-177","Ac-225"],
+  representativeDrugs:["Ga-68 RM2/BBN 拮抗剂","Lu-177 bombesin（研究阶段）"],
+  trialPhase:"I/II 期",
+  craMonitoringPoints:["与 GRPR 交叉靶点核对","胰腺/胃肠生理性摄取解释","肽类药物肾保护","影像 SDV"],
+  keyReferences:[{t:"Bombesin receptor imaging",u:"https://pubmed.ncbi.nlm.nih.gov/?term=bombesin+receptor+imaging"}],
+  relatedProjects:[],relatedChunks:["bombesin","gastrin-releasing peptide receptor"]},
+ {name:"MC1R",fullName:"Melanocortin-1 Receptor",fullNameCN:"黑皮质素 1 受体",
+  pathway:"G 蛋白偶联受体 / cAMP 黑色素生成",
+  functionCN:"在黑色素瘤细胞高表达，调控黑色素合成；α-MSH 为天然配体。",
+  indications:["黑色素瘤"],
+  diagnosticIsotopes:["Ga-68","F-18","Cu-64"],therapeuticIsotopes:["Lu-177","Ac-225","At-211"],
+  representativeDrugs:["MC1R 靶向肽核素标记（研究阶段）","α-MSH 类似物显像"],
+  trialPhase:"I 期",
+  craMonitoringPoints:["黑色素瘤病理/分期核对","皮肤/淋巴结影像","皮肤 AE 随访","显像时间窗"],
+  keyReferences:[{t:"MC1R melanoma imaging",u:"https://pubmed.ncbi.nlm.nih.gov/?term=melanocortin+receptor+imaging"}],
+  relatedProjects:[],relatedChunks:["melanoma","melanocortin"]},
+ {name:"CD38",fullName:"CD38 (ADP-ribosyl cyclase)",fullNameCN:"CD38 分子",
+  pathway:"跨膜糖蛋白 / 钙信号、免疫代谢",
+  functionCN:"在多发性骨髓瘤细胞极高表达，也见于其他血液肿瘤与活化免疫细胞。",
+  indications:["多发性骨髓瘤","淋巴瘤","AML"],
+  diagnosticIsotopes:["Zr-89","Ga-68","Cu-64"],therapeuticIsotopes:["Lu-177","Ac-225","Y-90"],
+  representativeDrugs:["Daratumumab（参照）","Isatuximab（参照）","CD38 核素标记（研究阶段）"],
+  trialPhase:"I/II 期",
+  craMonitoringPoints:["血液肿瘤基线/骨髓数据","抗体给药后输血/血型检测干扰告知","感染 AE 随访","影像/实验室 SDV"],
+  keyReferences:[{t:"CD38 targeted imaging",u:"https://pubmed.ncbi.nlm.nih.gov/?term=CD38+imaging"}],
+  relatedProjects:[],relatedChunks:["multiple myeloma","monoclonal antibody"]},
+ {name:"CD20",fullName:"B-lymphocyte Antigen CD20 (MS4A1)",fullNameCN:"B 淋巴细胞抗原 CD20",
+  pathway:"四次跨膜蛋白 / B 细胞活化",
+  functionCN:"在前 B 至成熟 B 细胞及多数 B 细胞非霍奇金淋巴瘤表达，是放射免疫治疗经典靶点。",
+  indications:["非霍奇金淋巴瘤","慢性淋巴细胞白血病","类风湿关节炎（免疫消融）"],
+  diagnosticIsotopes:["In-111","Zr-89"],therapeuticIsotopes:["Y-90","I-131","Lu-177"],
+  representativeDrugs:["Zevalin（In-111/Y-90 ibritumomab tiuxetan）","Bexxar（I-131 tositumomab）"],
+  trialPhase:"已上市放射免疫治疗",
+  craMonitoringPoints:["剂量学步骤（In-111 示踪→Y-90 治疗）核对","生物分布异常处理","血细胞减少/感染 AE","IP accountability"],
+  keyReferences:[{t:"Zevalin radioimmunotherapy",u:"https://www.fda.gov/"}],
+  relatedProjects:[],relatedChunks:["radioimmunotherapy","non-Hodgkin lymphoma"]},
+ {name:"PD-L1",fullName:"Programmed Death-Ligand 1 (CD274)",fullNameCN:"程序性死亡配体 1",
+  pathway:"免疫检查点 / PD-1 结合抑制 T 细胞",
+  functionCN:"多种肿瘤通过高表达 PD-L1 逃避免疫；immuno-PET 可无创评估全身表达异质性。",
+  indications:["肺癌","尿路上皮癌","黑色素瘤","淋巴瘤","三阴性乳腺癌"],
+  diagnosticIsotopes:["Zr-89","Cu-64"],therapeuticIsotopes:["Ac-225","Lu-177"],
+  representativeDrugs:["Zr-89 atezolizumab","Zr-89 durvalumab","PD-L1 核素治疗（研究阶段）"],
+  trialPhase:"I/II 期",
+  craMonitoringPoints:["PD-L1 IHC（CPS/TPS）核对","长半衰期抗体显像多时间点","免疫相关 AE（irAE）识别","SDV 病理"],
+  keyReferences:[{t:"PD-L1 immuno-PET",u:"https://pubmed.ncbi.nlm.nih.gov/?term=PD-L1+immuno-PET"}],
+  relatedProjects:[],relatedChunks:["immune checkpoint","immunotherapy"]},
+ {name:"VEGFR",fullName:"Vascular Endothelial Growth Factor Receptor",fullNameCN:"血管内皮生长因子受体",
+  pathway:"受体酪氨酸激酶 / 血管生成",
+  functionCN:"肿瘤血管内皮高表达 VEGFR2，驱动新生血管与通透性增加。",
+  indications:["肝细胞癌","肾癌","结直肠癌","肺癌"],
+  diagnosticIsotopes:["Zr-89","Ga-68"],therapeuticIsotopes:["Lu-177","Y-90"],
+  representativeDrugs:["Bevacizumab（参照）","VEGFR 核素标记（研究阶段）","VEGF 显像剂"],
+  trialPhase:"I/II 期",
+  craMonitoringPoints:["抗血管药合并使用与洗脱","血压/蛋白尿/出血 AE","伤口愈合期手术记录","影像 SDV"],
+  keyReferences:[{t:"VEGF/VEGFR imaging",u:"https://pubmed.ncbi.nlm.nih.gov/?term=VEGF+imaging"}],
+  relatedProjects:[],relatedChunks:["angiogenesis","vascular endothelial growth factor"]},
+ {name:"FGFR",fullName:"Fibroblast Growth Factor Receptor",fullNameCN:"成纤维细胞生长因子受体",
+  pathway:"受体酪氨酸激酶 / RAS-MAPK、PI3K",
+  functionCN:"FGFR1-4 融合/突变/扩增见于尿路上皮癌、胆管癌、肝癌等，驱动增殖。",
+  indications:["尿路上皮癌","胆管癌","肝细胞癌","胃癌"],
+  diagnosticIsotopes:["Zr-89","Ga-68"],therapeuticIsotopes:["Lu-177","Ac-225"],
+  representativeDrugs:["FGFR 单抗/配体核素标记（研究阶段）","erdafitinib（参照）"],
+  trialPhase:"I/II 期",
+  craMonitoringPoints:["FGFR 基因异常伴随诊断核对","高磷血症/眼毒性/口腔炎 AE","影像复查窗","病理 SDV"],
+  keyReferences:[{t:"FGFR targeted imaging",u:"https://pubmed.ncbi.nlm.nih.gov/?term=FGFR+imaging"}],
+  relatedProjects:["Nectin-4 靶向核药尿路上皮癌/乳腺癌 PET/CT 诊断效能 IIT"],relatedChunks:["fibroblast growth factor receptor"]},
+ {name:"TIGIT",fullName:"T-cell Immunoreceptor with Ig and ITIM Domains",fullNameCN:"TIGIT 免疫受体",
+  pathway:"免疫检查点 / 与 CD226 竞争结合 PVR",
+  functionCN:"在活化 T 细胞、NK 细胞及肿瘤浸润淋巴细胞表达，抑制抗肿瘤免疫。",
+  indications:["肺癌","多发性骨髓瘤","宫颈癌","食管癌"],
+  diagnosticIsotopes:["Zr-89","Cu-64"],therapeuticIsotopes:["Ac-225"],
+  representativeDrugs:["Tiragolumab（参照）","TIGIT 核素标记（研究阶段）"],
+  trialPhase:"I/II 期",
+  craMonitoringPoints:["免疫联合治疗给药记录","irAE 监测","淋巴/肿瘤组织影像","长半衰期显像随访"],
+  keyReferences:[{t:"TIGIT imaging/immunotherapy",u:"https://pubmed.ncbi.nlm.nih.gov/?term=TIGIT+imaging"}],
+  relatedProjects:[],relatedChunks:["immune checkpoint","natural killer cell"]}
 ];
 /* 简单名称列表，供表单/解析复用 */
 const P_TARGETS=T_TARGETS.map(t=>t.name);
-const LIT_SOURCES=["PubMed","ClinicalTrials.gov","FDA News & Press","EMA Medicines Overview","NMPA 官网","SNMMI 官网","EANM 官网","Journal of Nuclear Medicine","European Journal of Nuclear Medicine","核医学相关公众号"];
+const LIT_SOURCES=["PubMed","ClinicalTrials.gov","中国临床试验注册中心 ChiCTR","Europe PMC","Cochrane Library",
+ "FDA News & Press","EMA Medicines Overview","NMPA 官网","PMDA 官网",
+ "SNMMI 官网","EANM 官网","Journal of Nuclear Medicine","European Journal of Nuclear Medicine",
+ "Theranostics","Nature Reviews Clinical Oncology","ASCO","ESMO","AACR","SITC",
+ "DIA","ACRP","SOCRA","TransCelerate BioPharma","核医学相关公众号"];
 /* 28 条岗位渠道（岗位追踪模块） */
 const T_JOBCHANNELS=[
 /* CRO（10） */
@@ -1059,7 +1218,15 @@ const T_JOBCHANNELS=[
 {name:"MedJobs",type:"平台",keywordsEN:"clinical research associate",keywordsCN:"临床监查员",url:"https://www.medjobs.com/",notes:"医疗岗位聚合",updateFrequency:"每周"},
 {name:"猎聘",type:"平台",keywordsEN:"CRA",keywordsCN:"核药 CRA 临床监查员",url:"https://liepin.com/zhaopin/?key=核药+CRA",notes:"国内核药/外企岗位",updateFrequency:"每天"},
 {name:"智联招聘",type:"平台",keywordsEN:"CRA",keywordsCN:"核药 临床监查员",url:"https://sou.zhaopin.com/?kw=核药%20CRA",notes:"国内岗位",updateFrequency:"每天"},
-{name:"Boss直聘",type:"平台",keywordsEN:"CRA",keywordsCN:"核药 CRA",url:"https://www.zhipin.com/web/geek/job?query=核药CRA",notes:"可直接与 HR 沟通",updateFrequency:"每天"}
+{name:"Boss直聘",type:"平台",keywordsEN:"CRA",keywordsCN:"核药 CRA",url:"https://www.zhipin.com/web/geek/job?query=核药CRA",notes:"可直接与 HR 沟通",updateFrequency:"每天"},
+/* ===== 扩充渠道（8） ===== */
+{name:"EPS",type:"CRO",keywordsEN:"CRA oncology Asia",keywordsCN:"临床监查员 肿瘤 亚洲",url:"https://www.eps.co.jp/en/recruit/",notes:"日本大型 CRO（EPS Holdings），亚太项目",updateFrequency:"每周"},
+{name:"Everest Clinical Research",type:"CRO",keywordsEN:"CRA clinical research",keywordsCN:"临床监查员",url:"https://www.everestclinicalresearch.com/",notes:"北美 CRO，心血管/罕见病",updateFrequency:"每周"},
+{name:"George Clinical",type:"CRO",keywordsEN:"CRA Asia oncology",keywordsCN:"临床监查员 亚洲 肿瘤",url:"https://georgeclinical.com/careers/",notes:"亚太 CRO，科学驱动",updateFrequency:"每周"},
+{name:"Clarity Pharmaceuticals",type:"核药公司",keywordsEN:"clinical operations CRA",keywordsCN:"临床运营 监查",url:"https://claritypharmaceuticals.com/careers/",notes:"Cu-67 SAR-bisPSMA/SAR-bisDOTA，诊疗一体",updateFrequency:"每两周"},
+{name:"NRG Therapeutics",type:"核药公司",keywordsEN:"clinical research",keywordsCN:"临床研究",url:"https://www.nrgtherapeutics.com/",notes:"按用户指定收录，关注其管线更新",updateFrequency:"每月"},
+{name:"丁香人才",type:"平台",keywordsEN:"CRA",keywordsCN:"核药 CRA 临床监查员",url:"https://www.jobmd.cn/",notes:"医疗行业招聘，医院/核药岗位",updateFrequency:"每天"},
+{name:"医药魔方",type:"平台",keywordsEN:"CRA",keywordsCN:"核药 临床监查",url:"https://www.pharmcube.com/",notes:"医药数据与人才信息，管线追踪",updateFrequency:"每周"}
 ];
 const JOB_CHANNELS=T_JOBCHANNELS.map(c=>c.name);
 const CHECKLIST=[
@@ -2459,7 +2626,6 @@ function defaultState(){
     wordStudy:{bank:"med",dailyGoal:30,progress:{},learnedDates:{},extraLoaded:0},
     transStudy:{dir:"zh2en",tab:"practice",fav:{},wrong:{},ratings:{},history:[],
       filterCat:"",filterSrc:"",filterLv:"",q:"",curId:"",submitted:false},
-    extraNuclides:[],          // 审核通过后同步到本地核素库的额外核素（持久化）
     sentenceCount:0
   };
 }
@@ -2519,7 +2685,6 @@ function loadState(){
   state.transStudy=Object.assign(d.transStudy,raw.transStudy||{});
   state.transStudy.fav=Object.assign({},(raw.transStudy&&raw.transStudy.fav)||{});
   state.transStudy.wrong=Object.assign({},(raw.transStudy&&raw.transStudy.wrong)||{});
-  state.extraNuclides=Array.isArray(raw.extraNuclides)?raw.extraNuclides:[];
   state.wordStudy.progress=(raw.wordStudy&&raw.wordStudy.progress)||{};
   state.wordStudy.learnedDates=(raw.wordStudy&&raw.wordStudy.learnedDates)||{};
   // 跨天重置每日任务
@@ -2570,7 +2735,7 @@ $("#btnTheme").addEventListener("click",()=>{
 const RENDERERS={};
 /* 一级菜单固定；二级模块可在组内排序 */
 const DEFAULT_GROUPS=[
- {id:"study",name:"学习中心",items:[["dashboard","首页仪表盘"],["daily","每日更新中心"],["review","审核中心"],["plan","周计划"],["stats","进度统计"]]},
+ {id:"study",name:"学习中心",items:[["dashboard","首页仪表盘"],["daily","每日更新中心"],["plan","周计划"],["stats","进度统计"]]},
  {id:"vocab",name:"词汇训练",items:[["chunks","专业词块练习"],["words","常规背单词"],["sentence","造句练习"]]},
  {id:"proj",name:"项目与资料",items:[["projects","项目口述库"],["targets","靶点库"],["nuclides","核素库"],["reglib","法规库"]]},
  {id:"interview",name:"面试与求职",items:[["myq","我的面试题库"],["extq","外企面试题库"],["answers","答案库"],["jobs","岗位追踪"]]},
@@ -4054,7 +4219,308 @@ const REG_LIBRARY=[
  clauseEN:"Sponsors should report suspected unexpected serious adverse reactions (SUSARs) within strict timelines: fatal or life-threatening cases are expedited, others within defined days.",
  clauseCN:"申办者应在严格时限内报告可疑且非预期严重不良反应（SUSAR）：致死/危及生命病例加速报告，其余按规定天数报告。",
  interp:"区分 SAE 与 SUSAR；监查时核对报告时限、eCRF 与安全数据库一致。",
- related:"全部项目",url:"https://www.cde.org.cn/"}
+ related:"全部项目",url:"https://www.cde.org.cn/"},
+/* ===== 扩充法规 r31-r80 ===== */
+{id:"r31",name:"ICH E6(R3) Good Clinical Practice — Principles",nameCN:"ICH E6(R3) GCP 原则（2025）",
+ org:"ICH",issue:"2025",effective:"现行（分步实施）",region:"国际",cat:"GCP",
+ clauseEN:"GCP is a quality enabler for trials; principles should be applied using a risk-proportionate approach based on the knowledge and risks of the investigational product and trial.",
+ clauseCN:"GCP 是试验质量的保障；应基于对试验药物和试验的认知与风险，采用与风险相称的方式应用各项原则。",
+ interp:"面试谈 E6(R3)：强调 risk-proportionate、不再逐条僵化、质量内建；与 RBM 呼应。",
+ related:"全部项目",url:"https://www.ich.org/"},
+{id:"r32",name:"ICH E6(R3) — Fit-for-purpose & Data Governance",nameCN:"ICH E6(R3) 适用性与数据治理",
+ org:"ICH",issue:"2025",effective:"现行",region:"国际",cat:"数据",
+ clauseEN:"Processes and controls should be fit for purpose and provide assurance of data integrity; sponsors should establish data governance and quality by design across the data lifecycle.",
+ clauseCN:"流程与控制应适用并能保证数据完整性；申办者应在数据全生命周期建立数据治理与质量源于设计。",
+ interp:"解释为何电子源数据、中心化监查可被接受：关键在数据治理与适用性。",
+ related:"数据管理/SDV",url:"https://www.ich.org/"},
+{id:"r33",name:"ICH E8(R1) General Considerations for Clinical Studies — Quality by Design",nameCN:"ICH E8(R1) 临床研究一般考虑：质量源于设计",
+ org:"ICH",issue:"2021",effective:"现行",region:"国际",cat:"GCP",
+ clauseEN:"Quality should be built into the study by identifying factors critical to the quality of the study and managing risks to those factors throughout the lifecycle.",
+ clauseCN:"应通过识别对研究质量至关重要的因素，并在全生命周期管理相关风险，将质量内建于研究。",
+ interp:"CtQ factors 是 KRI/RBM 与 E6(R3) 的上游概念，面试可串联。",
+ related:"RBM/质量",url:"https://www.ich.org/"},
+{id:"r34",name:"ICH E9(R1) Statistical Principles — Estimand Framework",nameCN:"ICH E9(R1) 统计学原则：估计目标框架",
+ org:"ICH",issue:"2019",effective:"现行",region:"国际",cat:"数据",
+ clauseEN:"The estimand defines the treatment effect reflected by the clinical question, specifying population, variable, intercurrent events and population-level summary; sensitivity analysis should test assumptions.",
+ clauseCN:"估计目标界定临床问题所反映的治疗效应，明确人群、变量、伴发事件与群体层面汇总；敏感性分析应检验假设。",
+ interp:"核药诊断效能研究谈 PD/退组对估计目标影响；监查数据清理时理解 intercurrent events。",
+ related:"统计/数据",url:"https://www.ich.org/"},
+{id:"r35",name:"ICH E11(R1) Clinical Investigation of Medicinal Products in Pediatric Populations",nameCN:"ICH E11(R1) 儿科人群药物临床研究",
+ org:"ICH",issue:"2017",effective:"现行",region:"国际",cat:"GCP",
+ clauseEN:"Pediatric studies should consider developmental stages, pediatric formulations, age-appropriate informed consent/assent and minimized burden.",
+ clauseCN:"儿科研究应考虑发育阶段、儿科剂型、与年龄相称的知情同意/赞同，并尽量减少负担。",
+ interp:"若涉及儿童核药（神经母细胞瘤等）：assent、体重给药、监护人陪同辐射告知。",
+ related:"儿科项目",url:"https://www.ich.org/"},
+{id:"r36",name:"ICH E2A Clinical Safety Data Management: Definitions and Standards",nameCN:"ICH E2A 临床安全数据管理：定义与标准",
+ org:"ICH",issue:"1994",effective:"现行",region:"国际",cat:"安全",
+ clauseEN:"Adverse events are defined by seriousness, causality and expectedness; immediate reporting is required for single cases of serious, unexpected, causally related events.",
+ clauseCN:"不良事件按严重性、因果关系和预期性界定；对严重、非预期且有因果关系的个例需快速报告。",
+ interp:"厘清 AE/ADR/SUSAR 术语，面试 SAE 流程必背。",
+ related:"安全模块",url:"https://www.ich.org/"},
+{id:"r37",name:"ICH E2F Development Safety Update Report (DSUR)",nameCN:"ICH E2F 研发期间安全性更新报告",
+ org:"ICH",issue:"2010",effective:"现行",region:"国际",cat:"安全",
+ clauseEN:"The DSUR provides periodic annual assessment of the safety of an investigational product and its development program across ongoing trials.",
+ clauseCN:"DSUR 对试验药物及其研发项目中正在进行的各试验提供年度定期安全性评估。",
+ interp:"监查年度安全数据完整性，eCRF AE 与安全库一致以支持 DSUR。",
+ related:"安全报告",url:"https://www.ich.org/"},
+{id:"r38",name:"ICH E3 Structure and Content of Clinical Study Reports",nameCN:"ICH E3 临床研究报告的结构与内容",
+ org:"ICH",issue:"1995",effective:"现行",region:"国际",cat:"数据",
+ clauseEN:"The clinical study report should present integrated results, including efficacy, safety, protocol deviations and listings, fully traceable to source data.",
+ clauseCN:"临床研究报告应完整呈现疗效、安全性、方案偏离与数据列表，并可完全追溯至源数据。",
+ interp:"监查阶段保证 TMF/数据完整，是最终 CSR 质量的前提。",
+ related:"结项/COV",url:"https://www.ich.org/"},
+{id:"r39",name:"ICH E17 Multi-Regional Clinical Trials",nameCN:"ICH E17 多区域临床试验",
+ org:"ICH",issue:"2017",effective:"现行",region:"国际",cat:"GCP",
+ clauseEN:"Multi-regional trials should be designed to allow results to apply to all regions, considering regional differences in disease, practice and data, with consistent quality standards.",
+ clauseCN:"多区域试验设计应使结果适用于所有区域，考虑疾病、实践与数据的地区差异，并保持质量标准一致。",
+ interp:"外企全球项目背景：理解区域一致性、标准化采集（如 EARL）。",
+ related:"多中心项目",url:"https://www.ich.org/"},
+{id:"r40",name:"ICH E5(R1) Ethnic Factors in the Acceptability of Foreign Clinical Data",nameCN:"ICH E5(R1) 国外临床数据可接受性中的种族因素",
+ org:"ICH",issue:"1998",effective:"现行",region:"国际",cat:"GCP",
+ clauseEN:"The ability to extrapolate foreign data depends on intrinsic and extrinsic ethnic factors; bridging studies may be needed when sensitivity to such factors exists.",
+ clauseCN:"外推国外数据取决于内在与外在种族因素；当存在种族敏感性时可能需要桥接研究。",
+ interp:"理解外企在华项目/桥接逻辑，核药实践差异（核医学可及性）。",
+ related:"在华项目",url:"https://www.ich.org/"},
+{id:"r41",name:"FDA 21 CFR Part 11 — Electronic Records/Signatures",nameCN:"FDA 21 CFR Part 11 电子记录与电子签名",
+ org:"FDA",issue:"1997",effective:"现行",region:"美国",cat:"数据",
+ clauseEN:"Electronic records and signatures must be trustworthy, reliable, controlled by validated systems, with audit trails, access controls and time-stamped signatures.",
+ clauseCN:"电子记录与签名必须可信、可靠，由经验证系统控制，并具备审计追踪、访问控制和带时间戳的签名。",
+ interp:"eCRF/EDC 审计追踪、权限管理是监查重点；audit trail review。",
+ related:"EDC/数据",url:"https://www.fda.gov/"},
+{id:"r42",name:"FDA 21 CFR Part 212 — Current GMP for PET Drugs",nameCN:"FDA 21 CFR Part 212 PET 药品 cGMP",
+ org:"FDA",issue:"2009",effective:"现行",region:"美国",cat:"核药",
+ clauseEN:"PET drug production must follow cGMP covering personnel, facilities, materials, production controls, QC, batch records and handling of short half-life products.",
+ clauseCN:"PET 药品生产须遵循 cGMP，涵盖人员、设施、物料、生产控制、质量控制、批记录及短半衰期产品处理。",
+ interp:"核药 IP 接收时核对生产批记录与放行；理解 PET 药物特殊性。",
+ related:"PET 项目",url:"https://www.fda.gov/"},
+{id:"r43",name:"FDA Draft Guidance (2025): Dose Optimization for Therapeutic Radiopharmaceuticals in Oncology",nameCN:"FDA 2025 肿瘤治疗性放射性药物剂量优化指南（草案）",
+ org:"FDA",issue:"2025（草案）",effective:"草案",region:"美国",cat:"核药",
+ clauseEN:"Sponsors should collect dosimetry and patient-specific factors to optimize the administered activity, balancing tumor absorbed dose against toxicity to organs at risk.",
+ clauseCN:"申办者应收集剂量学与患者个体因素以优化给药活度，在肿瘤吸收剂量与危及器官毒性间取得平衡。",
+ interp:"核药面试高频：谈 dosimetry、absorbed dose、个体化活度与方案固定活度的差异。",
+ related:"Lu-177/Ac-225 治疗",url:"https://www.fda.gov/"},
+{id:"r44",name:"FDA Guidance: A Risk-Based Approach to Monitoring (Oversight of Clinical Investigations)",nameCN:"FDA 基于风险的监查方法指南",
+ org:"FDA",issue:"2013",effective:"现行",region:"美国",cat:"监查",
+ clauseEN:"Sponsors may combine on-site and centralized monitoring, tailoring the strategy to risks, with centralized monitoring enhancing safety and data quality oversight.",
+ clauseCN:"申办者可结合现场与中心化监查，按风险定制策略，中心化监查可加强安全与数据质量监督。",
+ interp:"RBM/100% SDV 取舍、KRI、中心化监查价值，外企面试必谈。",
+ related:"监查流程",url:"https://www.fda.gov/"},
+{id:"r45",name:"FDA Guidance: Electronic Source Data in Clinical Investigations",nameCN:"FDA 临床试验电子源数据指南",
+ org:"FDA",issue:"2013",effective:"现行",region:"美国",cat:"数据",
+ clauseEN:"Electronic source data should be attributable, legible, contemporaneous, original and accurate, with controlled data capture, audit trails and source attribution.",
+ clauseCN:"电子源数据应可归属、清晰、同步、原始且准确，采集受控，具备审计追踪与来源归属。",
+ interp:"eSource/直接录入 eCRF 时核对 ALCOA；源数据识别与 SDV 范围。",
+ related:"SDV",url:"https://www.fda.gov/"},
+{id:"r46",name:"EMA Guideline on Radiopharmaceuticals (Quality, EudraLex Vol. 3)",nameCN:"EMA 放射性药品质量指南",
+ org:"EMA",issue:"2008（现行）",effective:"现行",region:"欧盟",cat:"核药",
+ clauseEN:"Radiopharmaceuticals must meet defined standards for starting materials, radionuclide purity, radiochemical purity, stability and documentation appropriate to short half-lives.",
+ clauseCN:"放射性药品必须在起始物料、核素纯度、放射化学纯度、稳定性及文件方面符合与短半衰期相称的规定标准。",
+ interp:"理解 QC 指标（radionuclidic/radiochemical purity），监查批放行记录。",
+ related:"核药质量",url:"https://www.ema.europa.eu/"},
+{id:"r47",name:"EMA Guideline on Clinical Evaluation of Therapeutic Radiopharmaceuticals",nameCN:"EMA 治疗性放射性药物临床评价指南",
+ org:"EMA",issue:"现行",effective:"现行",region:"欧盟",cat:"核药",
+ clauseEN:"Clinical evaluation should demonstrate dosimetry, efficacy and safety of therapeutic radiopharmaceuticals, with appropriate imaging, activity selection and organ-at-risk monitoring.",
+ clauseCN:"临床评价应通过适宜影像、活度选择与危及器官监测，证明治疗性放射性药物的剂量学、疗效与安全性。",
+ interp:"治疗核药方案设计逻辑：剂量学先行、疗效与毒性并重。",
+ related:"治疗核药",url:"https://www.ema.europa.eu/"},
+{id:"r48",name:"EMA Guideline on First-in-Human and Early Clinical Trials (Risk Identification/Mitigation)",nameCN:"EMA FIH 与早期临床试验风险识别与缓解指南",
+ org:"EMA",issue:"2017",effective:"现行",region:"欧盟",cat:"GCP",
+ clauseEN:"FIH trials should derive starting dose and escalation from nonclinical data, with sentinel dosing, stopping rules and monitoring for high-risk products.",
+ clauseCN:"FIH 试验应依据非临床数据确定起始剂量与爬坡，采用哨兵给药、停止规则并对高风险产品加强监测。",
+ interp:"核药 I 期：起始活度、剂量爬坡、哨兵给药、MTD/剂量学。",
+ related:"I 期项目",url:"https://www.ema.europa.eu/"},
+{id:"r49",name:"PMDA Guideline on Clinical Evaluation of PET Imaging Drugs (incl. PSMA-PET)",nameCN:"PMDA PET 显像药物临床评价指南（含 PSMA-PET）",
+ org:"PMDA",issue:"现行",effective:"现行",region:"日本",cat:"影像",
+ clauseEN:"PET imaging drugs should be evaluated for diagnostic performance using appropriate reader studies, reference standards and imaging acquisition consistency.",
+ clauseCN:"PET 显像药物应通过适宜的阅片研究、参考标准与一致的图像采集来评价诊断性能。",
+ interp:"诊断效能 IIT 设计可参照：盲法阅片、参考标准、灵敏度/特异度。",
+ related:"PET 诊断 IIT",url:"https://www.pmda.go.jp/"},
+{id:"r50",name:"PMDA Guidelines for Quality/Nonclinical/Safety of Radiopharmaceuticals",nameCN:"PMDA 放射性药物质量/非临床/安全指导原则",
+ org:"PMDA",issue:"现行",effective:"现行",region:"日本",cat:"核药",
+ clauseEN:"Radiopharmaceutical development should address radionuclide and radiochemical quality, nonclinical dosimetry and safety appropriate to the intended use.",
+ clauseCN:"放射性药物研发应解决核素与放射化学质量、非临床剂量学及与预期用途相称的安全性。",
+ interp:"亚太核药监管对照知识，Novotech/亚太项目谈资。",
+ related:"核药",url:"https://www.pmda.go.jp/"},
+{id:"r51",name:"IAEA SSG-46 Radiation Protection and Safety in Medical Uses of Ionizing Radiation",nameCN:"IAEA SSG-46 医疗照射的辐射防护与安全",
+ org:"IAEA",issue:"2018",effective:"现行",region:"国际",cat:"辐射防护",
+ clauseEN:"Medical facilities should justify exposures, optimize protection, manage occupational and public exposure, and maintain quality assurance and safety culture.",
+ clauseCN:"医疗机构应使照射正当化、优化防护、管理职业与公众照射，并保持质量保证与安全文化。",
+ interp:"核医学科 SSU 核对：正当性、ALARA 优化、QA 与安全文化。",
+ related:"核医学科",url:"https://www.iaea.org/"},
+{id:"r52",name:"IAEA Safety Guide: Management of Radioactive Waste from Nuclear Medicine",nameCN:"IAEA 核医学放射性废物管理安全导则",
+ org:"IAEA",issue:"现行",effective:"现行",region:"国际",cat:"辐射防护",
+ clauseEN:"Radioactive waste should be segregated by isotope and half-life, stored for decay, cleared through measurement and disposed per authorized limits.",
+ clauseCN:"放射性废物应按核素和半衰期分类，衰变储存，经测量解控后按授权限值处置。",
+ interp:"监查废物台账：短半衰期衰变解控 vs 长半衰期（I-131/Lu-177）储存。",
+ related:"废物管理",url:"https://www.iaea.org/"},
+{id:"r53",name:"ICRP Publication 105 — Radiological Protection in Medicine",nameCN:"ICRP 第105号出版物：医学中的放射防护",
+ org:"ICRP",issue:"2007",effective:"现行",region:"国际",cat:"辐射防护",
+ clauseEN:"Protection in medicine rests on justification and optimization; dose constraints, reference levels and staff protection should be applied appropriately.",
+ clauseCN:"医学防护以正当性和最优化为基础；应适宜应用剂量约束、参考水平与工作人员防护。",
+ interp:"诊断参考水平（DRL）与工作人员剂量管理的理论依据。",
+ related:"辐射防护",url:"https://www.icrp.org/"},
+{id:"r54",name:"EANM/SNMMI Joint Procedure Guideline for 177Lu-PSMA Radioligand Therapy",nameCN:"EANM/SNMMI 177Lu-PSMA 放射配体治疗联合操作指南",
+ org:"EANM/SNMMI",issue:"现行",effective:"现行",region:"国际",cat:"核药",
+ clauseEN:"The guideline specifies patient selection, administered activity, pre-/post-therapy imaging, dosimetry, kidney/salivary protection and follow-up for 177Lu-PSMA RLT.",
+ clauseCN:"指南规定了 177Lu-PSMA 治疗的患者选择、给药活度、治疗前后影像、剂量学、肾/唾液腺保护与随访。",
+ interp:"核药治疗项目监查全流程对照标准；面试 IP accountability/dosimetry 引用。",
+ related:"Pluvicto/PSMA 治疗",url:"https://www.eanm.org/"},
+{id:"r55",name:"EANM Dosimetry Guideline for Radiopharmaceutical Therapy",nameCN:"EANM 放射性药物治疗剂量学指南",
+ org:"EANM",issue:"现行",effective:"现行",region:"欧洲/国际",cat:"影像",
+ clauseEN:"Absorbed dose should be calculated from serial activity measurements using standardized S-values/kernels, with uncertainty assessment and organ-at-risk reporting.",
+ clauseCN:"吸收剂量应采用标准化 S 值/核，基于系列活度测量计算，并评估不确定性、报告危及器官。",
+ interp:"理解剂量学数据采集时间点与计算，监查 dosimetry 数据完整性。",
+ related:"剂量学",url:"https://www.eanm.org/"},
+{id:"r56",name:"SNMMI MIRD Pamphlet — Practical Guidance for Dosimetry",nameCN:"SNMMI MIRD 实用剂量学指南（Pamphlet 23 等）",
+ org:"SNMMI/MIRD",issue:"现行",effective:"现行",region:"美国/国际",cat:"影像",
+ clauseEN:"The MIRD schema provides a generalised framework for absorbed-dose calculation from time-integrated activity and dose kernels, harmonizing clinical practice.",
+ clauseCN:"MIRD 方案提供由时间积分活度与剂量核计算吸收剂量的通用框架，协调临床实践。",
+ interp:"与 EANM 指南对照；面试谈 dosimetry 方法学的权威来源。",
+ related:"剂量学",url:"http://www.snmmi.org/"},
+{id:"r57",name:"WMA Declaration of Helsinki — Ethical Principles for Medical Research",nameCN:"世界医学大会赫尔辛基宣言",
+ org:"WMA",issue:"现行版本",effective:"现行",region:"国际",cat:"伦理",
+ clauseEN:"Research involving human subjects must protect dignity, autonomy, safety and rights; research on participants is subordinate to their well-being.",
+ clauseCN:"涉及人类受试者的研究必须保护尊严、自主、安全与权益；对参与者的研究应让位于其健康。",
+ interp:"伦理基石；知情同意、风险获益、弱势人群保护的总纲。",
+ related:"伦理审查",url:"https://www.wma.net/"},
+{id:"r58",name:"CIOMS International Ethical Guidelines for Health-related Research Involving Humans",nameCN:"CIOMS 涉及人的健康相关研究国际伦理指南",
+ org:"CIOMS/WHO",issue:"2016",effective:"现行",region:"国际",cat:"伦理",
+ clauseEN:"Guidelines address informed consent, vulnerability, equitable selection, privacy/confidentiality and community engagement across settings.",
+ clauseCN:"指南涵盖知情同意、脆弱性、公平选择、隐私保密及不同场景下的社区参与。",
+ interp:"补充赫尔辛基宣言的操作性指引；伦理委员会与知情同意实践。",
+ related:"伦理",url:"https://cioms.ch/"},
+{id:"r59",name:"MHRA 'GxP' Data Integrity Definitions and Guidance for Industry",nameCN:"英国 MHRA GxP 数据完整性定义与行业指南（ALCOA+）",
+ org:"MHRA",issue:"2018",effective:"现行",region:"英国/国际",cat:"数据",
+ clauseEN:"Data should meet ALCOA+ principles: attributable, legible, contemporaneous, original, accurate, plus complete, consistent, enduring and available.",
+ clauseCN:"数据应满足 ALCOA+：可归属、清晰、同步、原始、准确，并完整、一致、持久、可获得。",
+ interp:"数据完整性面试金标准；audit trail、原始记录、更改留痕。",
+ related:"数据完整性",url:"https://www.gov.uk/government/organisations/mhra"},
+{id:"r60",name:"FDA Data Integrity and Compliance with Drug CGMP — Questions and Answers",nameCN:"FDA 数据完整性与 cGMP 合规问答",
+ org:"FDA",issue:"现行",effective:"现行",region:"美国",cat:"数据",
+ clauseEN:"Data integrity controls should prevent and detect data alteration, ensure audit trails, access controls and management review of exceptions.",
+ clauseCN:"数据完整性控制应预防和发现数据篡改，确保审计追踪、访问控制及管理层对异常的审核。",
+ interp:"与 Part 11/MHRA 构成数据完整性体系；监查 EDC 审计追踪。",
+ related:"数据完整性",url:"https://www.fda.gov/"},
+{id:"r61",name:"NMPA/NHC Good Clinical Practice for Drugs (Announcement No.57, 2020)",nameCN:"NMPA/国家卫健委《药物临床试验质量管理规范》（2020年第57号）",
+ org:"NMPA/NHC",issue:"2020",effective:"现行",region:"中国",cat:"GCP",
+ clauseEN:"Drug clinical trials should protect subject rights and safety, comply with GCP, ensure data truthful/accurate, and define responsibilities of sponsors, investigators and ethics committees.",
+ clauseCN:"药物临床试验应保护受试者权益与安全、遵循 GCP、保证数据真实准确，并明确申办者、研究者与伦理委员会职责。",
+ interp:"中国 GCP 主体法规；中文条款要能与 ICH E6 对照口述。",
+ related:"全部项目",url:"https://www.nmpa.gov.cn/"},
+{id:"r62",name:"CDE Technical Guideline on Clinical Evaluation of In Vivo Radiodiagnostic Drugs",nameCN:"CDE《放射性体内诊断药物临床评价技术指导原则》",
+ org:"NMPA/CDE",issue:"现行",effective:"现行",region:"中国",cat:"核药",
+ clauseEN:"Clinical evaluation of in vivo radiodiagnostics should demonstrate imaging performance, diagnostic efficacy and safety, with standardized acquisition and reader evaluation.",
+ clauseCN:"放射性体内诊断药物临床评价应证明影像性能、诊断效能与安全性，并标准化采集与阅片评价。",
+ interp:"PSMA/CAIX/CD73 诊断 IIT 的直接设计依据；面试核药专业题引用。",
+ related:"核药诊断 IIT",url:"https://www.cde.org.cn/"},
+{id:"r63",name:"CDE Guideline on Nonclinical Safety Evaluation of Radionuclide-conjugated Drugs",nameCN:"CDE《放射性核素偶联药物非临床安全性评价技术指导原则》",
+ org:"NMPA/CDE",issue:"现行",effective:"现行",region:"中国",cat:"核药",
+ clauseEN:"Nonclinical evaluation of radionuclide conjugates should address linker stability, biodistribution, dosimetry, radiation and target-mediated toxicity.",
+ clauseCN:"放射性核素偶联药物的非临床评价应考察连接子稳定性、生物分布、剂量学、辐射及靶点介导毒性。",
+ interp:"理解 RDC 三要素（抗体/连接子/核素）风险；I 期起始活度依据。",
+ related:"核药 I 期",url:"https://www.cde.org.cn/"},
+{id:"r64",name:"CDE Guideline on Data Management and Statistical Analysis Plans/Reports",nameCN:"CDE《药物临床试验数据管理与统计分析的计划和报告指导原则》",
+ org:"NMPA/CDE",issue:"现行",effective:"现行",region:"中国",cat:"数据",
+ clauseEN:"Data management should follow a pre-specified plan with controlled database, validation rules, query management, blind review and database lock.",
+ clauseCN:"数据管理应遵循预设计划，具备受控数据库、核查规则、质疑管理、盲态审核与数据库锁定。",
+ interp:"监查 query 关闭、数据清理与锁库流程；与 DM 协作话术。",
+ related:"数据清理",url:"https://www.cde.org.cn/"},
+{id:"r65",name:"Regulation of the PRC on the Administration of Human Genetic Resources",nameCN:"中华人民共和国人类遗传资源管理条例",
+ org:"国务院/科技部",issue:"2019",effective:"现行",region:"中国",cat:"GCP",
+ clauseEN:"Collection, preservation, utilization and external provision of human genetic resources require approval/filing; foreign entities must comply with international cooperation procedures.",
+ clauseCN:"人类遗传资源的采集、保藏、利用与对外提供需审批/备案；外国组织开展国际合作须履行相应程序。",
+ interp:"外企在华项目 SSU 必查：HGR 备案/审批、血样出境限制，面试高价值知识点。",
+ related:"外企在华项目",url:"https://fuwu.most.gov.cn/"},
+{id:"r66",name:"PRC Personal Information Protection Law & Data Security Law",nameCN:"中华人民共和国个人信息保护法与数据安全法",
+ org:"全国人大常委会",issue:"2021",effective:"现行",region:"中国",cat:"数据",
+ clauseEN:"Processing personal and sensitive health information requires lawful basis, consent, minimization, security safeguards and restricted cross-border transfer.",
+ clauseCN:"处理个人及敏感健康信息需有合法基础、同意、最小必要、安全保障，并限制跨境传输。",
+ interp:"受试者数据隐私、eCRF 访问、数据出境合规；与 HGR 并列。",
+ related:"数据合规",url:"http://www.npc.gov.cn/"},
+{id:"r67",name:"NMPA/NHC Good Clinical Practice for Medical Devices (2022)",nameCN:"NMPA/NHC《医疗器械临床试验质量管理规范》（2022）",
+ org:"NMPA/NHC",issue:"2022",effective:"现行",region:"中国",cat:"器械",
+ clauseEN:"Device clinical trials should verify safety and performance, control device accountability, training, version changes, operator effects and protocol compliance.",
+ clauseCN:"器械临床试验应验证安全性与性能，控制器械管理、培训、版本变更、操作者影响与方案依从。",
+ interp:"软件/影像器械项目对照法规：版本管理、培训记录、操作者差异。",
+ related:"软件临床试验",url:"https://www.nmpa.gov.cn/"},
+{id:"r68",name:"NMPA Guidance Points for Review of Deep Learning-Assisted Medical Devices",nameCN:"NMPA 深度学习辅助决策医疗器械审评要点/AI 医用软件指导",
+ org:"NMPA/CMDE",issue:"现行",effective:"现行",region:"中国",cat:"器械",
+ clauseEN:"AI/ML medical devices should demonstrate data quality, algorithm performance, generalizability, version control and clinical evaluation across populations.",
+ clauseCN:"AI/ML 医疗器械应证明数据质量、算法性能、泛化能力、版本控制及跨人群临床评价。",
+ interp:"CT 辅助软件项目：训练/测试集、锁定版本、泛化与多中心数据 SDV。",
+ related:"AI 影像软件",url:"https://www.cmde.org.cn/"},
+{id:"r69",name:"CDE Guideline on Real-World Evidence Supporting Drug R&D and Review",nameCN:"CDE《真实世界证据支持药物研发与审评的指导原则》",
+ org:"NMPA/CDE",issue:"现行",effective:"现行",region:"中国",cat:"GCP",
+ clauseEN:"Real-world data may support development when fit for purpose, with assessed relevance, reliability and methods producing credible real-world evidence.",
+ clauseCN:"真实世界数据在适用时可支持研发，需评估相关性、可靠性，并采用能产生可信证据的方法。",
+ interp:"IIT/登记研究与注册衔接的政策背景；谈 IIT 价值时引用。",
+ related:"IIT",url:"https://www.cde.org.cn/"},
+{id:"r70",name:"ISO 14971 — Application of Risk Management to Medical Devices",nameCN:"ISO 14971 医疗器械风险管理",
+ org:"ISO",issue:"2019",effective:"现行",region:"国际",cat:"器械",
+ clauseEN:"Manufacturers shall establish a risk management process covering hazard identification, risk estimation, control and residual-risk evaluation across the lifecycle.",
+ clauseCN:"制造商应建立风险管理流程，在全生命周期进行危害识别、风险估计、风险控制与剩余风险评价。",
+ interp:"器械项目监查风险管理文件；与 GCP 风险管理概念区分。",
+ related:"器械项目",url:"https://www.iso.org/"},
+{id:"r71",name:"IEC 62304 — Medical Device Software Life Cycle Processes",nameCN:"IEC 62304 医疗器械软件生命周期过程",
+ org:"IEC",issue:"2006/A1:2015",effective:"现行",region:"国际",cat:"器械",
+ clauseEN:"Medical software should follow defined lifecycle processes for development, verification, configuration, problem resolution and safety classification.",
+ clauseCN:"医疗器械软件应遵循规定的生命周期过程，包括开发、验证、配置、问题解决与安全分级。",
+ interp:"软件临床试验核对软件版本、需求/验证与缺陷管理记录。",
+ related:"软件项目",url:"https://www.iec.ch/"},
+{id:"r72",name:"FDA Software as a Medical Device (SaMD): Clinical Evaluation & AI/ML Action Plan",nameCN:"FDA SaMD 临床评价与 AI/ML 行动计划",
+ org:"FDA",issue:"2017/2021",effective:"现行",region:"美国",cat:"器械",
+ clauseEN:"SaMD clinical evaluation should establish valid scientific association, analytical/technical validation and clinical performance; AI/ML lifecycle oversight is proposed.",
+ clauseCN:"SaMD 临床评价应建立有效科学关联、分析/技术验证与临床性能；并提出 AI/ML 全生命周期监管。",
+ interp:"对照中国 AI 审评要点；外企器械项目国际化谈资。",
+ related:"AI 软件",url:"https://www.fda.gov/"},
+{id:"r73",name:"EANM Current Good Radiopharmacy Practice (cGRPP) Guideline",nameCN:"EANM 现行良好放射性药物制备规范（cGRPP）",
+ org:"EANM",issue:"2021",effective:"现行",region:"欧洲/国际",cat:"核药",
+ clauseEN:"Radiopharmacy preparation should follow cGRPP for premises, personnel, documentation, compounding, QC and release of radiopharmaceuticals.",
+ clauseCN:"放射性药物制备应在场所、人员、文件、配制、质控与放行方面遵循 cGRPP。",
+ interp:"院内标记/配制（如 Ga-68）的质量与文件核对依据。",
+ related:"热室/核药房",url:"https://www.eanm.org/"},
+{id:"r74",name:"USP General Chapter <823> PET Drugs for Compounding, Investigational and Research Uses",nameCN:"USP <823> PET 药品配制、研究用通则",
+ org:"USP",issue:"现行",effective:"现行",region:"美国",cat:"核药",
+ clauseEN:"PET drugs for compounding, investigational and research uses must meet standards for production controls, QC, documentation and patient safety.",
+ clauseCN:"用于配制、研究的 PET 药品必须在生产控制、质控、文件与患者安全方面符合标准。",
+ interp:"与 21 CFR 212 互补；理解美国 PET 药物质量体系。",
+ related:"PET 药物",url:"https://www.usp.org/"},
+{id:"r75",name:"ICH E19 — Optimisation of Safety Data Collection (Selective Reporting)",nameCN:"ICH E19 安全性数据采集的优化（选择性报告）",
+ org:"ICH",issue:"2022",effective:"现行",region:"国际",cat:"安全",
+ clauseEN:"Sponsors may use selective safety data collection based on prior knowledge, while retaining collection of serious events and key safety data without compromising subject protection.",
+ clauseCN:"申办者可基于既有认知采用选择性安全数据采集，但仍须采集严重事件与关键安全数据，不损害受试者保护。",
+ interp:"理解后期试验简化 AE 采集的依据；区分哪些必须全程采集。",
+ related:"安全采集",url:"https://www.ich.org/"},
+{id:"r76",name:"ICH E18 — Genomic Sampling: Management of Clinical Pharmacogenomic Samples",nameCN:"ICH E18 基因组采样：临床药物基因组样本管理",
+ org:"ICH",issue:"2024（更新）",effective:"现行",region:"国际",cat:"GCP",
+ clauseEN:"Genomic sample collection, coding, storage and analysis should be governed by consent, traceability and privacy controls appropriate to the intended use.",
+ clauseCN:"基因组样本的采集、编码、储存与分析应受知情同意、可追溯及与用途相称的隐私控制约束。",
+ interp:"伴随诊断/靶点筛选样本管理；与 HGR/PIPL 交叉。",
+ related:"伴随诊断",url:"https://www.ich.org/"},
+{id:"r77",name:"ICH E20 — Adaptive Clinical Trials: General Principles and Design Considerations",nameCN:"ICH E20 适应性临床试验一般原则与设计考虑",
+ org:"ICH",issue:"2025（推进中）",effective:"逐步采用",region:"国际",cat:"数据",
+ clauseEN:"Adaptive designs should be pre-planned, controlled for operational bias and data integrity, with clear rules and independent oversight of interim data.",
+ clauseCN:"适应性设计应预先规划，控制操作偏倚与数据完整性，具备明确规则并对期中数据独立监督。",
+ interp:"核药剂量探索可能含适应性设计；理解数据隔离与盲法。",
+ related:"I/II 期设计",url:"https://www.ich.org/"},
+{id:"r78",name:"FDA 21 CFR Part 312 — Investigational New Drug Application (IND)",nameCN:"FDA 21 CFR Part 312 研究用新药（IND）法规",
+ org:"FDA",issue:"现行",effective:"现行",region:"美国",cat:"GCP",
+ clauseEN:"Sponsors must maintain an IND, submit annual reports and safety reports, select qualified investigators and ensure proper monitoring and IP accountability.",
+ clauseCN:"申办者须维持 IND、提交年度报告与安全报告、选择合格研究者并确保妥善监查与 IP 管理。",
+ interp:"理解 sponsor 法定职责、研究者选择与监查义务来源。",
+ related:"申办职责",url:"https://www.fda.gov/"},
+{id:"r79",name:"FDA 21 CFR Part 50/56 — Informed Consent & IRBs",nameCN:"FDA 21 CFR Part 50/56 知情同意与伦理委员会",
+ org:"FDA",issue:"现行",effective:"现行",region:"美国",cat:"伦理",
+ clauseEN:"Informed consent must be voluntary, documented and contain required elements; IRBs must review, approve and provide continuing review of investigations.",
+ clauseCN:"知情同意须自愿、有文件记录并包含规定要素；IRB 须审查、批准并对研究进行持续审查。",
+ interp:"ICF 要素核对、伦理持续审查/修正案流程；与中国 GCP 对照。",
+ related:"ICF/伦理",url:"https://www.fda.gov/"},
+{id:"r80",name:"GBZ 120 — Radiological Protection Requirements for Nuclear Medicine in China",nameCN:"GBZ 120《核医学放射防护要求》",
+ org:"国家卫健委/标准委",issue:"现行",effective:"现行",region:"中国",cat:"辐射防护",
+ clauseEN:"Nuclear medicine departments should meet facility shielding, zoning (controlled/supervised areas), personnel dosimetry, waste and patient management requirements.",
+ clauseCN:"核医学科应满足场所屏蔽、分区（控制区/监督区）、个人剂量监测、废物及患者管理要求。",
+ interp:"核药 SSU 现场核查清单：分区、屏蔽、个人剂量计、废物与注射后患者管理。",
+ related:"核医学科 SSU",url:"http://www.nhc.gov.cn/"}
 ];
 /* =====================================================================
  * 法规翻译练习 TRANS_ITEMS（30 条；originalLang 决定练习方向）
@@ -5464,398 +5930,19 @@ function bindExtra(){
 }
 
 /* =====================================================================
- * 模块：审核中心（AI 草稿 -> 人工审核 -> 自动入库）
- * 前端只使用 anon public key；所有写操作走 SECURITY DEFINER RPC，
- * 不能直接写正式表。
- * ===================================================================== */
-const RV_LIB_LABEL={target:"靶点",nuclide:"核素",vocabulary:"词块",interview:"面试题",regulation:"法规",literature:"文献"};
-const RV_STATUS_LABEL={pending:"待审核",approved:"已通过",rejected:"已拒绝"};
-const rvUI={lib:"",status:"pending",q:"",page:1,pageSize:8,sort:"desc",selected:[],rows:[],total:0};
-
-/* 调用 Postgres RPC（统一走 anon key） */
-async function rvRpc(name,params){
-  if(!state.settings.supabaseUrl||!state.settings.supabaseAnonKey)throw new Error("未配置 Supabase");
-  const res=await fetch(state.settings.supabaseUrl+"/rest/v1/rpc/"+name,{
-    method:"POST",
-    headers:{"Content-Type":"application/json",
-      apikey:state.settings.supabaseAnonKey,
-      Authorization:"Bearer "+state.settings.supabaseAnonKey},
-    body:JSON.stringify(params||{})
-  });
-  const text=await res.text();
-  let data=null; if(text){try{data=JSON.parse(text);}catch(e){data=text;}}
-  if(!res.ok)throw new Error("HTTP "+res.status);
-  return data;
-}
-
-/* 分页拉取草稿（按库/状态/搜索/日期排序），Range + count=exact 获取总数 */
-async function rvLoad(){
-  const s=rvUI,size=s.pageSize,start=(s.page-1)*size,end=start+size-1;
-  const qs=new URLSearchParams();
-  qs.set("select","id,library,action,title,source,status,created_at,reviewed_at,reviewer_note");
-  if(s.lib)qs.set("library","eq."+s.lib);
-  if(s.status)qs.set("status","eq."+s.status);
-  if(s.q){const q=s.q.replace(/[*%]/g,"");if(q)qs.set("title","ilike.*"+q+"*");}
-  qs.set("order","created_at."+s.sort);
-  const res=await fetch(state.settings.supabaseUrl+"/rest/v1/pending_updates?"+qs.toString(),{
-    headers:{apikey:state.settings.supabaseAnonKey,
-      Authorization:"Bearer "+state.settings.supabaseAnonKey,
-      "Range-Unit":"items",Range:start+"-"+end,
-      Prefer:"count=exact"}
-  });
-  if(!res.ok)throw new Error("HTTP "+res.status);
-  const rows=await res.json();
-  let total=rows.length;
-  const cr=res.headers.get("content-range")||"";
-  const m=cr.match(/\/(\d+)$/); if(m)total=parseInt(m[1]);
-  return {rows,total};
-}
-
-function rvFmtDate(iso){
-  try{const d=new Date(iso);
-    return d.toLocaleDateString()+" "+d.toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"});
-  }catch(e){return iso||"";}
-}
-
-/* 审核中心主渲染 */
-function renderReview(){
-  const el=$("#view-review");
-  const configured=!!(state.settings.supabaseUrl&&state.settings.supabaseAnonKey);
-  if(!configured){
-    el.innerHTML=`<h2 class="page">审核中心</h2>
-      <div class="card review-empty">
-        <h3>需要先连接 Supabase</h3>
-        <p>审核中心读取后端每日生成、写入 <b>pending_updates</b> 表的 AI 草稿；人工通过后自动写入正式库。</p>
-        <button class="primary" data-rv="config">配置 Supabase（anon key）</button>
-      </div>`;
-    return;
-  }
-  const bad=isServiceKey(state.settings.supabaseAnonKey);
-  el.innerHTML=`
-  <h2 class="page">审核中心</h2>
-  <p class="muted small">AI 每日生成草稿 → 人工审核 → 通过自动写入正式库；所有 AI 内容必须经人工审核才能入库。</p>
-  ${bad?`<div class="security-warn">🚨 检测到当前配置可能是 service_role key！前端只能使用 anon key，请立即前往 Supabase 重置并更换。</div>`:""}
-  <div class="review-toolbar">
-    <div class="row wrap" id="rvStatusTabs">
-      ${Object.keys(RV_STATUS_LABEL).map(st=>`<button class="sm ${rvUI.status===st?"primary":"ghost"}" data-rv-status="${st}">${RV_STATUS_LABEL[st]}</button>`).join("")}
-    </div>
-    <div class="row wrap" id="rvLibTabs">
-      <button class="sm ${!rvUI.lib?"primary":"ghost"}" data-rv-lib="">全部</button>
-      ${Object.entries(RV_LIB_LABEL).map(([k,v])=>`<button class="sm ${rvUI.lib===k?"primary":"ghost"}" data-rv-lib="${k}">${v}</button>`).join("")}
-    </div>
-    <div class="row wrap">
-      <input id="rvSearch" placeholder="搜索标题…" value="${esc(rvUI.q)}">
-      <button class="sm ghost" id="rvSortBtn">日期：${rvUI.sort==="desc"?"新→旧":"旧→新"}</button>
-      <button class="sm" id="rvRefreshBtn">刷新</button>
-      ${rvUI.status==="pending"?`<button class="sm primary" id="rvBatchApprove" disabled>批量通过 (0)</button>
-      <button class="sm danger" id="rvBatchReject" disabled>批量拒绝</button>`:""}
-    </div>
-  </div>
-  <div id="rvList"><div class="review-empty muted">加载中…</div></div>
-  <div class="row" id="rvPager"></div>`;
-  rvBindToolbar();
-  rvReload();
-}
-
-/* 只刷新列表区（保留工具栏，不打断搜索输入） */
-async function rvReload(){
-  const list=$("#rvList"); if(!list)return;
-  list.innerHTML=`<div class="review-empty muted">加载中…</div>`;
-  try{
-    const r=await rvLoad();
-    rvUI.rows=r.rows;rvUI.total=r.total;
-    // 选中项跨页保留（批量操作可能跨多页勾选）；已处理项由操作处显式移除
-    rvRenderList();
-  }catch(e){
-    list.innerHTML=`<div class="card review-empty">读取失败：${esc(e.message)}<br><br>
-      <button class="sm" data-rv="retry">重试</button></div>`;
-  }
-}
-
-function rvRenderList(){
-  const list=$("#rvList");
-  const rows=rvUI.rows;
-  const emptyText={pending:"暂无待审核内容，明天再来看看",approved:"暂无已通过内容",rejected:"暂无已拒绝内容"}[rvUI.status];
-  if(!rows.length){list.innerHTML=`<div class="card review-empty">${emptyText}</div>`;}
-  else{
-    list.innerHTML=`<div class="rv-rows">
-      ${rvUI.status==="pending"?`<label class="rv-row rv-head"><input type="checkbox" id="rvAll"><span>全选本页</span></label>`:""}
-      ${rows.map(r=>{
-        const pending=r.status==="pending";
-        const checked=rvUI.selected.includes(r.id);
-        return `<div class="rv-row">
-          ${pending?`<input type="checkbox" class="rv-check" data-rv-id="${r.id}" ${checked?"checked":""}>`:`<span class="rv-nocheck"></span>`}
-          <span class="rv-badge lib-${r.library}">${RV_LIB_LABEL[r.library]||r.library}</span>
-          <span class="rv-title" data-rv-open="${r.id}">${esc(r.title||"(无标题)")}
-            ${r.action==="update"?`<span class="rv-tag">更新</span>`:""}
-            ${pending?`<span class="rv-tag ai">AI 待审核</span>`:""}</span>
-          <span class="rv-src">${r.source&&r.source!=="待补充"?esc(r.source):""}</span>
-          <span class="rv-date">${rvFmtDate(r.created_at)}</span>
-          ${pending?`<span class="rv-ops">
-              <button class="sm primary" data-rv-approve="${r.id}">通过</button>
-              <button class="sm danger" data-rv-reject="${r.id}">拒绝</button></span>`
-            :`<span class="rv-note">${r.reviewer_note?esc(r.reviewer_note):""}</span>`}
-        </div>`;
-      }).join("")}</div>`;
-  }
-  rvRenderPager();
-  rvUpdateBatch();
-}
-
-function rvRenderPager(){
-  const pager=$("#rvPager"); if(!pager)return;
-  const pages=Math.max(1,Math.ceil(rvUI.total/rvUI.pageSize));
-  pager.innerHTML=`<span class="muted small">共 ${rvUI.total} 条，第 ${rvUI.page}/${pages} 页</span>
-    <button class="sm" id="rvPrev" ${rvUI.page<=1?"disabled":""}>上一页</button>
-    <button class="sm" id="rvNext" ${rvUI.page>=pages?"disabled":""}>下一页</button>`;
-}
-
-function rvUpdateBatch(){
-  const n=rvUI.selected.length;
-  const a=$("#rvBatchApprove"),r=$("#rvBatchReject");
-  if(a){a.textContent="批量通过 ("+n+")";a.disabled=n===0;}
-  if(r){r.disabled=n===0;}
-}
-
-/* 工具栏事件（每次主渲染后重新绑定） */
-function rvBindToolbar(){
-  const st=$("#rvStatusTabs");
-  if(st)st.addEventListener("click",e=>{
-    const b=e.target.closest("[data-rv-status]");if(!b)return;
-    rvUI.status=b.dataset.rvStatus;rvUI.page=1;rvUI.selected=[];renderReview();
-  });
-  const lt=$("#rvLibTabs");
-  if(lt)lt.addEventListener("click",e=>{
-    const b=e.target.closest("[data-rv-lib]");if(!b)return;
-    rvUI.lib=b.dataset.rvLib;rvUI.page=1;rvUI.selected=[];renderReview();
-  });
-  const si=$("#rvSearch");
-  if(si)si.addEventListener("input",e=>{
-    rvUI.q=e.target.value;rvUI.page=1;
-    clearTimeout(window._rvqt);window._rvqt=setTimeout(rvReload,350);
-  });
-  const sb=$("#rvSortBtn");
-  if(sb)sb.addEventListener("click",()=>{rvUI.sort=rvUI.sort==="desc"?"asc":"desc";rvUI.page=1;renderReview();});
-  const rf=$("#rvRefreshBtn");
-  if(rf)rf.addEventListener("click",()=>{rvReload();toast("已刷新审核列表");});
-  const ba=$("#rvBatchApprove");
-  if(ba)ba.addEventListener("click",rvBatchApprove);
-  const br=$("#rvBatchReject");
-  if(br)br.addEventListener("click",rvBatchReject);
-}
-
-/* ---------------- 详情弹窗（查看 / 编辑 content_json） ---------------- */
-async function rvOpenDetail(id){
-  let rows;
-  try{rows=await loadData("pending_updates",{select:"*",id:"eq."+id});}
-  catch(e){toast("读取失败："+e.message);return;}
-  const r=rows[0]; if(!r){toast("草稿不存在");return;}
-  const editable=r.status==="pending";
-  const srcUrl=r.content_json&&(r.content_json.sourceUrl||r.content_json.url);
-  openModal(`<h3>${RV_LIB_LABEL[r.library]||r.library}草稿详情</h3>
-  <p class="muted small">${rvFmtDate(r.created_at)} · 动作：${r.action} · 状态：${RV_STATUS_LABEL[r.status]||r.status}</p>
-  <div class="field"><label>标题</label><input id="rvdTitle" value="${esc(r.title||"")}" ${editable?"":"disabled"}></div>
-  <div class="field"><label>content_json（${editable?"可编辑，保存/通过时校验 JSON":"只读"}）</label>
-    <textarea id="rvdJson" class="json-area" ${editable?"":"disabled"}>${esc(JSON.stringify(r.content_json,null,2))}</textarea></div>
-  <div class="field"><label>来源</label>
-    ${r.source&&r.source!=="待补充"?`${esc(r.source)}${srcUrl?` · <a href="${esc(srcUrl)}" target="_blank" rel="noopener">查看来源</a>`:""}`:"待补充（AI 未提供可靠来源）"}</div>
-  <div class="field"><label>审核备注 / 拒绝理由</label><textarea id="rvdNote" class="note-area" ${editable?"":"disabled"}>${esc(r.reviewer_note||"")}</textarea></div>
-  ${editable?`<div class="row wrap">
-      <button class="primary" data-rvd="approve" data-rvd-id="${r.id}" data-rvd-lib="${r.library}">通过并入库</button>
-      <button class="danger" data-rvd="reject" data-rvd-id="${r.id}" data-rvd-lib="${r.library}">拒绝</button>
-      <button class="ghost" data-rvd="save" data-rvd-id="${r.id}">保存修改</button>
-      <button data-act="modalClose">关闭</button></div>`
-    :`<div class="row"><button data-act="modalClose">关闭</button></div>`}`);
-}
-
-function rvReadEdited(){
-  const title=$("#rvdTitle").value.trim();
-  let content;
-  try{content=JSON.parse($("#rvdJson").value);}
-  catch(e){throw new Error("content_json 不是合法 JSON："+e.message);}
-  return {title,content};
-}
-
-/* 详情弹窗按钮：通过 / 拒绝 / 保存修改 */
-document.addEventListener("click",async e=>{
-  const b=e.target.closest("[data-rvd]");if(!b)return;
-  const act=b.dataset.rvd,id=parseInt(b.dataset.rvdId),lib=b.dataset.rvdLib;
-  let edited;
-  try{edited=rvReadEdited();}catch(err){toast(err.message);return;}
-  const note=($("#rvdNote").value||"").trim();
-  b.disabled=true;
-  try{
-    if(act==="save"){
-      const r=await rvRpc("update_pending_content",
-        {p_id:id,p_title:edited.title,p_content:edited.content});
-      if(r&&r.ok)toast("修改已保存");
-      else toast("保存失败："+(r?r.error:"未知错误"));
-    }else if(act==="approve"){
-      const r=await rvRpc("approve_pending",
-        {p_id:id,p_content:edited.content,p_note:note||null});
-      if(r&&r.ok){toast("已通过，内容写入正式库");closeModal();rvAfterChange(lib,edited.content);}
-      else toast("通过失败："+(r?r.error:"未知错误"));
-    }else if(act==="reject"){
-      if(!note){toast("请先填写拒绝理由");b.disabled=false;return;}
-      const r=await rvRpc("reject_pending",{p_id:id,p_note:note});
-      if(r&&r.ok){toast("已拒绝该草稿");closeModal();rvReload();rvRefreshCloud();}
-      else toast("拒绝失败："+(r?r.error:"未知错误"));
-    }
-  }catch(err){toast("操作失败："+err.message);}
-  if(act!=="approve")b.disabled=false;
-});
-
-/* 列表/页面级事件委托（只注册一次） */
-document.addEventListener("click",async e=>{
-  const cfg=e.target.closest('[data-rv="config"]');
-  if(cfg){openSupabaseConfig();return;}
-  const rt=e.target.closest('[data-rv="retry"]');
-  if(rt){rvReload();return;}
-  const op=e.target.closest("[data-rv-open]");
-  if(op){rvOpenDetail(parseInt(op.dataset.rvOpen));return;}
-  const ap=e.target.closest("[data-rv-approve]");
-  if(ap){await rvQuickApprove(parseInt(ap.dataset.rvApprove));return;}
-  const rj=e.target.closest("[data-rv-reject]");
-  if(rj){await rvQuickReject(parseInt(rj.dataset.rvReject));return;}
-  const prev=e.target.closest("#rvPrev");
-  if(prev&&!prev.disabled){rvUI.page--;rvReload();return;}
-  const next=e.target.closest("#rvNext");
-  if(next&&!next.disabled){rvUI.page++;rvReload();return;}
-});
-
-/* 勾选（含全选本页） */
-document.addEventListener("change",e=>{
-  const c=e.target.closest(".rv-check");
-  if(c){
-    const id=parseInt(c.dataset.rvId);
-    if(c.checked){if(!rvUI.selected.includes(id))rvUI.selected.push(id);}
-    else rvUI.selected=rvUI.selected.filter(x=>x!==id);
-    rvUpdateBatch();
-    const all=$("#rvAll");
-    if(all)all.checked=rvUI.rows.filter(r=>r.status==="pending")
-      .every(r=>rvUI.selected.includes(r.id));
-    return;
-  }
-  if(e.target.closest("#rvAll")){
-    const ids=rvUI.rows.filter(r=>r.status==="pending").map(r=>r.id);
-    if(e.target.checked)rvUI.selected=Array.from(new Set([...rvUI.selected,...ids]));
-    else rvUI.selected=rvUI.selected.filter(x=>!ids.includes(x));
-    document.querySelectorAll(".rv-check").forEach(cb=>
-      cb.checked=rvUI.selected.includes(parseInt(cb.dataset.rvId)));
-    rvUpdateBatch();
-  }
-});
-
-/* 列表行快速通过（不打开弹窗，使用原始内容） */
-async function rvQuickApprove(id){
-  try{
-    const rows=await loadData("pending_updates",{select:"*",id:"eq."+id});
-    const r0=rows[0];
-    const r=await rvRpc("approve_pending",{p_id:id,p_content:null,p_note:null});
-    if(r&&r.ok){toast("已通过，内容写入正式库");rvAfterChange(r0?r0.library:"",r0?r0.content_json:null);}
-    else toast("通过失败："+(r?r.error:"未知错误"));
-  }catch(e){toast("通过失败："+e.message);}
-}
-/* 列表行快速拒绝（prompt 收集理由） */
-async function rvQuickReject(id){
-  const note=window.prompt("请填写拒绝理由（可留空；点取消则不操作）","");
-  if(note===null)return;
-  try{
-    const r=await rvRpc("reject_pending",{p_id:id,p_note:note});
-    if(r&&r.ok){toast("已拒绝该草稿");rvReload();rvRefreshCloud();}
-    else toast("拒绝失败："+(r?r.error:"未知错误"));
-  }catch(e){toast("拒绝失败："+e.message);}
-}
-
-/* 批量通过（先取完整内容用于本地合并，再调批量 RPC） */
-async function rvBatchApprove(){
-  const ids=[...rvUI.selected];
-  if(!ids.length){toast("请先勾选草稿");return;}
-  try{
-    let full=[];
-    try{full=await loadData("pending_updates",
-      {select:"library,content_json",id:"in.("+ids.join(",")+")"});}catch(e){}
-    const r=await rvRpc("approve_pending_batch",{p_ids:ids});
-    if(r&&r.ok){
-      toast("批量通过："+r.approved+" 条"+(r.failed?"，失败 "+r.failed+" 条":""));
-      full.forEach(f=>{try{rvMergeLocal(f.library,f.content_json);}catch(e){}});
-      rvUI.selected=[];rvReload();rvRefreshCloud();
-    }else toast("批量通过失败："+(r?r.error:"未知错误"));
-  }catch(e){toast("批量通过失败："+e.message);}
-}
-/* 批量拒绝 */
-async function rvBatchReject(){
-  const ids=[...rvUI.selected];
-  if(!ids.length){toast("请先勾选草稿");return;}
-  const note=window.prompt("请填写批量拒绝理由（可留空；点取消则不操作）","");
-  if(note===null)return;
-  try{
-    const r=await rvRpc("reject_pending_batch",{p_ids:ids,p_note:note});
-    if(r&&r.ok){
-      toast("批量拒绝："+r.rejected+" 条"+(r.failed?"，失败 "+r.failed+" 条":""));
-      rvUI.selected=[];rvReload();
-    }else toast("批量拒绝失败："+(r?r.error:"未知错误"));
-  }catch(e){toast("批量拒绝失败："+e.message);}
-}
-
-/* 审核后处理：重载列表 + 本地合并 + 后台刷新云端正式库数据 */
-function rvAfterChange(lib,content){
-  rvReload();
-  rvMergeLocal(lib,content);
-  rvRefreshCloud();
-}
-function rvRefreshCloud(){
-  if(state.settings.supabaseUrl){try{refreshAll();}catch(e){}}
-}
-/* 通过的核素/词块同步到本地对应模块（其余四类由 Supabase 正式表承载） */
-function rvMergeLocal(lib,c){
-  if(!c)return;
-  if(lib==="nuclide"&&c.nuclide){
-    const key=String(c.nuclide).toLowerCase();
-    if(NUCLIDES.some(n=>String(n.nuclide).toLowerCase()===key))return;
-    const obj={id:"nAI"+Date.now(),nuclide:c.nuclide,halfLife:c.halfLife||"",
-      decayMode:c.decayMode||"",emissionType:c.emissionType||"诊断",
-      commonTargets:c.commonTargets||[],representativeDrugs:c.representativeDrugs||[],
-      productionMethod:c.productionMethod||"",craMonitoringPoints:c.craMonitoringPoints||[],
-      references:c.references||[]};
-    NUCLIDES.push(obj);
-    state.extraNuclides=state.extraNuclides||[];
-    if(!state.extraNuclides.some(n=>String(n.nuclide).toLowerCase()===key))
-      state.extraNuclides.push(obj);
-    saveState();
-    toast("新核素已同步到核素库");
-  }else if(lib==="vocabulary"&&c.en){
-    const key=String(c.en).toLowerCase();
-    if(state.chunks.some(x=>String(x.en).toLowerCase()===key))return;
-    state.chunks.push({id:uid("c"),en:c.en,ipa:c.ipa||"",zh:c.zh||"",
-      ex:c.ex||"",exZh:c.exZh||"",cat:c.cat||"",lv:c.lv||"",
-      target:c.target||"",ptype:c.ptype||"",
-      status:"未学",reviewCount:0,nextReview:"",sentences:[],pronRating:"",myExample:""});
-    saveState();
-    toast("新词块已同步到专业词块练习");
-  }
-}
-
-/* =====================================================================
  * 初始化
  * ===================================================================== */
 function init(){
   loadState();   // loadState 内部直接设置全局 state
   /* 注册视图渲染器（导航与预渲染共用） */
   Object.assign(RENDERERS,{
-    dashboard:renderDashboard, daily:renderDaily, review:renderReview,
-    chunks:renderChunks,
+    dashboard:renderDashboard, daily:renderDaily, chunks:renderChunks,
     words:renderWords, sentence:renderSentence, projects:renderProjects,
     targets:renderTargets, nuclides:renderNuclides, jobs:renderJobs, myq:renderMyQ,
     extq:renderExtQ, reglib:renderRegLibrary, trans:renderTrans, answers:renderAnswers,
     listening:renderListening, plan:renderPlan, stats:renderStats, search:renderSearch
   });
   applyTheme();
-  /* 合并此前审核通过、持久化在本地的额外核素到 NUCLIDES（去重） */
-  (state.extraNuclides||[]).forEach(n=>{
-    if(n&&n.nuclide&&!NUCLIDES.some(x=>String(x.nuclide).toLowerCase()
-        ===String(n.nuclide).toLowerCase()))NUCLIDES.push(n);
-  });
   renderNavGroups(); // 渲染一级分组与二级模块（含用户排序/展开状态）
   /* 预渲染全部视图（保证项目文件输入等元素就位），默认显示仪表盘 */
   Object.entries(RENDERERS).forEach(([k,fn])=>{try{fn();}catch(err){console.warn(k,err);}});
