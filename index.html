@@ -199,8 +199,16 @@ select[data-act=jbStatus]{padding:4px 6px;}
 .nav-group.collapsed .nav-items{display:none;}
 .nav-items button{position:relative;text-align:left;width:100%;}
 .nav-items button.active{background:var(--brand);color:#fff;border-color:var(--brand);}
-/* 排序编辑态：仅二级模块可拖，一级固定 */
-.nav.nav-editing .nav-group-head{cursor:default;opacity:.7;}
+/* 排序编辑态：一级、二级均可拖 */
+.nav.nav-editing .nav-group-head{cursor:grab;}
+.nav.nav-editing .nav-group-head:active{cursor:grabbing;}
+.nav-group.dragging-group{opacity:.45;}
+.nav-group.drag-over-group{outline:2.5px dashed var(--brand);outline-offset:2px;border-radius:10px;}
+.gmv{display:inline-flex;align-items:center;justify-content:center;
+  width:18px;height:16px;border-radius:4px;margin-left:4px;
+  background:var(--brand-soft);color:var(--brand);font-size:8px;cursor:pointer;}
+.gmv.up{margin-left:8px;}
+.gmv:active{background:var(--brand);color:#fff;}
 .nav.nav-editing .nav-items{outline:1.5px dashed var(--brand);border-radius:8px;}
 .nav-items button.drag-over{outline:2px dashed var(--brand2);outline-offset:1px;}
 .nav-items button.dragging{opacity:.45;}
@@ -2394,7 +2402,7 @@ function defaultState(){
   return {
     v:2,
     settings:{theme:"light",supabaseUrl:"",supabaseAnonKey:"",
-      menuExpanded:{},navOrderV2:{}},
+      menuExpanded:{},navOrderV2:{},navGroupOrder:[]},
     checkins:[], lastCheck:"", streak:0,
     daily:{date:todayStr(),tasks:{word:false,project:false,interview:false,review:false}},
     chunks:buildChunks(),
@@ -2430,9 +2438,11 @@ function loadState(){
   // 顶层字段合并
   state=Object.assign(d,raw);
   state.settings=Object.assign({theme:"light",supabaseUrl:"",supabaseAnonKey:"",
-    menuExpanded:{},navOrderV2:{}},raw.settings||{});
+    menuExpanded:{},navOrderV2:{},navGroupOrder:[]},raw.settings||{});
   state.settings.menuExpanded=Object.assign({},(raw.settings&&raw.settings.menuExpanded)||{});
   state.settings.navOrderV2=Object.assign({},(raw.settings&&raw.settings.navOrderV2)||{});
+  state.settings.navGroupOrder=Array.isArray(raw.settings&&raw.settings.navGroupOrder)
+    ?raw.settings.navGroupOrder:[];
   state.daily=Object.assign({date:todayStr(),tasks:{}},raw.daily||{});
   state.daily.tasks=Object.assign({word:false,project:false,interview:false,review:false},(raw.daily&&raw.daily.tasks)||{});
   state.cloud=Object.assign(d.cloud,raw.cloud||{});
@@ -2542,16 +2552,29 @@ function groupOrder(g){
   def.forEach(id=>{if(!merged.includes(id))merged.push(id);});
   return merged;
 }
-/* 渲染整个分组侧边栏 */
+/* 一级分组顺序（用户可排序；自动补齐新增分组） */
+function navGroupOrder(){
+  const def=DEFAULT_GROUPS.map(g=>g.id);
+  const custom=state.settings.navGroupOrder;
+  if(!custom||!custom.length)return def;
+  const merged=custom.filter(id=>def.includes(id));
+  def.forEach(id=>{if(!merged.includes(id))merged.push(id);});
+  return merged;
+}
+/* 渲染整个分组侧边栏（一级、二级顺序均按用户配置） */
 function renderNavGroups(){
   const nav=$("#nav");
   const editing=nav.classList.contains("nav-editing");
-  nav.innerHTML=DEFAULT_GROUPS.map(g=>{
+  const gids=navGroupOrder();
+  nav.innerHTML=gids.map(gid=>{
+    const g=DEFAULT_GROUPS.find(x=>x.id===gid);if(!g)return "";
     const collapsed=state.settings.menuExpanded[g.id]===false;
     const order=groupOrder(g);
     return `<div class="nav-group ${collapsed?"collapsed":""}" data-group="${g.id}">
-      <button class="nav-group-head" data-group-head="${g.id}">
-        <span>${g.name}</span><span class="arrow">▾</span></button>
+      <button class="nav-group-head" data-group-head="${g.id}" draggable="${editing}">
+        <span class="gname">${g.name}</span>
+        ${editing?'<span class="gmv up" data-gmv="up" title="上移本组">▲</span><span class="gmv dn" data-gmv="down" title="下移本组">▼</span>':""}
+        <span class="arrow">▾</span></button>
       <div class="nav-items">
         ${order.map(id=>{const f=g.items.find(i=>i[0]===id);if(!f)return"";
           return `<button data-view="${id}" draggable="${editing}">${f[1]}
@@ -4820,27 +4843,32 @@ function restorePreset(){
   location.reload();
 }
 
-/* ===== 二级模块排序（一级菜单固定；HTML5 DnD + ▲▼ 备选） ===== */
-let dragSrc=null, dragContainer=null;
+/* ===== 一级分组 + 二级模块排序（HTML5 DnD + ▲▼ 触屏备选） ===== */
+let dragSrc=null, dragContainer=null, dragGroupSrc=null;
 function bindNavSort(){
   if(bindNavSort._bound)return;bindNavSort._bound=true;
   const nav=$("#nav");
-  /* 保存某一组（.nav-items）内的二级顺序 */
+  /* 保存一级分组顺序 */
+  const saveNavGroupOrder=()=>{
+    state.settings.navGroupOrder=[...nav.querySelectorAll(".nav-group")]
+      .map(g=>g.dataset.group);
+    saveState();
+  };
+  /* 保存某组内的二级顺序 */
   const saveGroup=container=>{
-    const groupEl=container.closest(".nav-group");
-    const gid=groupEl.dataset.group;
+    const gid=container.closest(".nav-group").dataset.group;
     state.settings.navOrderV2[gid]=[...container.querySelectorAll("button[data-view]")]
       .map(b=>b.dataset.view);
     saveState();
   };
   const setEdit=on=>{
     nav.classList.toggle("nav-editing",on);
-    renderNavGroups();   // 重绘：编辑态按钮可拖并带 ▲▼
+    renderNavGroups();   // 重绘：编辑态组头/二级按钮可拖并带 ▲▼
     $("#btnNavEdit").classList.toggle("hide",on);
     $("#btnNavDone").classList.toggle("hide",!on);
     $("#btnNavReset").classList.toggle("hide",!on);
   };
-  /* ▲▼ 在同一组内移动 */
+  /* ▲▼ 移动二级模块（同一组内） */
   const move=(b,dir)=>{
     const container=b.closest(".nav-items");
     const btns=[...container.querySelectorAll("button[data-view]")];
@@ -4849,61 +4877,102 @@ function bindNavSort(){
     if(j<0||j>=btns.length){toast(dir==="up"?"已在本组最顶部":"已在本组最底部");return;}
     if(dir==="up")container.insertBefore(b,btns[j]);
     else container.insertBefore(b,btns[j].nextSibling);
-    saveGroup(container);
-    markActiveNav(currentViewId());
-    toast("顺序已调整并保存");
+    saveGroup(container);markActiveNav(currentViewId());
+    toast("二级模块顺序已保存");
+  };
+  /* ▲▼ 移动一级分组 */
+  const moveGroup=(g,dir)=>{
+    const groups=[...nav.querySelectorAll(".nav-group")];
+    const i=groups.indexOf(g);
+    const j=dir==="up"?i-1:i+1;
+    if(j<0||j>=groups.length){toast(dir==="up"?"已在最顶部":"已在最底部");return;}
+    if(dir==="up")nav.insertBefore(g,groups[j]);
+    else nav.insertBefore(g,groups[j].nextSibling);
+    saveNavGroupOrder();toast("一级菜单顺序已保存");
   };
   $("#btnNavEdit").addEventListener("click",()=>{
     setEdit(true);
     if(("ontouchstart" in window)||navigator.maxTouchPoints>0)
-      toast("触屏可直接点 ▲ ▼ 调整二级模块；一级菜单固定");
+      toast("触屏可点组头/模块旁的 ▲ ▼ 调整顺序");
   });
-  $("#btnNavDone").addEventListener("click",()=>{setEdit(false);toast("模块顺序已保存");});
+  $("#btnNavDone").addEventListener("click",()=>{setEdit(false);toast("菜单顺序已保存");});
   $("#btnNavReset").addEventListener("click",()=>{
-    state.settings.navOrderV2={};saveState();
-    setEdit(false);renderNavGroups();toast("已恢复各组默认排序");
+    state.settings.navOrderV2={};state.settings.navGroupOrder=[];saveState();
+    setEdit(false);renderNavGroups();toast("已恢复全部默认排序");
   });
-  /* ---------- 原生拖拽（仅限同组 .nav-items 内部） ---------- */
+  /* ---------- dragstart：区分拖一级组头 vs 二级模块 ---------- */
   nav.addEventListener("dragstart",e=>{
+    const head=e.target.closest(".nav-group-head");
+    if(head){
+      dragGroupSrc=head.closest(".nav-group");dragSrc=null;
+      dragGroupSrc.classList.add("dragging-group");
+      e.dataTransfer.effectAllowed="move";
+      try{e.dataTransfer.setData("text/group",dragGroupSrc.dataset.group);}catch(_){}
+      return;
+    }
     const b=e.target.closest("button[data-view]");if(!b)return;
-    dragSrc=b;dragContainer=b.closest(".nav-items");
+    dragSrc=b;dragContainer=b.closest(".nav-items");dragGroupSrc=null;
     b.classList.add("dragging");
     e.dataTransfer.effectAllowed="move";
     try{e.dataTransfer.setData("text/plain",b.dataset.view);}catch(_){}
   });
   nav.addEventListener("dragend",()=>{
     if(dragSrc)dragSrc.classList.remove("dragging");
-    dragSrc=null;dragContainer=null;
-    nav.querySelectorAll(".drag-over").forEach(x=>x.classList.remove("drag-over"));
+    if(dragGroupSrc)dragGroupSrc.classList.remove("dragging-group");
+    dragSrc=null;dragContainer=null;dragGroupSrc=null;
+    nav.querySelectorAll(".drag-over,.drag-over-group")
+      .forEach(x=>x.classList.remove("drag-over","drag-over-group"));
   });
-  /* dragover：仅当悬停在源所在的同一组内才允许放置 */
+  /* ---------- dragover：组拖对组、模块拖对同组模块 ---------- */
   const over=e=>{
+    const grp=e.target.closest(".nav-group");
+    nav.querySelectorAll(".drag-over,.drag-over-group")
+      .forEach(x=>x.classList.remove("drag-over","drag-over-group"));
+    if(dragGroupSrc){
+      if(!grp||grp===dragGroupSrc)return;
+      e.preventDefault();e.dataTransfer.dropEffect="move";
+      grp.classList.add("drag-over-group");
+      return;
+    }
     const b=e.target.closest("button[data-view]");
     const container=e.target.closest(".nav-items");
-    nav.querySelectorAll(".drag-over").forEach(x=>x.classList.remove("drag-over"));
-    if(!b||!dragSrc||container!==dragContainer)return; // 跨组/一级菜单：不允许
-    e.preventDefault();
-    e.dataTransfer.dropEffect="move";
+    if(!b||!dragSrc||container!==dragContainer)return; // 跨组不放
+    e.preventDefault();e.dataTransfer.dropEffect="move";
     b.classList.add("drag-over");
   };
   nav.addEventListener("dragenter",over);
   nav.addEventListener("dragover",over);
+  /* ---------- drop ---------- */
   nav.addEventListener("drop",e=>{
+    /* 一级分组放置 */
+    if(dragGroupSrc){
+      const grp=e.target.closest(".nav-group");
+      if(!grp||grp===dragGroupSrc)return;
+      e.preventDefault();e.stopPropagation();
+      const r=grp.getBoundingClientRect();
+      const after=(e.clientY-r.top)>r.height/2;
+      if(after)grp.after(dragGroupSrc);else grp.before(dragGroupSrc);
+      grp.classList.remove("drag-over-group");
+      saveNavGroupOrder();toast("一级菜单已放置并保存");
+      return;
+    }
+    /* 二级模块放置（同组内） */
     const target=e.target.closest("button[data-view]");
     const container=e.target.closest(".nav-items");
     if(!target||!dragSrc||container!==dragContainer||target===dragSrc)return;
     e.preventDefault();e.stopPropagation();
-    /* 二级条目垂直排列：按鼠标 Y 的前后半决定插入位置 */
     const r=target.getBoundingClientRect();
     const after=(e.clientY-r.top)>r.height/2;
     if(after)target.after(dragSrc);else target.before(dragSrc);
     target.classList.remove("drag-over");
-    saveGroup(container);
-    markActiveNav(currentViewId());
-    toast("已放置，顺序已保存");
+    saveGroup(container);markActiveNav(currentViewId());
+    toast("二级模块已放置并保存");
   });
-  /* ▲▼ 点击（捕获阶段，先于其他点击处理） */
+  /* ▲▼ 点击（捕获阶段，先于视图切换/折叠处理） */
   nav.addEventListener("click",e=>{
+    const gmv=e.target.closest(".gmv");
+    if(gmv){e.preventDefault();e.stopPropagation();
+      moveGroup(gmv.closest(".nav-group"),gmv.dataset.gmv);return;}
     const mv=e.target.closest(".mv");
     if(mv){e.preventDefault();e.stopPropagation();
       move(mv.closest("button[data-view]"),mv.dataset.mv);}
