@@ -3719,10 +3719,10 @@ function jwtRole(token){
 function isServiceKey(key){
   if(!key)return false;
   const role=jwtRole(key);
-  if(String(role).includes("service_role"))return true;
-  // 启发式：JWT 且异常长（anon 通常较短，service_role 常 >180）
-  if(key.startsWith("eyJhbGci")&&key.length>180)return true;
-  return false;
+  // 能解出角色时以角色为准（anon key 也可能 >180 字符，不能只看长度）
+  if(role)return String(role).includes("service_role");
+  // 解不出角色时才用启发式：JWT 且异常长
+  return key.startsWith("eyJhbGci")&&key.length>180;
 }
 /* Supabase 配置弹窗（安全增强版） */
 function openSupabaseConfig(){
