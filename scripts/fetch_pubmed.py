@@ -6,6 +6,7 @@ PubMed 核药文献抓取脚本
 - 通过 supabase-py 以 upsert 方式写入 literature 表（按 url 去重）
 - 可独立运行：依赖环境变量 SUPABASE_URL / SUPABASE_SERVICE_KEY
               以及 NCBI_EMAIL / NCBI_API_KEY（API Key 可选但建议配置）
+- 兼容 biopython 1.85 之前（键名 UID）与 1.86+（键名 Id）两种 esummary 结构
 """
 
 import os
@@ -40,6 +41,19 @@ def build_term(target: str) -> str:
         f'OR "radioligand"[Title/Abstract])'
     )
 
+def get_pmid(doc) -> str:
+    """从 esummary 记录中取 PMID，兼容不同 biopython 版本的键名差异。
+
+    biopython <=1.85 的 esummary 记录用 "UID"；
+    biopython 1.86/1.88 起改为 XML 原始键名 "Id"。
+    """
+    raw = doc.get("UID")
+    if raw is None:
+        raw = doc.get("Id")
+    if raw is None:
+        raw = doc.get("uid")
+    return str(raw or "").strip()
+
 def fetch_one_target(target: str) -> int:
     """抓取单个靶点的最新文献，返回写入条数"""
     # 2.1 esearch：拿到最新的 PMID 列表
@@ -66,9 +80,11 @@ def fetch_one_target(target: str) -> int:
 
     rows = []
     for doc in summaries:
-        pmid = str(doc.get("UID", "")).strip()
+        pmid = get_pmid(doc)
         title = (doc.get("Title") or "").strip().rstrip(".")
         if not pmid or not title:
+            # 打印一条诊断信息，便于发现字段再次变化
+            print(f"[PubMed] {target}: 跳过记录，pmid={pmid!r}, title={title[:30]!r}")
             continue
         rows.append(
             {
@@ -83,9 +99,14 @@ def fetch_one_target(target: str) -> int:
 
     # 2.3 upsert 写入 Supabase，url 冲突时更新而非报错
     if rows:
-        supabase.table("literature").upsert(
-            rows, on_conflict="url"
-        ).execute()
+        try:
+            supabase.table("literature").upsert(
+                rows, on_conflict="url"
+            ).execute()
+        except Exception as exc:
+            # 写入失败要明确打印，不能静默吞掉
+            print(f"[PubMed] {target}: upsert 写入失败: {exc}")
+            return 0
 
     print(f"[PubMed] {target}: 获取 {len(pmids)} 篇，写入 {len(rows)} 篇")
     return len(rows)
