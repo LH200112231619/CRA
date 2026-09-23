@@ -53,7 +53,7 @@ create table if not exists public.nuclides (
   representative_drugs text,
   production_method    text,
   monitoring_points    text,                    -- CRA 监查要点，以“; ”拼接
-  references           jsonb,                   -- 原始引用数组 [{t,u}]
+  "references"         jsonb,                   -- 原始引用数组 [{t,u}]
   content_json         jsonb,                   -- 完整原始内容
   created_at           timestamptz not null default now()
 );
@@ -155,7 +155,7 @@ begin
   elsif p.library = 'nuclide' then
     insert into public.nuclides
       (nuclide, half_life, decay_mode, emission_type, common_targets,
-       representative_drugs, production_method, monitoring_points, references, content_json)
+       representative_drugs, production_method, monitoring_points, "references", content_json)
     select
       c->>'nuclide',
       c->>'halfLife',
@@ -175,7 +175,7 @@ begin
       representative_drugs = excluded.representative_drugs,
       production_method    = excluded.production_method,
       monitoring_points    = excluded.monitoring_points,
-      references           = excluded.references,
+      "references"         = excluded."references",
       content_json         = excluded.content_json;
 
   -- ---------------- 专业词块 -> vocab_chunks ----------------
