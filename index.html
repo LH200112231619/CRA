@@ -2799,9 +2799,9 @@ function renderProjects(){
   <h2 class="page">我的项目库 <span class="muted">（${state.projects.length} 个）</span></h2>
   <div class="row" style="margin:10px 0">
     <button class="sm primary" data-act="projectNew">手动创建项目</button>
-    <button class="sm" data-act="projectUpload">上传文件自动解析</button>
+    <button class="sm" data-act="projectUpload">上传 PDF/Word/TXT</button>
     <button class="sm" data-act="projectJSON">导入 JSON</button>
-    <input type="file" id="projFile" class="hide" accept=".pdf,.docx,.txt,.md">
+    <input type="file" id="projFile" class="hide" accept=".pdf,.docx,.doc,.txt,.md">
     <input type="file" id="projJsonFile" class="hide" accept=".json">
   </div>
   <div class="grid g2">
@@ -2884,8 +2884,15 @@ function bindProjectFile(){
           for(let i=1;i<=Math.min(doc.numPages,30);i++){const pg=await doc.getPage(i);const c=await pg.getTextContent();txt+=c.items.map(it=>it.str).join(" ")+"\n";}
           openParsedForm(parseStudyText(txt));
         }catch(err){openPasteModal("PDF 解析器未能加载或解析失败（"+err.message+"），请复制方案文本到下方文本框：");}
-      }else if(lower.endsWith(".docx")){
-        openPasteModal("DOCX 暂不支持直接解析，请在 Word 中另存为 TXT，或复制方案文本到下方文本框：");
+      }else if(lower.endsWith(".docx")||lower.endsWith(".doc")){
+        toast("正在解析 Word 文档…");
+        try{
+          const lib=await ensureMammoth();
+          const buf=await file.arrayBuffer();
+          const out=await lib.extractRawText({arrayBuffer:buf});
+          if(out&&out.value&&out.value.trim())openParsedForm(parseStudyText(out.value));
+          else openPasteModal("未能从该 Word 提取文字（旧版 .doc 可能不支持），请复制文档文本到下方文本框：");
+        }catch(err){openPasteModal("Word 解析器加载或解析失败，请复制文档文本到下方文本框：");}
       }else openPasteModal("请复制方案文本到下方文本框：");
     }
     /* JSON 导入项目 */
@@ -2902,17 +2909,44 @@ function bindProjectFile(){
     }
   });
 }
-/* 动态加载 pdf.js CDN，失败则抛错走粘贴 fallback */
-function ensurePdfJs(){
-  return new Promise((res,rej)=>{
-    if(window.pdfjsLib)return res(window.pdfjsLib);
-    const s=document.createElement("script");
-    s.src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";
-    s.onload=()=>{window.pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";res(window.pdfjsLib);};
-    s.onerror=()=>rej(new Error("pdf.js CDN 加载失败"));
-    document.head.appendChild(s);
-    setTimeout(()=>rej(new Error("pdf.js 加载超时")),9000);
+/* 通用 CDN 脚本加载：依次尝试多个源，全部失败才 reject */
+function loadCdnScript(urls){
+  return new Promise((resolve,reject)=>{
+    let i=0;
+    const tryNext=()=>{
+      if(i>=urls.length)return reject(new Error("所有 CDN 源均加载失败"));
+      const u=urls[i++],s=document.createElement("script");
+      s.src=u.src;s.async=true;
+      s.onload=()=>{try{if(u.after)u.after();resolve();}catch(e){reject(e);}};
+      s.onerror=()=>{s.remove();tryNext();};
+      document.head.appendChild(s);
+    };
+    tryNext();
   });
+}
+/* pdf.js：多 CDN 回退（cdnjs → jsdelivr → unpkg） */
+function ensurePdfJs(){
+  if(window.pdfjsLib)return Promise.resolve(window.pdfjsLib);
+  const v="3.11.174";
+  const hosts=[
+    "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/"+v,
+    "https://cdn.jsdelivr.net/npm/pdfjs-dist@"+v+"/build",
+    "https://unpkg.com/pdfjs-dist@"+v+"/build"
+  ];
+  return loadCdnScript(hosts.map(h=>({src:h+"/pdf.min.js",
+    after:()=>{window.pdfjsLib.GlobalWorkerOptions.workerSrc=h+"/pdf.worker.min.js";}})))
+    .then(()=>window.pdfjsLib);
+}
+/* mammoth：解析 Word(.docx) 纯文本，多 CDN 回退 */
+function ensureMammoth(){
+  if(window.mammoth)return Promise.resolve(window.mammoth);
+  const v="1.6.0";
+  const urls=[
+    {src:"https://cdnjs.cloudflare.com/ajax/libs/mammoth/"+v+"/mammoth.browser.min.js"},
+    {src:"https://cdn.jsdelivr.net/npm/mammoth@"+v+"/mammoth.browser.min.js"},
+    {src:"https://unpkg.com/mammoth@"+v+"/mammoth.browser.min.js"}
+  ];
+  return loadCdnScript(urls).then(()=>window.mammoth);
 }
 function openPasteModal(msg){
   openModal(`<h3>粘贴文本解析</h3><p class="muted">${msg}</p>
