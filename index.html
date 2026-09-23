@@ -186,6 +186,29 @@ kbd{background:var(--bg3);border:1px solid var(--line);border-bottom-width:2px;b
 .wcard .muted{font-size:.95rem;}
 .tablewrap{overflow-x:auto;}
 select[data-act=jbStatus]{padding:4px 6px;}
+/* 导航排序工具 */
+.nav-tools{display:flex;gap:6px;padding:6px 10px;background:var(--bg);}
+.nav.nav-editing{border:1.5px dashed var(--brand);border-radius:10px;padding:4px;}
+.nav.nav-editing button{cursor:grab;user-select:none;}
+.nav.nav-editing button:active{cursor:grabbing;}
+.nav.nav-editing button.drag-over{outline:2px dashed var(--brand);outline-offset:1px;}
+.nav.nav-editing button.dragging{opacity:.45;}
+/* 红色安全警告 */
+.security-warn{background:var(--red-soft);border:1.5px solid var(--red);color:var(--red);
+  border-radius:10px;padding:10px 12px;font-weight:600;margin:8px 0;}
+.security-tip{background:var(--brand-soft);border:1px solid var(--brand);border-radius:10px;
+  padding:9px 12px;font-size:13px;margin:8px 0;}
+.pw-wrap{position:relative;display:flex;gap:6px;align-items:center;}
+.pw-wrap input{flex:1;}
+.pw-wrap .toggle-eye{width:auto;padding:6px 10px;}
+/* 法规库 */
+.reg-card h3{font-size:1.02rem;}
+.reg-meta{display:flex;flex-wrap:wrap;gap:5px;margin:6px 0;}
+.reg-clause{background:var(--bg3);border-radius:10px;padding:10px;margin:8px 0;font-size:13.5px;}
+.reg-clause p{margin:4px 0;}
+.reg-interp{border-left:3px solid var(--green);padding-left:9px;margin:8px 0;font-size:13.5px;}
+.filterbar2{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0;}
+.filterbar2 select,.filterbar2 input{width:auto;flex:1;min-width:140px;}
 </style>
 </head>
 <body>
@@ -202,22 +225,29 @@ select[data-act=jbStatus]{padding:4px 6px;}
     </div>
   </div>
 </header>
-<div class="navwrap"><nav class="nav" id="nav">
-  <button data-view="dashboard" class="active">首页仪表盘</button>
-  <button data-view="daily">每日更新中心</button>
-  <button data-view="chunks">专业词块练习</button>
-  <button data-view="words">常规背单词</button>
-  <button data-view="sentence">造句训练</button>
-  <button data-view="projects">项目口述库</button>
-  <button data-view="targets">靶点库</button>
-  <button data-view="jobs">岗位追踪</button>
-  <button data-view="myq">我的面试题库</button>
-  <button data-view="extq">外企面试题库</button>
-  <button data-view="answers">答案库</button>
-  <button data-view="listening">听力跟读</button>
-  <button data-view="plan">周计划</button>
-  <button data-view="stats">进度统计</button>
-  <button data-view="search">搜索</button>
+<div class="navwrap">
+  <div class="nav-tools">
+    <button class="sm ghost" id="btnNavEdit" title="拖拽调整模块顺序">编辑排序</button>
+    <button class="sm ghost hide" id="btnNavReset">恢复默认排序</button>
+    <button class="sm hide" id="btnNavDone">完成</button>
+  </div>
+  <nav class="nav" id="nav">
+  <button data-view="dashboard" class="active" draggable="false">首页仪表盘</button>
+  <button data-view="daily" draggable="false">每日更新中心</button>
+  <button data-view="chunks" draggable="false">专业词块练习</button>
+  <button data-view="words" draggable="false">常规背单词</button>
+  <button data-view="sentence" draggable="false">造句训练</button>
+  <button data-view="projects" draggable="false">项目口述库</button>
+  <button data-view="targets" draggable="false">靶点库</button>
+  <button data-view="jobs" draggable="false">岗位追踪</button>
+  <button data-view="myq" draggable="false">我的面试题库</button>
+  <button data-view="extq" draggable="false">外企面试题库</button>
+  <button data-view="reglib" draggable="false">法规库</button>
+  <button data-view="answers" draggable="false">答案库</button>
+  <button data-view="listening" draggable="false">听力跟读</button>
+  <button data-view="plan" draggable="false">周计划</button>
+  <button data-view="stats" draggable="false">进度统计</button>
+  <button data-view="search" draggable="false">搜索</button>
 </nav></div>
 <main>
   <section class="view active" id="view-dashboard"></section>
@@ -230,6 +260,7 @@ select[data-act=jbStatus]{padding:4px 6px;}
   <section class="view" id="view-jobs"></section>
   <section class="view" id="view-myq"></section>
   <section class="view" id="view-extq"></section>
+  <section class="view" id="view-reglib"></section>
   <section class="view" id="view-answers"></section>
   <section class="view" id="view-listening"></section>
   <section class="view" id="view-plan"></section>
@@ -2632,7 +2663,10 @@ function renderDaily(){
   const regs=[...c.regulations,...state.regsLocal.map(r=>({...r,link:r.url,published:r.date}))].slice(0,14);
   const lits=[...c.literature];
   const trials=[...c.trials];
-  const jobs=[...c.jobs];
+  /* 岗位：云端为空时用本地渠道兜底，保证不空白 */
+  const localJobRows=T_JOBCHANNELS.slice(0,12)
+    .map(c=>({title:c.name,url:c.url,company:c.type+" · "+c.keywordsCN}));
+  const jobs=c.jobs.length?c.jobs:localJobRows;
   const qCloud=[...c.questions];
   const myQ=state.myQuestions;
   const manual=state.dailyManual.filter(m=>m.date===todayStr());
@@ -2650,7 +2684,7 @@ function renderDaily(){
   <div class="columns5">
     ${col("法规动态",regs,"暂无法规更新；可配置 Supabase 后自动同步")}
     ${col("靶点/文献",[...lits,...trials.map(t=>({title:t.briefTitle||t.title,url:t.url||("https://clinicaltrials.gov/study/"+(t.nctId||t.nct_id||""))}))].slice(0,14),"暂无文献/试验更新")}
-    ${col("岗位刷新",jobs,"暂无岗位更新；可从岗位渠道手动查看："+JOB_CHANNELS.slice(0,4).join(" / "))}
+    ${col("岗位刷新",jobs,"暂无岗位；完整渠道与投递表见“岗位追踪”模块")}
     ${col("面试题新增",[...qCloud,...myQ.slice(-8).map(q=>({q:q.q,title:q.q})),...manual.filter(m=>m.col==="面试题")].slice(0,14),"暂无新增面试题；可在项目库生成或手动录入")}
     ${col("学习任务",[{text:"15 分钟词块 + 20 分钟项目口述 + 10 分钟面试题 + 5 分钟复盘"},...manual.filter(m=>m.col!=="面试题")],"今日学习任务见首页")}
   </div>
@@ -3515,6 +3549,14 @@ document.addEventListener("click",async e=>{
     case "wHint":{const w=curWord();toast("首字母 "+w.word[0].toUpperCase()+"，共 "+w.word.length+" 个字母");break;}
     case "wAgain":startWordSession(state.wordStudy.lastMode||"card");break;
     case "wBackStats":wSession=null;renderWords();break;
+    case "wMarket":openWordMarket();break;
+    case "wMarketGet":{
+      const u=d.url==="__custom__"?($("#wMarketUrl")||{}).value.trim():d.url;
+      if(!u){toast("请粘贴词源链接");break;}
+      try{const r=await fetchAndIngest(u);closeModal();
+        toast("已导入 "+r.n+" 词，当前词库共 "+r.total+" 词");}
+      catch(err){toast("拉取失败："+err.message);}
+      break;}
     /* 弹窗 */
     case "modalClose":closeModal();break;
   }
@@ -3537,22 +3579,75 @@ document.addEventListener("click",e=>{
   saveState();closeModal();renderMyQ();
 });
 
-/* Supabase 配置弹窗 */
+/* 解析 JWT payload（不验证签名，仅用于识别角色） */
+function jwtRole(token){
+  try{
+    const part=token.split(".")[1].replace(/-/g,"+").replace(/_/g,"/");
+    const json=decodeURIComponent(Array.prototype.map.call(atob(part),
+      c=>"%"+("00"+c.charCodeAt(0).toString(16)).slice(-2)).join(""));
+    const o=JSON.parse(json);
+    return o.role||(o.app_metadata&&o.app_metadata.role)||"";
+  }catch(e){return "";}
+}
+/* 检测是否误填 service_role key */
+function isServiceKey(key){
+  if(!key)return false;
+  const role=jwtRole(key);
+  if(String(role).includes("service_role"))return true;
+  // 启发式：JWT 且异常长（anon 通常较短，service_role 常 >180）
+  if(key.startsWith("eyJhbGci")&&key.length>180)return true;
+  return false;
+}
+/* Supabase 配置弹窗（安全增强版） */
 function openSupabaseConfig(){
   const s=state.settings;
+  const bad=isServiceKey(s.supabaseAnonKey);
   openModal(`<h3>配置 Supabase 连接（可选）</h3>
-  <p class="muted">不配置也可正常使用全部本地功能。配置后每日更新中心可自动拉取法规、文献、岗位。</p>
+  <p class="muted">不配置也可正常使用全部本地功能；配置后每日更新中心可自动拉取法规、文献、岗位。</p>
+  <div class="security-tip">⚠️ 安全提示：前端只能填写 <b>anon / publishable public key</b>；<b>绝对禁止</b>填写 service_role key，它只能用于后端脚本，泄露会危及数据库。</div>
+  ${bad?`<div class="security-warn">🚨 警告！检测到你填入的可能是 service_role key！请立即前往 Supabase 控制台重置 API Key，并换成 anon key！</div>`:""}
   <div class="field"><label>Supabase Project URL</label><input id="sbUrl" value="${esc(s.supabaseUrl)}" placeholder="https://xxxx.supabase.co"></div>
-  <div class="field"><label>anon / publishable key（前端使用，安全）</label><input id="sbAnon" value="${esc(s.supabaseAnonKey)}"></div>
-  <div class="row"><button class="primary" data-act="sbSave">保存并拉取</button>
-  <button data-act="modalClose">取消</button></div>`);
+  <div class="field"><label>anon / publishable key（前端使用）</label>
+    <div class="pw-wrap">
+      <input id="sbAnon" type="password" value="${esc(s.supabaseAnonKey)}" placeholder="粘贴 anon key（输入内容默认隐藏）" autocomplete="off">
+      <button class="toggle-eye" type="button" data-act="sbEye">显示</button>
+    </div>
+  </div>
+  <div class="row wrap">
+    <button class="primary" data-act="sbSave">保存并拉取</button>
+    <button class="ghost" data-act="sbClear">清空配置</button>
+    <button data-act="modalClose">取消</button>
+  </div>`);
 }
+/* 配置弹窗内的按钮（事件委托） */
 document.addEventListener("click",async e=>{
+  const eye=e.target.closest('[data-act="sbEye"]');
+  if(eye){
+    const inp=$("#sbAnon");const show=inp.type==="password";
+    inp.type=show?"text":"password";eye.textContent=show?"隐藏":"显示";
+    return;
+  }
+  const clr=e.target.closest('[data-act="sbClear"]');
+  if(clr){
+    state.settings.supabaseUrl="";state.settings.supabaseAnonKey="";
+    saveState();closeModal();renderDaily();toast("已清空 Supabase 配置，继续使用本地数据");
+    return;
+  }
   const b=e.target.closest('[data-act="sbSave"]');if(!b)return;
-  state.settings.supabaseUrl=$("#sbUrl").value.trim();
-  state.settings.supabaseAnonKey=$("#sbAnon").value.trim();
+  const url=$("#sbUrl").value.trim(),key=$("#sbAnon").value.trim();
+  if(key&&isServiceKey(key)){
+    const box=document.querySelector(".security-tip");
+    const warn=document.createElement("div");
+    warn.className="security-warn";
+    warn.innerHTML="🚨 警告！切勿在前端填入 service_role key，请立即前往 Supabase 控制台重置 API Key，并换成 anon key！";
+    box.after(warn);
+    toast("已阻止保存：检测到 service_role key");
+    return;
+  }
+  state.settings.supabaseUrl=url;state.settings.supabaseAnonKey=key;
   saveState();closeModal();toast("配置已保存");
-  await refreshAll();renderDaily();
+  if(url&&key){try{await refreshAll();}catch(err){toast("拉取失败，已保留本地数据");}}
+  renderDaily();
 });
 
 /* 每日手动条目弹窗 */
@@ -3570,6 +3665,264 @@ document.addEventListener("click",e=>{
   const t=$("#daText").value.trim();if(!t){toast("请填写内容");return;}
   state.dailyManual.push({date:todayStr(),col:$("#daCol").value,text:t,url:$("#daUrl").value.trim()});
   saveState();closeModal();renderDaily();
+});
+
+/* =====================================================================
+ * 法规库 REG_LIBRARY（30 条系统化收录，中英对照条文 + CRA 解读）
+ * 字段：id,name,nameCN,org,issue,effective,region,cat,clauseEN,clauseCN,interp,related,url
+ * ===================================================================== */
+const REG_LIBRARY=[
+{id:"r01",name:"ICH E6(R2) Good Clinical Practice",nameCN:"ICH 药物临床试验质量管理规范 E6(R2)",
+ org:"ICH",issue:"2016-11",effective:"2016-11",region:"国际",cat:"GCP",
+ clauseEN:"The sponsor should ensure that trials are adequately monitored, and should determine the nature and extent of monitoring based on risk. Source data should be attributable, legible, contemporaneous, original and accurate (ALCOA).",
+ clauseCN:"申办者应确保试验得到充分监查，并基于风险确定监查的性质与范围；源数据应满足可归属、清晰、同步、原始、准确（ALCOA 原则）。",
+ interp:"监查计划、SDV 范围、风险监查（100% SDV 并非强制）都以此为依据；面试时用 ALCOA 解释数据质量。",
+ related:"全部项目",url:"https://database.ich.org/sites/default/files/E6_R2_Addendum.pdf"},
+{id:"r02",name:"ICH E6(R3) Good Clinical Practice (modernized)",nameCN:"ICH GCP E6(R3) 现代化 GCP",
+ org:"ICH",issue:"2025-01",effective:"逐步实施",region:"国际",cat:"GCP",
+ clauseEN:"Principles emphasize a fit-for-purpose, risk-proportionate approach, critical data and processes, and strengthened quality management across the lifecycle.",
+ clauseCN:"原则强调适配用途、风险相称的方法，聚焦关键数据与关键流程，并强化全生命周期质量管理。",
+ interp:"外企面试常问 R2 与 R3 区别：R3 更强调风险相称与质量源于设计；回答时说明监查资源投向关键数据。",
+ related:"全部项目",url:"https://www.ich.org/page/efficacy-guidelines"},
+{id:"r03",name:"NMPA Good Clinical Practice for Drugs (No.57, 2020)",nameCN:"NMPA《药物临床试验质量管理规范》（2020 年第 57 号）",
+ org:"NMPA",issue:"2020-04-26",effective:"2020-07-01",region:"中国",cat:"GCP",
+ clauseEN:"Researchers must conduct the trial in compliance with the approved protocol, obtain informed consent, ensure data authenticity, and report SAEs promptly to the sponsor and authorities.",
+ clauseCN:"研究者应当按照经批准的方案实施试验、获取知情同意、保证数据真实，并及时向申办者和监管部门报告 SAE。",
+ interp:"国内项目监查的根本依据；与 ICH GCP 高度接轨，口述时可对照表述。",
+ related:"全部核药项目",url:"https://www.nmpa.gov.cn/"},
+{id:"r04",name:"FDA Draft Guidance: Dosage Optimization of Therapeutic Radiopharmaceuticals for Oncology (2025)",nameCN:"FDA 肿瘤治疗性放射性药物剂量优化指南（2025 草案）",
+ org:"FDA",issue:"2025",effective:"草案",region:"美国",cat:"核药",
+ clauseEN:"The draft encourages patient-specific or model-based dosimetry to optimize administered activity, and collection of dose-response and dose-toxicity data in oncology radiopharmaceutical development.",
+ clauseCN:"草案鼓励采用患者特异性或基于模型的剂量学来优化给药活度，并在核药开发中收集剂量-疗效与剂量-毒性数据。",
+ interp:"核药治疗项目监查要核对剂量学采集时间点、器官剂量计算与数据完整性；面试核药公司高频考点。",
+ related:"Lu-177/Ac-225 治疗项目",url:"https://www.fda.gov/regulatory-information/search-fda-guidance-documents"},
+{id:"r05",name:"EMA Guideline on Radiopharmaceuticals (quality)",nameCN:"EMA 放射性药品质量指南",
+ org:"EMA",issue:"现行版",effective:"现行",region:"欧盟",cat:"核药",
+ clauseEN:"Radiopharmaceuticals must meet defined standards for radionuclide identity and purity, radiochemical purity, sterility and stability; batch release includes measurement of radioactivity.",
+ clauseCN:"放射性药品必须符合核素鉴别与纯度、放射化学纯度、无菌与稳定性标准；批放行包括放射性活度测定。",
+ interp:"核药 IP accountability 需核对批号、活度、核素纯度与放行记录；热室与核医学科协调的依据。",
+ related:"全部核药项目",url:"https://www.ema.europa.eu/"},
+{id:"r06",name:"NMPA Technical Guideline for Clinical Evaluation of In Vivo Radiodiagnostic Drugs",nameCN:"NMPA《放射性体内诊断药物临床评价技术指导原则》",
+ org:"NMPA",issue:"现行版",effective:"现行",region:"中国",cat:"核药",
+ clauseEN:"Clinical evaluation should demonstrate diagnostic efficacy using endpoints such as sensitivity, specificity and reader agreement, with an adequate reference standard.",
+ clauseCN:"临床评价应采用灵敏度、特异度、阅片一致性等适宜终点，并设置充分的参考标准来证明诊断效能。",
+ interp:"诊断类 IIT 监查重点：盲法阅片、参考标准（病理/随访）一致性、诊断效能数据 SDV。",
+ related:"PSMA/CAIX/CD73/Nectin-4 诊断 IIT",url:"https://www.cde.org.cn/"},
+{id:"r07",name:"IAEA Radiation Protection and Safety in Nuclear Medicine",nameCN:"IAEA 核医学辐射防护与安全",
+ org:"IAEA",issue:"现行版",effective:"现行",region:"国际",cat:"辐射防护",
+ clauseEN:"Facilities must apply justification, optimization and dose limitation; staff use monitoring, shielding and controlled areas, and administered activities are verified before administration.",
+ clauseCN:"机构必须执行正当性、最优化与剂量限值原则；工作人员使用个人剂量监测、屏蔽与控制区，给药前核对活度。",
+ interp:"辐射安全面试必答：人员培训、个人剂量计、控制区/监督区、给药前双人核对与废物衰变存放。",
+ related:"全部核药项目",url:"https://www.iaea.org/"},
+{id:"r08",name:"EANM/SNMMI Practical Guidance for 177Lu-PSMA Radioligand Therapy",nameCN:"EANM/SNMMI Lu-177-PSMA 放射配体治疗操作指南",
+ org:"EANM/SNMMI",issue:"现行版",effective:"现行",region:"国际",cat:"核药",
+ clauseEN:"Guidance covers patient selection, administered activity, kidney and salivary gland protection, dosimetry imaging time points, and discharge radiation safety instructions.",
+ clauseCN:"指南涵盖患者选择、给药活度、肾脏与唾液腺保护、剂量学显像时间点以及出院辐射安全指导。",
+ interp:"治疗日监查：氨基酸输注、给药活度核对、SPECT 显像时间点、出院指导与 AE 随访。",
+ related:"PSMA 治疗项目",url:"https://www.eanm.org/"},
+{id:"r09",name:"ICH E2A Clinical Safety Data Management",nameCN:"ICH E2A 临床安全数据管理（AE/SAE 定义）",
+ org:"ICH",issue:"1994",effective:"现行",region:"国际",cat:"安全",
+ clauseEN:"An SAE is any untoward medical occurrence that results in death, is life-threatening, requires hospitalization, causes disability, or is a congenital anomaly; sponsors should expedite reporting.",
+ clauseCN:"SAE 指导致死亡、危及生命、需要住院、致残或先天异常的任何不良医学事件；申办者应加速报告。",
+ interp:"面试 How do you handle SAE：识别→24 小时内报告→收集资料→随访→核对 eCRF 与数据库一致。",
+ related:"全部项目",url:"https://database.ich.org/"},
+{id:"r10",name:"ICH E2D Post-Approval Safety Data Management",nameCN:"ICH E2D 上市后安全数据管理",
+ org:"ICH",issue:"2003",effective:"现行",region:"国际",cat:"安全",
+ clauseEN:"Sponsors should collect and assess serious adverse reactions from all relevant sources, including spontaneous reports and post-authorization studies.",
+ clauseCN:"申办者应收集并评估来自所有相关来源的严重不良反应，包括自发报告与上市后研究。",
+ interp:"帮助区分试验内 AE 与上市后报告口径，核药公司安全岗位相关。",
+ related:"核药上市产品",url:"https://database.ich.org/"},
+{id:"r11",name:"ICH E3 Clinical Study Reports",nameCN:"ICH E3 临床研究报告（CSR）",
+ org:"ICH",issue:"1995",effective:"现行",region:"国际",cat:"GCP",
+ clauseEN:"The clinical study report should provide full, well-structured documentation of methods, results, safety and efficacy, integrated with supporting data.",
+ clauseCN:"临床研究报告应完整、结构清晰地记录方法、结果、安全性与有效性，并与支持性数据整合。",
+ interp:"理解监查数据如何汇入 CSR；英文监查报告写作的结构参考。",
+ related:"注册项目",url:"https://database.ich.org/"},
+{id:"r12",name:"ICH E8(R1) General Considerations for Clinical Studies",nameCN:"ICH E8(R1) 临床研究的一般考虑",
+ org:"ICH",issue:"2021",effective:"现行",region:"国际",cat:"GCP",
+ clauseEN:"Introduces quality by design: identify critical to quality factors and design the study to protect participants' rights and data reliability.",
+ clauseCN:"引入质量源于设计：识别关键质量因素，通过设计保护受试者权益以及数据可靠性。",
+ interp:"与 E6(R3) 配合，回答质量体系与风险监查设计。",
+ related:"全部项目",url:"https://database.ich.org/"},
+{id:"r13",name:"ICH E9 Statistical Principles for Clinical Trials",nameCN:"ICH E9 临床试验统计学原则",
+ org:"ICH",issue:"1998",effective:"现行",region:"国际",cat:"数据",
+ clauseEN:"The protocol should pre-specify analyses, sample size, handling of missing data and methods to control bias such as randomization and blinding.",
+ clauseCN:"方案应预先规定分析方法、样本量、缺失数据处理以及控制偏倚的随机化与盲法。",
+ interp:"监查时核对分层因素、主要终点数据与方案统计口径一致性。",
+ related:"注册/诊断效能项目",url:"https://database.ich.org/"},
+{id:"r14",name:"ICH E18 Genomic Sampling and Genetic Testing",nameCN:"ICH E18 基因组采样与遗传检测",
+ org:"ICH",issue:"2008",effective:"现行",region:"国际",cat:"数据",
+ clauseEN:"Genetic samples require separate informed consent, clear coding and confidentiality, with defined retention and withdrawal procedures.",
+ clauseCN:"遗传样本需要单独知情同意、清晰编码与保密，并规定保存与撤回程序。",
+ interp:"伴随诊断/BRCA 等试剂盒项目：核对遗传信息知情同意与样本编码。",
+ related:"BRCA/PIK3CA 试剂盒",url:"https://database.ich.org/"},
+{id:"r15",name:"FDA 21 CFR Part 312 Investigational New Drug Application",nameCN:"FDA 21 CFR 312 试验用新药（IND）法规",
+ org:"FDA",issue:"现行",effective:"现行",region:"美国",cat:"GCP",
+ clauseEN:"The sponsor is responsible for selecting qualified investigators, providing proper information, ensuring proper use of IP and notifying FDA of significant safety issues.",
+ clauseCN:"申办者负责选择合格研究者、提供正确资料、确保 IP 正确使用，并向 FDA 通报重大安全问题。",
+ interp:"理解申办者-CRA-研究者职责链；IP accountability 与安全报告的上位法。",
+ related:"核药 IND 项目",url:"https://www.ecfr.gov/current/title-21/chapter-I/subchapter-D/part-312"},
+{id:"r16",name:"FDA 21 CFR Part 50 Protection of Human Subjects",nameCN:"FDA 21 CFR 50 受试者保护（知情同意）",
+ org:"FDA",issue:"现行",effective:"现行",region:"美国",cat:"GCP",
+ clauseEN:"Informed consent must be obtained before participation, disclose risks and alternatives, and be documented with IRB approval.",
+ clauseCN:"参与研究前必须获取知情同意，披露风险与替代方案，并以 IRB 批准的文件记录。",
+ interp:"ICF 核查清单：版本正确、签署日期、页签、特殊人群；监查高频项。",
+ related:"全部项目",url:"https://www.ecfr.gov/current/title-21/chapter-I/subchapter-A/part-50"},
+{id:"r17",name:"FDA 21 CFR Part 56 Institutional Review Boards",nameCN:"FDA 21 CFR 56 机构审查委员会（IRB）",
+ org:"FDA",issue:"现行",effective:"现行",region:"美国",cat:"GCP",
+ clauseEN:"IRBs must review and approve protocols and consent forms, conduct continuing review, and ensure risks are minimized and reasonable.",
+ clauseCN:"IRB 必须审查批准方案与知情同意书、进行持续审查，确保风险最小化且合理。",
+ interp:"监查伦理文件：IRB 批件、成员名单、持续审查与方案修订批准。",
+ related:"全部项目",url:"https://www.ecfr.gov/current/title-21/chapter-I/subchapter-A/part-56"},
+{id:"r18",name:"FDA 21 CFR Part 11 Electronic Records & Signatures",nameCN:"FDA 21 CFR 11 电子记录与电子签名",
+ org:"FDA",issue:"现行",effective:"现行",region:"美国",cat:"数据完整性",
+ clauseEN:"Electronic systems must ensure authenticity, integrity and confidentiality through validated systems, audit trails, access controls and electronic signatures.",
+ clauseCN:"电子系统必须通过验证、审计追踪、权限控制与电子签名来确保真实性、完整性与保密性。",
+ interp:"eCRF/EDC 权限、稽查轨迹、电子签名合规依据；数据完整性面试考点。",
+ related:"EDC/eCRF",url:"https://www.ecfr.gov/current/title-21/chapter-I/subchapter-A/part-11"},
+{id:"r19",name:"FDA Guidance: A Risk-Based Approach to Monitoring",nameCN:"FDA 风险导向监查指南",
+ org:"FDA",issue:"2013",effective:"现行",region:"美国",cat:"监查",
+ clauseEN:"Sponsors can combine centralized and on-site monitoring, focus on critical data and processes, and tailor SDV/SDR to identified risks.",
+ clauseCN:"申办者可结合中心化监查与现场监查，聚焦关键数据与流程，并根据识别的风险定制 SDV/SDR。",
+ interp:"回答监查策略：远程数据审查 + 现场关键数据核查，100% SDV 并非必需。",
+ related:"全部项目",url:"https://www.fda.gov/regulatory-information/search-fda-guidance-documents"},
+{id:"r20",name:"EMA EudraLex Vol.10 GCP & EU CTR 536/2014",nameCN:"欧盟 GCP 卷十与临床试验法规 536/2014",
+ org:"EMA/EU",issue:"2014",effective:"2022 起适用",region:"欧盟",cat:"GCP",
+ clauseEN:"The Clinical Trials Regulation harmonizes assessment and supervision across the EU, with a single portal, transparency rules and GCP compliance.",
+ clauseCN:"临床试验法规通过统一门户、透明度规则与 GCP 合规，协调欧盟范围内的评估与监督。",
+ interp:"了解欧盟项目 SSU、统一审批与公开要求；外企 CRO 欧洲项目背景。",
+ related:"欧洲多中心项目",url:"https://health.ec.europa.eu/medicinal-products/eudralex/eudralex-volume-10_en"},
+{id:"r21",name:"EU GMP Annex 13 Investigational Medicinal Products",nameCN:"EU GMP 附录 13 试验用药品",
+ org:"EMA/EU",issue:"现行",effective:"现行",region:"欧盟",cat:"核药",
+ clauseEN:"IMPs must be manufactured, labelled, released and documented under controlled conditions; blinding and randomization must be maintained.",
+ clauseCN:"试验用药品必须在受控条件下生产、贴签、放行并记录；盲法与随机化必须得到维持。",
+ interp:"核药 IP 标签（放射性标识、批号、活度、有效期）与放行记录核查。",
+ related:"核药 IP accountability",url:"https://health.ec.europa.eu/"},
+{id:"r22",name:"NMPA Technical Guideline for Clinical Data Management",nameCN:"NMPA《药物临床试验数据管理工作技术指南》",
+ org:"NMPA/CDE",issue:"2016",effective:"现行",region:"中国",cat:"数据",
+ clauseEN:"Data management should ensure completeness, consistency and reliability through validated systems, defined processes, query management and quality checks.",
+ clauseCN:"数据管理应通过经验证的系统、规范流程、质疑管理与质量核查，确保数据完整、一致、可靠。",
+ interp:"query 流程、数据库锁定、SDV 与 eCRF 一致性核查的依据。",
+ related:"全部项目",url:"https://www.cde.org.cn/"},
+{id:"r23",name:"NMPA GCP for Medical Devices (2022 No.28)",nameCN:"NMPA《医疗器械临床试验质量管理规范》（2022 年第 28 号）",
+ org:"NMPA",issue:"2022-03",effective:"2022-05-01",region:"中国",cat:"器械",
+ clauseEN:"Device trials must verify training, device accountability, imaging/software performance, and conformity with the protocol and technical requirements.",
+ clauseCN:"器械试验应核查培训、器械管理、影像/软件性能，以及与方案和技术要求的一致性。",
+ interp:"软件/影像器械项目：核对操作培训记录、版本管理、评价指标与盲法。",
+ related:"CT 辅助评估软件项目",url:"https://www.nmpa.gov.cn/"},
+{id:"r24",name:"NMPA Measures for IVD Reagents Registration and Filing",nameCN:"NMPA《体外诊断试剂注册与备案管理办法》",
+ org:"NMPA",issue:"2021",effective:"现行",region:"中国",cat:"器械",
+ clauseEN:"IVD clinical evaluation should demonstrate analytical and clinical performance using appropriate specimens, reference methods and statistical analysis.",
+ clauseCN:"IVD 临床评价应使用适宜样本、参考方法与统计分析，证明分析性能与临床性能。",
+ interp:"核酸试剂盒项目：样本选择、阴阳性符合率、参考方法与数据 SDV。",
+ related:"梅毒/HSV、BRCA/PIK3CA 试剂盒",url:"https://www.nmpa.gov.cn/"},
+{id:"r25",name:"PMDA Japanese GCP (MHLW Ordinance)",nameCN:"日本 PMDA GCP（厚生劳动省令）",
+ org:"PMDA",issue:"现行",effective:"现行",region:"日本",cat:"GCP",
+ clauseEN:"Japanese GCP requires contract execution, IRB review, informed consent, source document access and proper IP control.",
+ clauseCN:"日本 GCP 要求签订合同、IRB 审查、知情同意、源文件可及以及 IP 妥善管理。",
+ interp:"了解亚太多中心差异；Novotech/PPD 日本项目背景知识。",
+ related:"亚太多中心",url:"https://www.pmda.go.jp/"},
+{id:"r26",name:"IAEA GSR Part 3 / EURATOM 2013/59 Basic Safety Standards",nameCN:"IAEA GSR Part 3 与欧盟 EURATOM 2013/59 基本安全标准",
+ org:"IAEA/EU",issue:"2014",effective:"现行",region:"国际/欧盟",cat:"辐射防护",
+ clauseEN:"Basic safety standards establish dose limits for workers and the public, occupational exposure monitoring and emergency/medical exposure requirements.",
+ clauseCN:"基本安全标准规定了工作人员与公众的剂量限值、职业照射监测以及应急/医疗照射要求。",
+ interp:"职业人员剂量限值、个人剂量监测与医疗照射正当性的法律依据。",
+ related:"核医学科辐射安全",url:"https://www.iaea.org/"},
+{id:"r27",name:"SNMMI Procedure Standard for PET Tumor Imaging",nameCN:"SNMMI 肿瘤 PET 显像操作标准",
+ org:"SNMMI",issue:"现行",effective:"现行",region:"美国/国际",cat:"影像",
+ clauseEN:"Standards specify patient preparation, uptake time, administered activity, acquisition parameters and QC for PET/CT imaging.",
+ clauseCN:"标准规定了 PET/CT 显像的患者准备、摄取时间、给药活度、采集参数与质量控制。",
+ interp:"监查 PET/CT 是否按方案窗与标准参数执行；SUV 数据可比性。",
+ related:"全部 PET/CT 项目",url:"https://www.snmmi.org/"},
+{id:"r28",name:"EANM EARL Accreditation & FDG PET/CT Specification",nameCN:"EANM EARL 认证与 FDG PET/CT 规范",
+ org:"EANM",issue:"现行",effective:"现行",region:"欧洲/国际",cat:"影像",
+ clauseEN:"EARL harmonizes SUV quantification across scanners through QC, calibration and accreditation, supporting multicenter comparability.",
+ clauseCN:"EARL 通过质量控制、校准与认证协调各扫描仪的 SUV 定量，支持多中心可比性。",
+ interp:"多中心核药试验要核对中心是否完成设备校准/EARL 认证，保证 SUV 可比。",
+ related:"多中心核药项目",url:"https://www.eanm.org/"},
+{id:"r29",name:"NMPA Measures for the Administration of Radioactive Drugs",nameCN:"NMPA《放射性药品管理办法》",
+ org:"NMPA",issue:"现行",effective:"现行",region:"中国",cat:"核药",
+ clauseEN:"Production, transport, use and waste handling of radioactive drugs require licenses, trained personnel and compliance with radiation safety rules.",
+ clauseCN:"放射性药品的生产、运输、使用与废物处理均需许可、持证人员并遵守辐射安全规定。",
+ interp:"核药 SSU：科室放射性药品使用许可、人员资质、运输与废物衰变记录。",
+ related:"全部核药项目",url:"https://www.nmpa.gov.cn/"},
+{id:"r30",name:"NMPA Rule on Expedited Safety Reporting During Clinical Trials",nameCN:"NMPA 药物临床试验期间安全性数据快速报告规定",
+ org:"NMPA",issue:"2018",effective:"现行",region:"中国",cat:"安全",
+ clauseEN:"Sponsors should report suspected unexpected serious adverse reactions (SUSARs) within strict timelines: fatal or life-threatening cases are expedited, others within defined days.",
+ clauseCN:"申办者应在严格时限内报告可疑且非预期严重不良反应（SUSAR）：致死/危及生命病例加速报告，其余按规定天数报告。",
+ interp:"区分 SAE 与 SUSAR；监查时核对报告时限、eCRF 与安全数据库一致。",
+ related:"全部项目",url:"https://www.cde.org.cn/"}
+];
+
+/* ===== 法规库渲染 ===== */
+let regUI={q:"",org:"",cat:"",open:""};
+function renderRegLibrary(){
+  const orgs=[...new Set(REG_LIBRARY.map(r=>r.org))];
+  const cats=[...new Set(REG_LIBRARY.map(r=>r.cat))];
+  const q=regUI.q.toLowerCase();
+  const list=REG_LIBRARY.filter(r=>{
+    if(regUI.org&&r.org!==regUI.org)return false;
+    if(regUI.cat&&r.cat!==regUI.cat)return false;
+    if(q&&!(r.name.toLowerCase().includes(q)||r.nameCN.includes(regUI.q)
+      ||r.clauseEN.toLowerCase().includes(q)||r.clauseCN.includes(regUI.q)))return false;
+    return true;
+  });
+  $("#view-reglib").innerHTML=`
+  <h2 class="page">法规库 <span class="muted">（系统化收录 ${REG_LIBRARY.length} 条）</span></h2>
+  <p class="muted">与每日更新中心的“法规动态”不同，这里是系统化、中英对照的核心法规条文与 CRA 应用解读。</p>
+  <div class="filterbar2">
+    <select id="regOrg"><option value="">全部机构</option>${orgs.map(o=>`<option ${regUI.org===o?"selected":""}>${o}</option>`).join("")}</select>
+    <select id="regCat"><option value="">全部分类</option>${cats.map(c=>`<option ${regUI.cat===c?"selected":""}>${c}</option>`).join("")}</select>
+    <input id="regQ" placeholder="搜索法规名称 / 条文（中/英）" value="${esc(regUI.q)}">
+  </div>
+  ${list.length?list.map(r=>{
+    const open=regUI.open===r.id;
+    return `<div class="card reg-card" id="reg-${r.id}">
+      <div class="row space-between">
+        <div>
+          <h3>${esc(r.nameCN)} <span class="muted">${esc(r.name)}</span></h3>
+          <div class="reg-meta">
+            <span class="chip">${esc(r.org)}</span><span class="chip">${esc(r.cat)}</span>
+            <span class="chip">${esc(r.region)}</span>
+            <span class="chip">发布 ${esc(r.issue)}</span><span class="chip">生效 ${esc(r.effective)}</span>
+          </div>
+        </div>
+        <button class="sm ghost" data-act="regToggle" data-id="${r.id}">${open?"收起":"展开条文"}</button>
+      </div>
+      ${open?`<div class="reg-clause">
+        <p>🇬🇧 ${esc(r.clauseEN)}</p>
+        <p>🇨🇳 ${esc(r.clauseCN)}</p>
+        <div class="row gap wrap mts">
+          <button class="sm" data-act="regCopy" data-id="${r.id}">一键复制中英条文</button>
+          <button class="sm" data-act="regSpeak" data-id="${r.id}">🔊 朗读英文条文</button>
+          ${r.url?`<a class="sm ghost" href="${esc(r.url)}" target="_blank">查看原文 ↗</a>`:""}
+        </div>
+      </div>
+      <div class="reg-interp"><b>CRA 应用解读：</b>${esc(r.interp)}
+        <div class="muted small mts">关联：${esc(r.related)}</div></div>`:""}
+    </div>`;
+  }).join(""):`<div class="empty">没有匹配的法规；可清空筛选或更换关键词。</div>`}`;
+  /* 绑定筛选 */
+  $("#regOrg").onchange=e=>{regUI.org=e.target.value;renderRegLibrary();};
+  $("#regCat").onchange=e=>{regUI.cat=e.target.value;renderRegLibrary();};
+  $("#regQ").oninput=e=>{regUI.q=e.target.value;clearTimeout(window._rq);
+    window._rq=setTimeout(renderRegLibrary,300);};
+}
+/* 法规库按钮（展开/复制/朗读） */
+document.addEventListener("click",async e=>{
+  const t=e.target.closest("[data-act=regToggle],[data-act=regCopy],[data-act=regSpeak]");
+  if(!t)return;
+  const r=REG_LIBRARY.find(x=>x.id===t.dataset.id);if(!r)return;
+  if(t.dataset.act==="regToggle"){regUI.open=regUI.open===r.id?"":r.id;renderRegLibrary();}
+  else if(t.dataset.act==="regCopy"){
+    const txt=r.nameCN+" / "+r.name+"\nEN: "+r.clauseEN+"\nCN: "+r.clauseCN
+      +"\nCRA解读: "+r.interp;
+    try{await navigator.clipboard.writeText(txt);toast("条文已复制");}
+    catch(err){toast("复制失败，请手动选择文本");}
+  }else if(t.dataset.act==="regSpeak"){
+    if(window.speechSynthesis&&speechSynthesis.speaking){speechSynthesis.cancel();toast("已停止朗读");}
+    else{speak(r.clauseEN);toast("朗读中…");}
+  }
 });
 
 /* N / R 的实现已在核心段定义（randomReview 已支持优先到期词） */
@@ -3759,8 +4112,10 @@ function renderWords(){
     </div>
   </div>
   <div class="row gap wrap mts">
+    <button class="btn ok" data-act="wStart" data-id="daily">📅 今日任务（30 复习 + 30 新词）</button>
     ${WORD_MODES.map(m=>`<button class="btn ${wSession&&wSession.mode===m.id?"":"ghost"}" data-act="wStart" data-id="${m.id}">${m.name}</button>`).join("")}
-    <button class="sm ghost" data-act="wImport">导入词库(CSV/JSON)</button>
+    <button class="sm ghost" data-act="wMarket">在线词库市场</button>
+    <button class="sm ghost" data-act="wImport">批量导入(CSV/JSON)</button>
     <button class="sm ghost" data-act="wExport">导出学习记录</button>
     <input type="file" id="wordFile" accept=".csv,.json,.txt" class="hide">
   </div>
@@ -3779,9 +4134,15 @@ function startWordSession(mode){
   });
   let queue;
   if(mode==="review")queue=due;
+  else if(mode==="daily"){
+    // 每日新词：30 待复习 + 30 未学，交错排列避免疲劳
+    const rev=due.slice(0,30),nw=unseen.slice(0,30);
+    queue=[];const n=Math.max(rev.length,nw.length);
+    for(let i=0;i<n;i++){if(rev[i])queue.push(rev[i]);if(nw[i])queue.push(nw[i]);}
+  }
   else queue=due.concat(unseen,learning);
   const remain=Math.max(0,ws.dailyGoal-(ws.learnedDates[todayStr()]||0));
-  if(mode!=="review")queue=queue.slice(0,Math.max(ws.dailyGoal,remain,20));
+  if(mode!=="review"&&mode!=="daily")queue=queue.slice(0,Math.max(ws.dailyGoal,remain,20));
   if(!queue.length){wSession=null;$("#wArea").innerHTML=`<div class="empty">🎉 当前筛选条件下没有待学/待复习单词。</div>`;renderWords();return;}
   wSession={mode,bank,queue,idx:0,correct:0,wrong:0,flipped:false,opts:null,answered:false};
   renderWordItem();
@@ -3922,6 +4283,65 @@ function parseCsvLine(line){
   }
   out.push(cur);return out.map(s=>s.trim());
 }
+/* 在线词库市场：预设公共词源（CORS 友好的 raw GitHub） */
+const WORD_MARKET=[
+  {name:"Google 英文高频 10000（仅单词，配朗读）",
+   url:"https://raw.githubusercontent.com/first20hours/google-10000-english/master/google-10000-english-no-swears.txt"},
+  {name:"英语词表合集（CET/雅思等，mahavivo）",
+   url:"https://raw.githubusercontent.com/mahavivo/english-wordlists/master/IELTS_edited.txt"},
+  {name:"医学术语词表（示例源，可替换）",
+   url:"https://raw.githubusercontent.com/Glazzour/medical-vocabulary/main/medical.txt"}
+];
+function openWordMarket(){
+  openModal(`<div class="modal-head"><h3>在线词库市场</h3><button data-act="modalClose">✕</button></div>
+  <p class="muted small">一键拉取公共词源并合并进当前词库（自动去重）；若预设源失效，可在下方粘贴任意 raw JSON/CSV/TXT 链接。</p>
+  ${WORD_MARKET.map((m,i)=>`<div class="row space-between mts">
+    <span class="small">${m.name}</span>
+    <button class="sm" data-act="wMarketGet" data-url="${esc(m.url)}">导入</button></div>`).join("")}
+  <h4 class="mts">自定义链接</h4>
+  <div class="pw-wrap mts">
+    <input id="wMarketUrl" placeholder="https://raw.githubusercontent.com/…/words.json">
+    <button class="sm" data-act="wMarketGet" data-url="__custom__">拉取</button>
+  </div>
+  <p class="muted small mts">支持：JSON 数组 / {"words":[]} / CSV（word,phonetic,pos,meaning…）/ TXT（每行一词或“单词+Tab+释义”）。</p>`);
+}
+/* 把任意文本解析成词条并合并 */
+function ingestTextToBank(text,fileName){
+  let items=[];
+  const t=text.trim();
+  if(t[0]==="["||t[0]==="{"){
+    const data=JSON.parse(t);
+    items=Array.isArray(data)?data:(data.words||[]);
+  }else{
+    const lines=t.split(/\r?\n/).filter(l=>l.trim());
+    const start=(lines[0].toLowerCase().includes("word")&&lines[0].includes(","))?1:0;
+    items=lines.slice(start).map(l=>{
+      if(l.includes(",")){const c=parseCsvLine(l);
+        return {word:c[0],phonetic:c[1],pos:c[2],meaning:c[3],example:c[4],exampleCN:c[5],level:c[6]||1};}
+      const parts=l.split(/\t|\s{2,}/);
+      return {word:(parts[0]||"").trim(),meaning:(parts[1]||"").trim(),level:1};
+    });
+  }
+  const valid=items.filter(x=>x&&(typeof x==="string"||x.word))
+    .map(x=>typeof x==="string"?{word:x,meaning:"",level:1}:x);
+  const bank=WORD_BANKS.find(b=>b.id===state.wordStudy.bank);
+  const exist=new Set(bank.data.map(t=>t[0].toLowerCase()));
+  let n=0;
+  valid.forEach(x=>{const w=String(x.word).trim();
+    if(w&&!exist.has(w.toLowerCase())){
+      bank.data.push([w,x.phonetic||"",x.pos||"",x.meaning||"",x.example||"",x.exampleCN||"",Number(x.level)||1]);
+      exist.add(w.toLowerCase());n++;}});
+  state.wordStudy.extraLoaded=(state.wordStudy.extraLoaded||0)+n;
+  saveState();renderWords();
+  return {n,total:bank.data.length};
+}
+async function fetchAndIngest(url){
+  toast("正在拉取词源…");
+  const res=await fetch(url);
+  if(!res.ok)throw new Error("HTTP "+res.status);
+  const text=await res.text();
+  return ingestTextToBank(text,url);
+}
 function importWords(file){
   const r=new FileReader();
   r.onload=()=>{
@@ -3971,6 +4391,66 @@ function restorePreset(){
   location.reload();
 }
 
+/* ===== 侧边栏模块拖拽排序（HTML5 Drag and Drop） ===== */
+const DEFAULT_NAV=["dashboard","daily","chunks","words","sentence","projects","targets","jobs",
+  "myq","extq","reglib","answers","listening","plan","stats","search"];
+function navOrder(){return state.settings.navOrder&&state.settings.navOrder.length
+  ?state.settings.navOrder:DEFAULT_NAV;}
+/* 按保存顺序重排导航按钮 */
+function applyNavOrder(){
+  const nav=$("#nav");const order=navOrder();
+  order.forEach(id=>{
+    const b=nav.querySelector('button[data-view="'+id+'"]');
+    if(b)nav.appendChild(b); // 按顺序移动
+  });
+}
+let dragSrc=null;
+function bindNavSort(){
+  if(bindNavSort._bound)return;bindNavSort._bound=true;
+  const nav=$("#nav");
+  const setEdit=on=>{
+    nav.classList.toggle("nav-editing",on);
+    nav.querySelectorAll("button").forEach(b=>b.draggable=on);
+    $("#btnNavEdit").classList.toggle("hide",on);
+    $("#btnNavDone").classList.toggle("hide",!on);
+    $("#btnNavReset").classList.toggle("hide",!on);
+  };
+  $("#btnNavEdit").addEventListener("click",()=>setEdit(true));
+  $("#btnNavDone").addEventListener("click",()=>{
+    // 从 DOM 读取新顺序并保存
+    state.settings.navOrder=[...nav.querySelectorAll("button")].map(b=>b.dataset.view);
+    saveState();setEdit(false);toast("模块顺序已保存");
+  });
+  $("#btnNavReset").addEventListener("click",()=>{
+    state.settings.navOrder=null;saveState();applyNavOrder();setEdit(false);toast("已恢复默认排序");
+  });
+  nav.addEventListener("dragstart",e=>{
+    const b=e.target.closest("button");if(!b)return;
+    dragSrc=b;b.classList.add("dragging");
+    e.dataTransfer.effectAllowed="move";
+    try{e.dataTransfer.setData("text/plain",b.dataset.view);}catch(_){}
+  });
+  nav.addEventListener("dragend",e=>{
+    const b=e.target.closest("button");if(b)b.classList.remove("dragging");
+    nav.querySelectorAll("button").forEach(x=>x.classList.remove("drag-over"));
+  });
+  nav.addEventListener("dragover",e=>{
+    e.preventDefault();
+    const b=e.target.closest("button");
+    nav.querySelectorAll("button").forEach(x=>x.classList.remove("drag-over"));
+    if(b)b.classList.add("drag-over");
+  });
+  nav.addEventListener("drop",e=>{
+    e.preventDefault();
+    const target=e.target.closest("button");
+    if(!target||!dragSrc||target===dragSrc)return;
+    const btns=[...nav.querySelectorAll("button")];
+    const si=btns.indexOf(dragSrc),ti=btns.indexOf(target);
+    // 插入到目标之前/之后（按鼠标位置）
+    if(si<ti)target.after(dragSrc);else target.before(dragSrc);
+  });
+}
+
 /* 新模块的事件绑定（控件 change、文件导入、恢复预置） */
 function bindExtra(){
   if(bindExtra._bound)return;bindExtra._bound=true;
@@ -4007,14 +4487,16 @@ function init(){
     dashboard:renderDashboard, daily:renderDaily, chunks:renderChunks,
     words:renderWords, sentence:renderSentence, projects:renderProjects,
     targets:renderTargets, jobs:renderJobs, myq:renderMyQ,
-    extq:renderExtQ, answers:renderAnswers, listening:renderListening,
-    plan:renderPlan, stats:renderStats, search:renderSearch
+    extq:renderExtQ, reglib:renderRegLibrary, answers:renderAnswers,
+    listening:renderListening, plan:renderPlan, stats:renderStats, search:renderSearch
   });
   applyTheme();
+  applyNavOrder();   // 应用用户保存的模块排序
   /* 预渲染全部视图（保证项目文件输入等元素就位），默认显示仪表盘 */
   Object.entries(RENDERERS).forEach(([k,fn])=>{try{fn();}catch(err){console.warn(k,err);}});
   bindProjectFile();
   bindExtra();
+  bindNavSort();     // 启用拖拽排序
   switchView("dashboard");
   /* 已配置 Supabase 则后台静默拉取 */
   if(state.settings.supabaseUrl)refreshAll().then(()=>{if($("#view-daily").classList.contains("active"))renderDaily();});
