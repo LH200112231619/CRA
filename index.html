@@ -209,6 +209,9 @@ select[data-act=jbStatus]{padding:4px 6px;}
 .reg-interp{border-left:3px solid var(--green);padding-left:9px;margin:8px 0;font-size:13.5px;}
 .filterbar2{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0;}
 .filterbar2 select,.filterbar2 input{width:auto;flex:1;min-width:140px;}
+/* 翻译练习术语高亮 */
+.term-hit{background:var(--green-soft);color:var(--green);border-radius:4px;padding:0 3px;}
+.term-miss{background:rgba(217,160,25,.18);color:var(--amber);border-radius:4px;padding:0 3px;}
 </style>
 </head>
 <body>
@@ -243,6 +246,7 @@ select[data-act=jbStatus]{padding:4px 6px;}
   <button data-view="myq" draggable="false">我的面试题库</button>
   <button data-view="extq" draggable="false">外企面试题库</button>
   <button data-view="reglib" draggable="false">法规库</button>
+  <button data-view="trans" draggable="false">法规翻译练习</button>
   <button data-view="answers" draggable="false">答案库</button>
   <button data-view="listening" draggable="false">听力跟读</button>
   <button data-view="plan" draggable="false">周计划</button>
@@ -261,6 +265,7 @@ select[data-act=jbStatus]{padding:4px 6px;}
   <section class="view" id="view-myq"></section>
   <section class="view" id="view-extq"></section>
   <section class="view" id="view-reglib"></section>
+  <section class="view" id="view-trans"></section>
   <section class="view" id="view-answers"></section>
   <section class="view" id="view-listening"></section>
   <section class="view" id="view-plan"></section>
@@ -318,6 +323,17 @@ function speak(text,rate=1,onEnd){
   if(TTS_VOICE)u.voice=TTS_VOICE; u.lang=TTS_VOICE?TTS_VOICE.lang:"en-US"; u.rate=rate;
   u.onend=()=>{restoreTtsBtn();if(onEnd)onEnd();};
   u.onerror=()=>{restoreTtsBtn();if(onEnd)onEnd();};
+  speechSynthesis.speak(u);
+}
+/* 按语言朗读（中/英），自动挑选匹配语音；无匹配则交给默认语音 */
+function speakLang(text,lang="en-US",rate=1){
+  if(!TTS_SUPPORTED){toast("当前浏览器不支持朗读");return;}
+  speechSynthesis.cancel();restoreTtsBtn();
+  const voices=speechSynthesis.getVoices();
+  let v=voices.find(x=>x.lang===lang)||voices.find(x=>x.lang.startsWith(lang.slice(0,2)));
+  const u=new SpeechSynthesisUtterance(text);
+  if(v)u.voice=v; u.lang=v?v.lang:lang; u.rate=rate;
+  u.onend=restoreTtsBtn;u.onerror=restoreTtsBtn;
   speechSynthesis.speak(u);
 }
 /* 按钮式朗读：朗读中按钮变“■ 停止”，再点停止 */
@@ -2390,6 +2406,8 @@ function defaultState(){
     jobApps:[],                // 岗位投递追踪
     targetFav:{},              // 靶点收藏 {name:true}
     wordStudy:{bank:"med",dailyGoal:30,progress:{},learnedDates:{},extraLoaded:0},
+    transStudy:{dir:"zh2en",tab:"practice",fav:{},wrong:{},ratings:{},history:[],
+      filterCat:"",filterSrc:"",filterLv:"",q:"",curId:"",submitted:false},
     sentenceCount:0
   };
 }
@@ -2439,6 +2457,10 @@ function loadState(){
   state.jobApps=Array.isArray(raw.jobApps)?raw.jobApps:[];
   state.targetFav=raw.targetFav||{};
   state.wordStudy=Object.assign(d.wordStudy,raw.wordStudy||{});
+  // 翻译练习：合并用户数据（收藏/错题/历史），缺字段用默认
+  state.transStudy=Object.assign(d.transStudy,raw.transStudy||{});
+  state.transStudy.fav=Object.assign({},(raw.transStudy&&raw.transStudy.fav)||{});
+  state.transStudy.wrong=Object.assign({},(raw.transStudy&&raw.transStudy.wrong)||{});
   state.wordStudy.progress=(raw.wordStudy&&raw.wordStudy.progress)||{};
   state.wordStudy.learnedDates=(raw.wordStudy&&raw.wordStudy.learnedDates)||{};
   // 跨天重置每日任务
@@ -2510,6 +2532,7 @@ function nextPracticeItem(){
   if(v==="extq"&&window.extNext){window.extNext();}
   else if(v==="myq"&&window.myqNext){window.myqNext();}
   else if(v==="chunks"&&window.chunkNext){window.chunkNext();}
+  else if(v==="trans"&&window.transNext){window.transNext();}
   else {randomReview();}
 }
 function randomReview(){
@@ -3853,8 +3876,311 @@ const REG_LIBRARY=[
  interp:"区分 SAE 与 SUSAR；监查时核对报告时限、eCRF 与安全数据库一致。",
  related:"全部项目",url:"https://www.cde.org.cn/"}
 ];
+/* =====================================================================
+ * 法规翻译练习 TRANS_ITEMS（30 条；originalLang 决定练习方向）
+ * 字段：id,source,category,originalText,originalLang,referenceTranslation,lv,keyTerms
+ * ===================================================================== */
+const TRANS_ITEMS=[
+/* ---------- 英译中 15 条 ---------- */
+{id:"t01",source:"ICH E6(R2)",category:"GCP",originalLang:"en",lv:1,
+ originalText:"The rights, safety, and well-being of the trial subjects are the most important considerations and should prevail over interests of science and society.",
+ referenceTranslation:"受试者的权益、安全和健康是最重要的考虑因素，应高于科学和社会的利益。",
+ keyTerms:["rights, safety, and well-being","权益、安全和健康","prevail over","高于"]},
+{id:"t02",source:"ICH E6(R2)",category:"GCP",originalLang:"en",lv:1,
+ originalText:"Each individual involved in conducting a trial should be qualified by education, training, and experience to perform his or her respective tasks.",
+ referenceTranslation:"每位参与实施试验的人员均应具备相应的学历、培训和经验，以胜任其承担的任务。",
+ keyTerms:["qualified by education, training, and experience","具备学历、培训和经验","respective tasks","各自任务"]},
+{id:"t03",source:"ICH E6(R2)",category:"GCP",originalLang:"en",lv:2,
+ originalText:"Freely given informed consent should be obtained from every subject prior to clinical trial participation.",
+ referenceTranslation:"在受试者参加临床试验之前，应获得其自愿给予的知情同意。",
+ keyTerms:["freely given","自愿给予","informed consent","知情同意","prior to","在…之前"]},
+{id:"t04",source:"ICH E6(R2)",category:"数据完整性",originalLang:"en",lv:2,
+ originalText:"Source data should be attributable, legible, contemporaneous, original, and accurate, and changes to source data should not obscure the original entry.",
+ referenceTranslation:"源数据应可归属、清晰、同步、原始且准确，对源数据的更改不应遮盖原始记录。",
+ keyTerms:["attributable, legible, contemporaneous, original, accurate","可归属、清晰、同步、原始、准确","obscure","遮盖"]},
+{id:"t05",source:"ICH E6(R3)",category:"GCP",originalLang:"en",lv:3,
+ originalText:"The approach to designing, conducting, and recording clinical trials should be fit for purpose and proportionate to the risks to the rights and well-being of participants and to the reliability of the trial results.",
+ referenceTranslation:"设计、实施和记录临床试验的方法应适配用途，并与受试者权益和健康所面临的风险以及试验结果的可靠性相称。",
+ keyTerms:["fit for purpose","适配用途","proportionate","相称","reliability","可靠性"]},
+{id:"t06",source:"Declaration of Helsinki",category:"伦理",originalLang:"en",lv:1,
+ originalText:"The physician must consider the ethical, legal, and regulatory requirements for research involving human subjects as well as applicable international norms and standards.",
+ referenceTranslation:"医师必须考虑涉及人类受试者研究的伦理、法律和法规要求，以及适用的国际规范和标准。",
+ keyTerms:["ethical, legal, and regulatory requirements","伦理、法律和法规要求","norms and standards","规范和标准"]},
+{id:"t07",source:"Declaration of Helsinki",category:"伦理",originalLang:"en",lv:2,
+ originalText:"The research protocol must be submitted for consideration, comment, guidance, and approval to a properly constituted research ethics committee before the study begins.",
+ referenceTranslation:"研究方案必须在研究开始前提交给正式组建的研究伦理委员会，供其审议、提出意见、给予指导并获得批准。",
+ keyTerms:["research protocol","研究方案","research ethics committee","研究伦理委员会","approval","批准"]},
+{id:"t08",source:"FDA 2025 Dosage Optimization Draft",category:"核药",originalLang:"en",lv:3,
+ originalText:"Sponsors of therapeutic radiopharmaceuticals are encouraged to collect patient-specific dosimetry data to characterize the relationship between absorbed dose, efficacy, and toxicity.",
+ referenceTranslation:"鼓励治疗性放射性药物的申办者收集患者特异性剂量学数据，以阐明吸收剂量、疗效和毒性之间的关系。",
+ keyTerms:["therapeutic radiopharmaceuticals","治疗性放射性药物","patient-specific dosimetry","患者特异性剂量学","absorbed dose","吸收剂量"]},
+{id:"t09",source:"EMA Radiopharmaceuticals Guideline",category:"核药",originalLang:"en",lv:2,
+ originalText:"Each batch of a radiopharmaceutical should be assessed for radionuclide identity, radiochemical purity, sterility, and measured radioactivity before release.",
+ referenceTranslation:"每批放射性药品在放行前均应评估核素鉴别、放射化学纯度、无菌情况，并测定放射性活度。",
+ keyTerms:["radionuclide identity","核素鉴别","radiochemical purity","放射化学纯度","sterility","无菌","release","放行"]},
+{id:"t10",source:"IAEA Nuclear Medicine Safety",category:"辐射防护",originalLang:"en",lv:2,
+ originalText:"Justification, optimization of protection, and dose limitation are the fundamental principles of radiation protection applied in nuclear medicine practice.",
+ referenceTranslation:"防护的正当性、最优化和剂量限值是核医学实践中应用的辐射防护基本原则。",
+ keyTerms:["justification","正当性","optimization","最优化","dose limitation","剂量限值","radiation protection","辐射防护"]},
+{id:"t11",source:"IAEA Nuclear Medicine Safety",category:"辐射防护",originalLang:"en",lv:2,
+ originalText:"The administered activity should be verified by a qualified person before the radiopharmaceutical is given to the patient.",
+ referenceTranslation:"在给患者使用放射性药物之前，应由具备资质的人员核对给药活度。",
+ keyTerms:["administered activity","给药活度","verified","核对","qualified person","具备资质的人员"]},
+{id:"t12",source:"EANM/SNMMI 177Lu-PSMA Guidance",category:"核药",originalLang:"en",lv:3,
+ originalText:"Kidney protection using amino acid infusion and salivary gland protection measures should be applied during each cycle of 177Lu-PSMA radioligand therapy.",
+ referenceTranslation:"在 Lu-177-PSMA 放射配体治疗的每个周期，均应采取氨基酸输注的肾脏保护以及唾液腺保护措施。",
+ keyTerms:["amino acid infusion","氨基酸输注","kidney protection","肾脏保护","salivary gland","唾液腺","cycle","周期"]},
+{id:"t13",source:"ICH E6(R2)",category:"监查",originalLang:"en",lv:2,
+ originalText:"The monitor should verify that the trial data are accurately and completely recorded and that the investigator is conducting the trial in compliance with the approved protocol.",
+ referenceTranslation:"监查员应核实试验数据记录准确、完整，且研究者正按照经批准的方案实施试验。",
+ keyTerms:["monitor","监查员","accurately and completely","准确且完整","in compliance with","遵守"]},
+{id:"t14",source:"ICH E2A",category:"安全",originalLang:"en",lv:2,
+ originalText:"All serious adverse events should be reported immediately to the sponsor, and the sponsor should notify the regulatory authorities according to the applicable expedited reporting requirements.",
+ referenceTranslation:"所有严重不良事件均应立即报告申办者，申办者应按照适用的快速报告要求通知监管机构。",
+ keyTerms:["serious adverse event","严重不良事件","immediately","立即","expedited reporting","快速报告"]},
+{id:"t15",source:"ICH E6(R2)",category:"GCP",originalLang:"en",lv:1,
+ originalText:"The investigator should maintain the trial documents as specified in the essential documents list and as required by applicable regulatory requirements.",
+ referenceTranslation:"研究者应按照必需文件清单及适用法规要求保存试验文件。",
+ keyTerms:["essential documents","必需文件","maintain","保存","regulatory requirements","法规要求"]},
+/* ---------- 中译英 15 条 ---------- */
+{id:"t16",source:"NMPA GCP 2020",category:"GCP",originalLang:"zh",lv:1,
+ originalText:"临床试验应当符合《世界医学大会赫尔辛基宣言》原则及相关伦理要求。",
+ referenceTranslation:"Clinical trials should comply with the principles of the World Medical Association Declaration of Helsinki and relevant ethical requirements.",
+ keyTerms:["赫尔辛基宣言","Declaration of Helsinki","伦理要求","ethical requirements","符合","comply with"]},
+{id:"t17",source:"NMPA GCP 2020",category:"GCP",originalLang:"zh",lv:1,
+ originalText:"受试者的权益和安全是考虑的首要因素，优先于对科学和社会利益的考虑。",
+ referenceTranslation:"The rights and safety of the subjects are the most important considerations and take priority over the interests of science and society.",
+ keyTerms:["权益和安全","rights and safety","首要因素","most important considerations","优先于","take priority over"]},
+{id:"t18",source:"NMPA GCP 2020",category:"GCP",originalLang:"zh",lv:2,
+ originalText:"研究者应当向受试者或者其监护人如实说明临床试验的详细情况，并取得经签名并注明日期的书面知情同意书。",
+ referenceTranslation:"The investigator should truthfully explain the details of the clinical trial to the subject or the guardian, and obtain a written informed consent form that is signed and dated.",
+ keyTerms:["监护人","guardian","书面知情同意书","written informed consent form","签名并注明日期","signed and dated"]},
+{id:"t19",source:"NMPA GCP 2020",category:"安全",originalLang:"zh",lv:2,
+ originalText:"发生严重不良事件后，研究者应当立即向申办者书面报告，随后及时提供详尽的书面随访报告。",
+ referenceTranslation:"After a serious adverse event occurs, the investigator should immediately report it to the sponsor in writing, and then provide a detailed written follow-up report in a timely manner.",
+ keyTerms:["严重不良事件","serious adverse event","书面报告","report in writing","随访报告","follow-up report"]},
+{id:"t20",source:"NMPA GCP 2020",category:"GCP",originalLang:"zh",lv:2,
+ originalText:"申办者应当选用有资质的人员监督临床试验的实施、数据处理、数据核对、统计分析和试验总结报告的撰写。",
+ referenceTranslation:"The sponsor should select qualified personnel to oversee the conduct of the trial, data handling, data verification, statistical analysis, and preparation of the clinical trial report.",
+ keyTerms:["有资质的人员","qualified personnel","数据处理","data handling","数据核对","data verification","统计分析","statistical analysis"]},
+{id:"t21",source:"NMPA Radiodiagnostic Evaluation Guideline",category:"核药",originalLang:"zh",lv:3,
+ originalText:"放射性体内诊断药物的临床评价应当以灵敏度、特异度和诊断一致性等指标证明其诊断效能，并采用适宜的参考标准。",
+ referenceTranslation:"The clinical evaluation of an in vivo radiodiagnostic drug should demonstrate its diagnostic efficacy using endpoints such as sensitivity, specificity, and diagnostic agreement, with an appropriate reference standard.",
+ keyTerms:["放射性体内诊断药物","in vivo radiodiagnostic drug","灵敏度","sensitivity","特异度","specificity","参考标准","reference standard"]},
+{id:"t22",source:"NMPA Radioactive Drug Measures",category:"核药",originalLang:"zh",lv:2,
+ originalText:"放射性药品的使用单位应当具备相应的许可条件，操作人员须经辐射安全培训并持有岗位资质。",
+ referenceTranslation:"Institutions using radioactive drugs should meet the corresponding licensing conditions, and operators must receive radiation safety training and hold job qualifications.",
+ keyTerms:["放射性药品","radioactive drugs","许可条件","licensing conditions","辐射安全培训","radiation safety training","岗位资质","job qualifications"]},
+{id:"t23",source:"FDA 2025 Dosage Optimization Draft",category:"核药",originalLang:"zh",lv:3,
+ originalText:"建议申办者在治疗性放射性药物开发中，基于患者特异性或模型化方法优化给药活度。",
+ referenceTranslation:"Sponsors are advised to optimize the administered activity in therapeutic radiopharmaceutical development based on patient-specific or model-based approaches.",
+ keyTerms:["治疗性放射性药物","therapeutic radiopharmaceutical","给药活度","administered activity","患者特异性","patient-specific","模型化方法","model-based approaches"]},
+{id:"t24",source:"EMA Radiopharmaceuticals Guideline",category:"核药",originalLang:"zh",lv:2,
+ originalText:"放射性药品应当在符合要求的场所制备，并对其放射性核素纯度、放射化学纯度和无菌状况进行检验。",
+ referenceTranslation:"Radiopharmaceuticals should be prepared in compliant facilities, and their radionuclide purity, radiochemical purity, and sterility should be tested.",
+ keyTerms:["放射性核素纯度","radionuclide purity","放射化学纯度","radiochemical purity","无菌","sterility","符合要求的场所","compliant facilities"]},
+{id:"t25",source:"IAEA Nuclear Medicine Safety",category:"辐射防护",originalLang:"zh",lv:2,
+ originalText:"核医学工作人员应当佩戴个人剂量计，并在控制区内按照操作规程进行放射性药物的制备和给药。",
+ referenceTranslation:"Nuclear medicine staff should wear personal dosimeters and prepare and administer radiopharmaceuticals in controlled areas according to standard operating procedures.",
+ keyTerms:["个人剂量计","personal dosimeter","控制区","controlled area","操作规程","standard operating procedures","给药","administer"]},
+{id:"t26",source:"EANM/SNMMI 177Lu-PSMA Guidance",category:"核药",originalLang:"zh",lv:3,
+ originalText:"每次 Lu-177-PSMA 治疗后，应按规定时间点行 SPECT/CT 显像，用于评估体内分布和剂量学。",
+ referenceTranslation:"After each 177Lu-PSMA treatment, SPECT/CT imaging should be performed at the specified time points to assess biodistribution and dosimetry.",
+ keyTerms:["治疗","treatment","显像","imaging","时间点","time points","体内分布","biodistribution","剂量学","dosimetry"]},
+{id:"t27",source:"NMPA GCP 2020",category:"监查",originalLang:"zh",lv:2,
+ originalText:"监查员应当核实病例报告表中的数据与源文件一致，且所有数据的修改均留有痕迹并可追溯。",
+ referenceTranslation:"The monitor should verify that data in the case report form are consistent with source documents, and that all data changes leave an auditable and traceable trail.",
+ keyTerms:["病例报告表","case report form","源文件","source documents","一致","consistent","可追溯","traceable"]},
+{id:"t28",source:"NMPA Data Management Guideline",category:"数据完整性",originalLang:"zh",lv:2,
+ originalText:"数据管理应当保证数据库中数据的完整性、一致性和准确性，质疑应当及时发出并在解决后关闭。",
+ referenceTranslation:"Data management should ensure the integrity, consistency, and accuracy of data in the database; queries should be raised promptly and closed after resolution.",
+ keyTerms:["完整性","integrity","一致性","consistency","质疑","queries","解决","resolution"]},
+{id:"t29",source:"Declaration of Helsinki",category:"伦理",originalLang:"zh",lv:2,
+ originalText:"涉及人类受试者的研究必须在研究开始前将方案提交伦理委员会审查并获得书面批准。",
+ referenceTranslation:"Research involving human subjects must have the protocol submitted to an ethics committee for review and obtain written approval before the study begins.",
+ keyTerms:["伦理委员会","ethics committee","审查","review","书面批准","written approval"]},
+{id:"t30",source:"NMPA GCP 2020",category:"GCP",originalLang:"zh",lv:1,
+ originalText:"研究者和申办者应当按照规定保存临床试验必备文件，保存时间应当满足法规要求。",
+ referenceTranslation:"The investigator and the sponsor should retain the essential documents of the clinical trial as specified, and the retention period should meet regulatory requirements.",
+ keyTerms:["必备文件","essential documents","保存","retain","保存时间","retention period","法规要求","regulatory requirements"]}
+];
 
-/* ===== 法规库渲染 ===== */
+/* =====================================================================
+ * 法规翻译练习（中译英 / 英译中）
+ * ===================================================================== */
+/* 当前方向下、经筛选的条文池 */
+function transPool(){
+  const ts=state.transStudy;
+  const wantLang=ts.dir==="zh2en"?"zh":"en";
+  const q=ts.q.toLowerCase();
+  return TRANS_ITEMS.filter(it=>{
+    if(it.originalLang!==wantLang)return false;
+    if(ts.filterCat&&it.category!==ts.filterCat)return false;
+    if(ts.filterSrc&&it.source!==ts.filterSrc)return false;
+    if(ts.filterLv&&String(it.lv)!==ts.filterLv)return false;
+    if(q&&!(it.originalText.toLowerCase().includes(q)
+      ||it.referenceTranslation.includes(ts.q)
+      ||it.source.toLowerCase().includes(q)))return false;
+    return true;
+  });
+}
+/* 统计：已自评条数、正确率（好=正确）、收藏、错题 */
+function transStats(){
+  const ts=state.transStudy;
+  const ids=Object.keys(ts.ratings);
+  const good=ids.filter(id=>ts.ratings[id]===3).length;
+  return {practiced:ids.length,acc:ids.length?Math.round(good/ids.length*100):0,
+    good,fav:Object.keys(ts.fav).length,wrong:Object.keys(ts.wrong).length};
+}
+/* 参考译文中高亮关键术语：用户译文中出现=绿（译对），缺失=橙（漏译） */
+function highlightRef(it,userText){
+  let html=esc(it.referenceTranslation);
+  for(let i=0;i<it.keyTerms.length;i+=2){
+    const a=it.keyTerms[i],b=it.keyTerms[i+1];
+    // 自动识别一对术语里哪个是中文、哪个是英文
+    const aIsZh=/[\u4e00-\u9fff]/.test(a);
+    const enTerm=aIsZh?b:a, zhTerm=aIsZh?a:b;
+    const term=it.originalLang==="zh"?enTerm:zhTerm; // 目标语术语
+    if(!term)continue;
+    const hit=userText.toLowerCase().includes(term.toLowerCase());
+    const marked='<mark class="'+(hit?"term-hit":"term-miss")+'">'+esc(term)+"</mark>";
+    html=html.split(esc(term)).join(marked);   // 字面量替换全部出现
+  }
+  return html;
+}
+function renderTrans(){
+  const ts=state.transStudy;
+  const pool=transPool();
+  /* 当前题须在池中，否则取第一条 */
+  let cur=TRANS_ITEMS.find(x=>x.id===ts.curId&&pool.includes(x));
+  if(!cur){cur=pool[0];ts.curId=cur?cur.id:"";ts.submitted=false;ts.draft="";}
+  const wantLang=ts.dir==="zh2en"?"zh":"en";
+  const cats=[...new Set(TRANS_ITEMS.filter(x=>x.originalLang===wantLang).map(x=>x.category))];
+  const srcs=[...new Set(TRANS_ITEMS.filter(x=>x.originalLang===wantLang).map(x=>x.source))];
+  const st=transStats();
+  /* 收藏夹/错题本列表 */
+  const listView=(ids,empty)=>{
+    const items=ids.map(id=>TRANS_ITEMS.find(x=>x.id===id)).filter(Boolean);
+    if(!items.length)return `<div class="empty">${empty}</div>`;
+    return items.map(it=>`<div class="card mts">
+      <div class="reg-meta"><span class="chip">${esc(it.source)}</span>
+        <span class="chip">${esc(it.category)}</span>
+        <span class="chip">${LEVELS[it.lv]}</span></div>
+      <p>${esc(it.originalText)}</p>
+      <div class="row gap wrap">
+        <button class="sm" data-act="transGo" data-id="${it.id}">去练习</button>
+        <button class="sm ghost" data-act="transSpeak" data-id="${it.id}" data-which="orig">🔊 朗读原文</button>
+      </div></div>`).join("");
+  };
+  $("#view-trans").innerHTML=`
+  <h2 class="page">法规翻译练习 <span class="muted">（GCP / 伦理 / 核药条文中英互译）</span></h2>
+  <div class="filterbar">
+    <button class="sm ${ts.dir==="zh2en"?"primary":""}" data-act="transDir" data-v="zh2en">中译英</button>
+    <button class="sm ${ts.dir==="en2zh"?"primary":""}" data-act="transDir" data-v="en2zh">英译中</button>
+    <select id="trCat"><option value="">全部分类</option>
+      ${cats.map(c=>`<option ${ts.filterCat===c?"selected":""}>${c}</option>`).join("")}</select>
+    <select id="trSrc"><option value="">全部来源</option>
+      ${srcs.map(s=>`<option ${ts.filterSrc===s?"selected":""}>${s}</option>`).join("")}</select>
+    <select id="trLv"><option value="">全部难度</option>
+      ${[1,2,3].map(l=>`<option value="${l}" ${ts.filterLv===String(l)?"selected":""}>${LEVELS[l]}</option>`).join("")}</select>
+    <input class="grow" id="trQ" placeholder="搜索来源 / 原文 / 译文" value="${esc(ts.q)}">
+  </div>
+  <div class="row gap wrap mts">
+    <button class="sm ${ts.tab==="practice"?"primary":""}" data-act="transTab" data-v="practice">练习</button>
+    <button class="sm ${ts.tab==="fav"?"primary":""}" data-act="transTab" data-v="fav">⭐ 收藏夹（${st.fav}）</button>
+    <button class="sm ${ts.tab==="wrong"?"primary":""}" data-act="transTab" data-v="wrong">📕 错题本（${st.wrong}）</button>
+  </div>
+  ${ts.tab==="practice"?(cur?`
+  <div class="card mts">
+    <div class="reg-meta">
+      <span class="chip">${esc(cur.source)}</span><span class="chip">${esc(cur.category)}</span>
+      <span class="chip">${LEVELS[cur.lv]}</span>
+      <span class="chip">${ts.dir==="zh2en"?"请翻译成英文":"请翻译成中文"}</span>
+    </div>
+    <div class="reg-clause">
+      <p>${esc(cur.originalText)}</p>
+      <button class="sm" data-act="transSpeak" data-id="${cur.id}" data-which="orig">🔊 朗读原文</button>
+    </div>
+    <div class="field mts">
+      <label>我的译文</label>
+      <textarea id="transInput" placeholder="${ts.dir==="zh2en"?"Type your English translation here…":"在此输入中文译文…"}" style="min-height:120px">${esc(ts.draft||"")}</textarea>
+    </div>
+    <div class="row gap wrap">
+      <button class="primary" data-act="transSubmit">提交 / 对照参考译文</button>
+      <button class="ghost" data-act="transFav" data-id="${cur.id}">${ts.fav[cur.id]?"⭐ 已收藏":"☆ 收藏"}</button>
+      <button data-act="transNext">下一题（N）</button>
+    </div>
+    ${ts.submitted?`
+    <div class="reg-clause mts">
+      <p class="muted small">参考译文（绿色=你译出的关键术语，橙色=可能漏译）：</p>
+      <p>${highlightRef(cur,(ts.draft||""))}</p>
+      <button class="sm" data-act="transSpeak" data-id="${cur.id}" data-which="ref">🔊 朗读参考译文</button>
+    </div>
+    <div class="mts"><label>自评（“好”计入正确，差/一般自动进错题本）</label>
+      <div class="row gap wrap mts">
+        ${[1,2,3].map(v=>`<button class="sm ${ts.ratings[cur.id]===v?"primary":""}" data-act="transRate" data-v="${v}">${["","差","一般","好"][v]}</button>`).join("")}
+      </div>
+    </div>`:`<p class="muted small mts">提交后显示参考译文与关键术语对照。</p>`}
+  </div>
+  <div class="grid grid4 mts">
+    <div class="card stat"><div class="num">${st.practiced}</div><div class="lbl">已练条数</div></div>
+    <div class="card stat"><div class="num">${st.acc}%</div><div class="lbl">正确率</div></div>
+    <div class="card stat"><div class="num">${st.fav}</div><div class="lbl">收藏</div></div>
+    <div class="card stat"><div class="num">${st.wrong}</div><div class="lbl">错题</div></div>
+  </div>`:`<div class="empty">当前筛选条件下没有条文，请调整筛选条件。</div>`)
+  :ts.tab==="fav"?listView(Object.keys(ts.fav),"暂无收藏，去练习中点击☆收藏条文吧")
+  :listView(Object.keys(ts.wrong),"错题本为空；自评“差/一般”的条文会自动收录到这里。")}`;
+  /* 绑定筛选与输入 */
+  if($("#trCat"))$("#trCat").onchange=e=>{ts.filterCat=e.target.value;ts.submitted=false;renderTrans();};
+  if($("#trSrc"))$("#trSrc").onchange=e=>{ts.filterSrc=e.target.value;ts.submitted=false;renderTrans();};
+  if($("#trLv"))$("#trLv").onchange=e=>{ts.filterLv=e.target.value;ts.submitted=false;renderTrans();};
+  if($("#trQ"))$("#trQ").oninput=e=>{ts.q=e.target.value;clearTimeout(window._trq);
+    window._trq=setTimeout(renderTrans,300);};
+  if($("#transInput"))$("#transInput").oninput=e=>{ts.draft=e.target.value;};
+}
+/* 下一题（随机，避免连重） */
+window.transNext=function(){
+  const ts=state.transStudy,p=transPool();
+  if(!p.length){toast("当前筛选下没有更多条文");return;}
+  let next;do{next=p[Math.floor(Math.random()*p.length)];}
+  while(p.length>1&&next.id===ts.curId);
+  ts.curId=next.id;ts.submitted=false;ts.draft="";
+  renderTrans();
+};
+/* 翻译模块按钮事件委托 */
+document.addEventListener("click",e=>{
+  const b=e.target.closest("[data-act^=trans]");if(!b)return;
+  const ts=state.transStudy,act=b.dataset.act;
+  if(act==="transDir"){ts.dir=b.dataset.v;ts.curId="";ts.submitted=false;ts.draft="";renderTrans();}
+  else if(act==="transTab"){ts.tab=b.dataset.v;renderTrans();}
+  else if(act==="transGo"){ts.curId=b.dataset.id;ts.tab="practice";ts.submitted=false;ts.draft="";renderTrans();}
+  else if(act==="transSubmit"){
+    const t=($("#transInput")||{}).value;
+    if(!t||!t.trim()){toast("请先输入译文再提交");return;}
+    ts.draft=t.trim();ts.submitted=true;saveState();renderTrans();toast("已对照参考译文");
+  }else if(act==="transRate"){
+    const id=ts.curId,v=Number(b.dataset.v);
+    ts.ratings[id]=v;
+    ts.history.push({date:todayStr(),id,dir:ts.dir,rating:v});
+    if(v<3)ts.wrong[id]=true;else delete ts.wrong[id];
+    saveState();renderTrans();
+    toast(["","已记录：差，已加入错题本","已记录：一般，已加入错题本","已记录：好，很棒！"][v]);
+  }else if(act==="transFav"){
+    const id=b.dataset.id;
+    if(ts.fav[id]){delete ts.fav[id];toast("已取消收藏");}
+    else{ts.fav[id]=true;toast("已收藏，可在收藏夹集中复习");}
+    saveState();renderTrans();
+  }else if(act==="transNext"){window.transNext();}
+  else if(act==="transSpeak"){
+    const it=TRANS_ITEMS.find(x=>x.id===b.dataset.id);if(!it)return;
+    const text=b.dataset.which==="orig"?it.originalText:it.referenceTranslation;
+    const lang=b.dataset.which==="orig"
+      ?(it.originalLang==="zh"?"zh-CN":"en-US")
+      :(it.originalLang==="zh"?"en-US":"zh-CN");
+    speakLang(text,lang);
+  }
+});
+
 let regUI={q:"",org:"",cat:"",open:""};
 function renderRegLibrary(){
   const orgs=[...new Set(REG_LIBRARY.map(r=>r.org))];
@@ -4393,15 +4719,20 @@ function restorePreset(){
 
 /* ===== 侧边栏模块拖拽排序（HTML5 Drag and Drop） ===== */
 const DEFAULT_NAV=["dashboard","daily","chunks","words","sentence","projects","targets","jobs",
-  "myq","extq","reglib","answers","listening","plan","stats","search"];
+  "myq","extq","reglib","trans","answers","listening","plan","stats","search"];
 function navOrder(){return state.settings.navOrder&&state.settings.navOrder.length
   ?state.settings.navOrder:DEFAULT_NAV;}
-/* 按保存顺序重排导航按钮 */
+/* 按保存顺序重排导航按钮（新增模块自动补到默认位置） */
 function applyNavOrder(){
   const nav=$("#nav");const order=navOrder();
   order.forEach(id=>{
     const b=nav.querySelector('button[data-view="'+id+'"]');
     if(b)nav.appendChild(b); // 按顺序移动
+  });
+  // 兜底：保存顺序里没有的新按钮，按默认顺序追加
+  DEFAULT_NAV.forEach(id=>{
+    const b=nav.querySelector('button[data-view="'+id+'"]');
+    if(b&&!order.includes(id))nav.appendChild(b);
   });
 }
 let dragSrc=null;
@@ -4487,7 +4818,7 @@ function init(){
     dashboard:renderDashboard, daily:renderDaily, chunks:renderChunks,
     words:renderWords, sentence:renderSentence, projects:renderProjects,
     targets:renderTargets, jobs:renderJobs, myq:renderMyQ,
-    extq:renderExtQ, reglib:renderRegLibrary, answers:renderAnswers,
+    extq:renderExtQ, reglib:renderRegLibrary, trans:renderTrans, answers:renderAnswers,
     listening:renderListening, plan:renderPlan, stats:renderStats, search:renderSearch
   });
   applyTheme();
